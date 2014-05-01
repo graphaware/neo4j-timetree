@@ -18,7 +18,7 @@
     <modelVersion>4.0.0</modelVersion>
 
     <artifactId>timetree</artifactId>
-    <version>2.0.3.2.1</version>
+    <version>2.0.3.2.1-SNAPSHOT</version>
     <packaging>jar</packaging>
 
     <parent>
@@ -40,16 +40,16 @@
     </licenses>
 
     <scm>
-        <connection>scm:git:git@github.com:graphaware/timetree.git</connection>
-        <developerConnection>scm:git:git@github.com:graphaware/timetree.git</developerConnection>
-        <url>git@github.com:graphaware/timetree.git</url>
+        <connection>scm:git:git@github.com:graphaware/neo4j-timetree.git</connection>
+        <developerConnection>scm:git:git@github.com:graphaware/neo4j-timetree.git</developerConnection>
+        <url>git@github.com:graphaware/neo4j-timetree.git</url>
     </scm>
 
     <developers>
         <developer>
             <id>bachmanm</id>
             <name>Michal Bachman</name>
-            <email>timetree@graphaware.com</email>
+            <email>neo4j-timetree@graphaware.com</email>
         </developer>
     </developers>
 

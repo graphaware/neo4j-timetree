@@ -59,7 +59,7 @@ day, you would create a node labelled `Email` and link it to a node labelled `Da
 In order to be able to ask interesting queries, such as "show me all emails sent in a specific month", people <a href="http://neo4j.com/blog/modeling-a-multilevel-index-in-neoj4/" target="_blank">often built</a>
 a time-tree in Neo4j with a root, years on the first level, months on the second level, etc. Something like this:
 
-![time tree](https://github.com/graphaware/neo4j-timetree/raw/master/docs/image2.pdf)
+![time tree](https://github.com/graphaware/neo4j-timetree/raw/master/docs/image2.jpg)
 
 One way of building such tree is of course pre-generating it, for instance using a Cypher query. Michael Huger has written
 about that here.

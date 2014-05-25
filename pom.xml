@@ -54,6 +54,23 @@
         </developer>
     </developers>
 
+    <ciManagement>
+        <url>https://travis-ci.org/graphaware/neo4j-timetree</url>
+        <system>Travis CI</system>
+    </ciManagement>
+
+    <inceptionYear>2013</inceptionYear>
+
+    <issueManagement>
+        <system>GitHub</system>
+        <url>https://github.com/graphaware/neo4j-timetree/issues</url>
+    </issueManagement>
+
+    <organization>
+        <name>Graph Aware Limited</name>
+        <url>http://graphaware.com</url>
+    </organization>
+
     <properties>
         <java.version>1.7</java.version>
         <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>

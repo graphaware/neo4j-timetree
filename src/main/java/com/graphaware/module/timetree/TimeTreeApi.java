@@ -43,7 +43,7 @@ public class TimeTreeApi {
         timeTree = new TimeTreeImpl(database);
     }
 
-    @RequestMapping(value = "/{time}", method = RequestMethod.GET)
+    @RequestMapping(value = "/{time}", method = RequestMethod.POST)
     @ResponseBody
     public long getInstant(
             @PathVariable(value = "time") long timeParam,
@@ -60,7 +60,7 @@ public class TimeTreeApi {
         return result;
     }
 
-    @RequestMapping(value = "/now", method = RequestMethod.GET)
+    @RequestMapping(value = "/now", method = RequestMethod.POST)
     @ResponseBody
     public long getNow(
             @RequestParam(value = "resolution", required = false) String resolutionParam,

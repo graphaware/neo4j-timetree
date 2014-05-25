@@ -24,6 +24,7 @@ import org.junit.Test;
 
 import static com.graphaware.test.unit.GraphUnit.assertSameGraph;
 import static com.graphaware.test.util.TestUtils.get;
+import static com.graphaware.test.util.TestUtils.post;
 import static org.junit.Assert.assertEquals;
 
 /**
@@ -37,7 +38,7 @@ public class TimeTreeApiTest extends ApiTest {
         long dateInMillis = dateToMillis(2013, 5, 4);
 
         //When
-        String result = get(getUrl() + dateInMillis, HttpStatus.SC_OK);
+        String result = post(getUrl() + dateInMillis, "", HttpStatus.SC_OK);
 
         //Then
         assertSameGraph(getDatabase(), "CREATE" +
@@ -61,7 +62,7 @@ public class TimeTreeApiTest extends ApiTest {
         long dateInMillis = new DateTime(2014, 4, 5, 13, 56, 22, 123, DateTimeZone.UTC).getMillis();
 
         //When
-        String result = get(getUrl() + dateInMillis + "?resolution=millisecond&timezone=GMT%2B1", HttpStatus.SC_OK);
+        String result = post(getUrl() + dateInMillis + "?resolution=millisecond&timezone=GMT%2B1", "", HttpStatus.SC_OK);
 
         //Then
         assertSameGraph(getDatabase(), "CREATE" +
@@ -97,7 +98,7 @@ public class TimeTreeApiTest extends ApiTest {
         DateTime now = DateTime.now(DateTimeZone.UTC);
 
         //When
-        String result = get(getUrl() + "now", HttpStatus.SC_OK);
+        String result = post(getUrl() + "now", "", HttpStatus.SC_OK);
 
         //Then
         assertSameGraph(getDatabase(), "CREATE" +

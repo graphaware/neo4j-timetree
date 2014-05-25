@@ -18,12 +18,11 @@ package com.graphaware.module.timetree;
 
 import com.graphaware.test.integration.IntegrationTest;
 import org.eclipse.jetty.http.HttpStatus;
-import org.junit.Before;
 import org.junit.Test;
 
 import java.io.IOException;
 
-import static com.graphaware.test.util.TestUtils.get;
+import static com.graphaware.test.util.TestUtils.post;
 
 /**
  * {@link IntegrationTest} for {@link TimeTree} module and {@link TimeTreeApi}.
@@ -32,6 +31,6 @@ public class TimeTreeIntegrationTest extends IntegrationTest {
 
     @Test
     public void graphAwareApisAreMountedWhenPresentOnClasspath() throws InterruptedException, IOException {
-        get("http://localhost:7474/graphaware/timetree/now/", HttpStatus.OK_200);
+        post("http://localhost:7474/graphaware/timetree/now/", "", HttpStatus.OK_200);
     }
 }

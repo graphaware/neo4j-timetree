@@ -61,10 +61,7 @@ a time-tree in Neo4j with a root, years on the first level, months on the second
 
 ![time tree](https://github.com/graphaware/neo4j-timetree/raw/master/docs/image2.jpg)
 
-One way of building such tree is of course pre-generating it, for instance using a Cypher query. Michael Huger has written
-about that here.
-
-The approach taken by GraphAware TimeTree is to build the tree on-demand, as nodes representing time instants are requested.
+One way of building such tree is of course pre-generating it, for instance using a Cypher query. The approach taken by GraphAware TimeTree is to build the tree on-demand, as nodes representing time instants are requested.
 For example, you can ask the library "give me a node representing 24th May 2014". You'll get the node (Java) or its ID (REST) and can start linking to it.
 In the background, a node representing May (labelled `Month`) and a node representing 2014 (labelled `Year`) will be created,
 if they do not exist. Links between nodes on the same level as well as between levels are automatically maintained.

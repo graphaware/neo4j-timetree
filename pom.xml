@@ -80,21 +80,6 @@
 
     <dependencies>
 
-        <!-- GraphAware Framework -->
-        <dependency>
-            <groupId>com.graphaware.neo4j</groupId>
-            <artifactId>common</artifactId>
-            <version>${graphaware.version}</version>
-            <scope>provided</scope>
-        </dependency>
-
-        <dependency>
-            <groupId>com.graphaware.neo4j</groupId>
-            <artifactId>api</artifactId>
-            <version>${graphaware.version}</version>
-            <scope>provided</scope>
-        </dependency>
-
         <!-- Spring Framework -->
         <dependency>
             <groupId>org.springframework</groupId>

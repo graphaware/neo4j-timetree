@@ -54,7 +54,7 @@ TimeTree allows you to represent events as nodes and link them to nodes represen
 the time of the event's occurrence. For instance, if you wanted to express the fact that an email was sent on a specific
 day, you would create a node labelled `Email` and link it to a node labelled `Day` using a `SENT_ON` relationship.
 
-![email linked to day](https://github.com/graphaware/neo4j-timetree/raw/master/docs/image1.jpg)
+![email linked to day](https://github.com/graphaware/neo4j-timetree/raw/master/docs/image.jpg)
 
 In order to be able to ask interesting queries, such as "show me all emails sent in a specific month", people <a href="http://neo4j.com/blog/modeling-a-multilevel-index-in-neoj4/" target="_blank">often built</a>
 a time-tree in Neo4j with a root, years on the first level, months on the second level, etc. Something like this:

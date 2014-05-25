@@ -22,6 +22,12 @@
     <artifactId>timetree</artifactId>
     <version>2.0.3.4.2-SNAPSHOT</version>
 
+    <parent>
+        <groupId>org.sonatype.oss</groupId>
+        <artifactId>oss-parent</artifactId>
+        <version>7</version>
+    </parent>
+
     <name>GraphAware TimeTree Module</name>
     <description>GraphAware Framework Module for creating a time tree for representing time series data</description>
     <url>http://graphaware.com</url>

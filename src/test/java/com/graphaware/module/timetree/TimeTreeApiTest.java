@@ -21,9 +21,10 @@ import org.apache.http.HttpStatus;
 import org.joda.time.DateTime;
 import org.joda.time.DateTimeZone;
 import org.junit.Test;
+import org.neo4j.graphdb.DynamicLabel;
+import org.neo4j.graphdb.Transaction;
 
 import static com.graphaware.test.unit.GraphUnit.assertSameGraph;
-import static com.graphaware.test.util.TestUtils.get;
 import static com.graphaware.test.util.TestUtils.post;
 import static org.junit.Assert.assertEquals;
 
@@ -43,6 +44,35 @@ public class TimeTreeApiTest extends ApiTest {
         //Then
         assertSameGraph(getDatabase(), "CREATE" +
                 "(root:TimeTreeRoot)," +
+                "(root)-[:FIRST]->(year:Year {value:2013})," +
+                "(root)-[:CHILD]->(year)," +
+                "(root)-[:LAST]->(year)," +
+                "(year)-[:FIRST]->(month:Month {value:5})," +
+                "(year)-[:CHILD]->(month)," +
+                "(year)-[:LAST]->(month)," +
+                "(month)-[:FIRST]->(day:Day {value:4})," +
+                "(month)-[:CHILD]->(day)," +
+                "(month)-[:LAST]->(day)");
+
+        assertEquals("3", result);
+    }
+
+    @Test
+    public void trivialTreeShouldBeCreatedWhenFirstDayIsRequestedWithCustomRoot() {
+        //Given
+        long dateInMillis = dateToMillis(2013, 5, 4);
+
+        //When
+        try (Transaction tx = getDatabase().beginTx()) {
+            getDatabase().createNode(DynamicLabel.label("CustomRoot"));
+            tx.success();
+        }
+
+        String result = post(getUrl() + "/0/" + dateInMillis, "", HttpStatus.SC_OK);
+
+        //Then
+        assertSameGraph(getDatabase(), "CREATE" +
+                "(root:CustomRoot)," +
                 "(root)-[:FIRST]->(year:Year {value:2013})," +
                 "(root)-[:CHILD]->(year)," +
                 "(root)-[:LAST]->(year)," +
@@ -103,6 +133,35 @@ public class TimeTreeApiTest extends ApiTest {
         //Then
         assertSameGraph(getDatabase(), "CREATE" +
                 "(root:TimeTreeRoot)," +
+                "(root)-[:FIRST]->(year:Year {value:" + now.getYear() + "})," +
+                "(root)-[:CHILD]->(year)," +
+                "(root)-[:LAST]->(year)," +
+                "(year)-[:FIRST]->(month:Month {value:" + now.getMonthOfYear() + "})," +
+                "(year)-[:CHILD]->(month)," +
+                "(year)-[:LAST]->(month)," +
+                "(month)-[:FIRST]->(day:Day {value:" + now.getDayOfMonth() + "})," +
+                "(month)-[:CHILD]->(day)," +
+                "(month)-[:LAST]->(day)");
+
+        assertEquals("3", result);
+    }
+
+    @Test
+    public void trivialTreeShouldBeCreatedWhenTodayIsRequestedWithCustomRoot() {
+        //Given
+        DateTime now = DateTime.now(DateTimeZone.UTC);
+
+        //When
+        try (Transaction tx = getDatabase().beginTx()) {
+            getDatabase().createNode(DynamicLabel.label("CustomRoot"));
+            tx.success();
+        }
+
+        String result = post(getUrl() + "/0/now", "", HttpStatus.SC_OK);
+
+        //Then
+        assertSameGraph(getDatabase(), "CREATE" +
+                "(root:CustomRoot)," +
                 "(root)-[:FIRST]->(year:Year {value:" + now.getYear() + "})," +
                 "(root)-[:CHILD]->(year)," +
                 "(root)-[:LAST]->(year)," +

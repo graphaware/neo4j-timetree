@@ -60,6 +60,24 @@ public class TimeTreeApi {
         return result;
     }
 
+    @RequestMapping(value = "/{rootNodeId}/{time}", method = RequestMethod.POST)
+    @ResponseBody
+    public long getInstantWithCustomRoot(
+            @PathVariable(value = "rootNodeId") long rootNodeId,
+            @PathVariable(value = "time") long timeParam,
+            @RequestParam(value = "resolution", required = false) String resolutionParam,
+            @RequestParam(value = "timezone", required = false) String timeZoneParam) {
+
+        long result;
+
+        try (Transaction tx = database.beginTx()) {
+            result = new CustomRootTimeTree(database.getNodeById(rootNodeId)).getInstant(timeParam, resolveTimeZone(timeZoneParam), resolveResolution(resolutionParam)).getId();
+            tx.success();
+        }
+
+        return result;
+    }
+
     @RequestMapping(value = "/now", method = RequestMethod.POST)
     @ResponseBody
     public long getNow(
@@ -70,6 +88,23 @@ public class TimeTreeApi {
 
         try (Transaction tx = database.beginTx()) {
             result = timeTree.getNow(resolveTimeZone(timeZoneParam), resolveResolution(resolutionParam)).getId();
+            tx.success();
+        }
+
+        return result;
+    }
+
+    @RequestMapping(value = "/{rootNodeId}/now", method = RequestMethod.POST)
+    @ResponseBody
+    public long getNowWithCustomRoot(
+            @PathVariable(value = "rootNodeId") long rootNodeId,
+            @RequestParam(value = "resolution", required = false) String resolutionParam,
+            @RequestParam(value = "timezone", required = false) String timeZoneParam) {
+
+        long result;
+
+        try (Transaction tx = database.beginTx()) {
+            result = new CustomRootTimeTree(database.getNodeById(rootNodeId)).getNow(resolveTimeZone(timeZoneParam), resolveResolution(resolutionParam)).getId();
             tx.success();
         }
 

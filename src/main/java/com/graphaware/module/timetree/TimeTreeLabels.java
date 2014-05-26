@@ -46,12 +46,11 @@ public enum TimeTreeLabels implements Label
     }
 
     /**
-     * Get the label representing a resolution one level lower than represented by the given node. The node must be
-     * from a GraphAware TimeTree
+     * Get the label representing a resolution one level lower than represented by the given node. If the node isn't
+     * from GraphAware time tree, {@link #Year} is returned by default.
      *
      * @param node to find child label for.
      * @return child label.
-     * @throws IllegalArgumentException in case the given node is not from GraphAware TimeTree.
      */
     public static Label getChild(Node node) {
         for (Label label : node.getLabels()) {
@@ -62,6 +61,6 @@ public enum TimeTreeLabels implements Label
             }
         }
 
-        throw new IllegalArgumentException("Node " + node.toString() + " is not from the GraphAware TimeTree. This is a bug.");
+        return Year;
     }
 }

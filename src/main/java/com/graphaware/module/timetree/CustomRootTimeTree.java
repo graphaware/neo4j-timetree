@@ -19,37 +19,40 @@ package com.graphaware.module.timetree;
 import org.joda.time.DateTimeZone;
 import org.neo4j.graphdb.Node;
 
+/**
+ * An implementation of {@link TimeTree} which can have a custom time tree root provided to it. Thus, it allows for many
+ * different time trees within a single graph. The default {@link Resolution}, if one is not explicitly provided using the constructor or one of the public methods,
+ * is {@link Resolution#DAY}. The default {@link DateTimeZone}, if one is not explicitly provided, is UTC.
+ */
 public class CustomRootTimeTree extends SingleTimeTree {
 
-    private final Node customRoot;
+    private final Node root;
 
-    public CustomRootTimeTree(Node customRoot)
-    {
-        super(customRoot.getGraphDatabase());
-        this.customRoot = customRoot;
+    public CustomRootTimeTree(Node root) {
+        super(root.getGraphDatabase());
+        this.root = root;
     }
 
-    public CustomRootTimeTree( Node customRoot, Resolution resolution)
-    {
-        super(customRoot.getGraphDatabase(), resolution);
-        this.customRoot = customRoot;
+    public CustomRootTimeTree(Node root, Resolution resolution) {
+        super(root.getGraphDatabase(), resolution);
+        this.root = root;
     }
 
-    public CustomRootTimeTree( Node customRoot, DateTimeZone timeZone)
-    {
-        super(customRoot.getGraphDatabase(), timeZone);
-        this.customRoot = customRoot;
+    public CustomRootTimeTree(Node root, DateTimeZone timeZone) {
+        super(root.getGraphDatabase(), timeZone);
+        this.root = root;
     }
 
-    public CustomRootTimeTree(Node customRoot, DateTimeZone timeZone, Resolution resolution)
-    {
-        super(customRoot.getGraphDatabase(), timeZone, resolution);
-        this.customRoot = customRoot;
+    public CustomRootTimeTree(Node root, DateTimeZone timeZone, Resolution resolution) {
+        super(root.getGraphDatabase(), timeZone, resolution);
+        this.root = root;
     }
 
+    /**
+     * {@inheritDoc}
+     */
     @Override
-    protected Node getTimeRoot()
-    {
-        return customRoot;
+    protected Node getTimeRoot() {
+        return root;
     }
 }

@@ -19,12 +19,16 @@ package com.graphaware.module.timetree;
 import org.apache.log4j.Logger;
 import org.joda.time.DateTime;
 import org.joda.time.DateTimeZone;
+import org.joda.time.MutableDateTime;
+import org.joda.time.Period;
 import org.neo4j.graphdb.GraphDatabaseService;
 import org.neo4j.graphdb.Node;
 import org.neo4j.graphdb.Relationship;
 import org.neo4j.tooling.GlobalGraphOperations;
 
 import java.util.Iterator;
+import java.util.LinkedList;
+import java.util.List;
 import java.util.TimeZone;
 
 import static com.graphaware.module.timetree.Resolution.*;
@@ -34,12 +38,12 @@ import static org.neo4j.graphdb.Direction.INCOMING;
 import static org.neo4j.graphdb.Direction.OUTGOING;
 
 /**
- * Default implementation of {@link TimeTree}. The default {@link Resolution}, if one is not explicitly provided using
- * the constructor or one of the public methods, is {@link Resolution#DAY}. The default {@link DateTimeZone}, if one
- * is not explicitly provided, is UTC.
+ * Default implementation of {@link TimeTree}, which builds a single tree and maintains its own root.
+ * The default {@link Resolution}, if one is not explicitly provided using the constructor or one of the public methods,
+ * is {@link Resolution#DAY}. The default {@link DateTimeZone}, if one is not explicitly provided, is UTC.
  */
-public class TimeTreeImpl implements TimeTree {
-    private static final Logger LOG = Logger.getLogger(TimeTreeImpl.class);
+public class SingleTimeTree implements TimeTree {
+    private static final Logger LOG = Logger.getLogger(SingleTimeTree.class);
 
     private static final Resolution DEFAULT_RESOLUTION = DAY;
     private static final DateTimeZone DEFAULT_TIME_ZONE = DateTimeZone.forTimeZone(TimeZone.getTimeZone("UTC"));
@@ -54,7 +58,7 @@ public class TimeTreeImpl implements TimeTree {
      *
      * @param database to talk to.
      */
-    public TimeTreeImpl(GraphDatabaseService database) {
+    public SingleTimeTree(GraphDatabaseService database) {
         this(database, DEFAULT_RESOLUTION);
     }
 
@@ -64,7 +68,7 @@ public class TimeTreeImpl implements TimeTree {
      * @param database   to talk to.
      * @param resolution default resolution.
      */
-    public TimeTreeImpl(GraphDatabaseService database, Resolution resolution) {
+    public SingleTimeTree(GraphDatabaseService database, Resolution resolution) {
         this(database, DEFAULT_TIME_ZONE, resolution);
     }
 
@@ -74,7 +78,7 @@ public class TimeTreeImpl implements TimeTree {
      * @param database to talk to.
      * @param timeZone default time zone.
      */
-    public TimeTreeImpl(GraphDatabaseService database, DateTimeZone timeZone) {
+    public SingleTimeTree(GraphDatabaseService database, DateTimeZone timeZone) {
         this(database, timeZone, DAY);
     }
 
@@ -85,7 +89,7 @@ public class TimeTreeImpl implements TimeTree {
      * @param timeZone   default time zone.
      * @param resolution default resolution.
      */
-    public TimeTreeImpl(GraphDatabaseService database, DateTimeZone timeZone, Resolution resolution) {
+    public SingleTimeTree(GraphDatabaseService database, DateTimeZone timeZone, Resolution resolution) {
         this.database = database;
         this.timeZone = timeZone;
         this.resolution = resolution;
@@ -168,6 +172,46 @@ public class TimeTreeImpl implements TimeTree {
     }
 
     /**
+     * {@inheritDoc}
+     */
+    @Override
+    public List<Node> getInstants(long startTime, long endTime) {
+        return getInstants(startTime, endTime, timeZone);
+    }
+
+    /**
+     * {@inheritDoc}
+     */
+    @Override
+    public List<Node> getInstants(long startTime, long endTime, DateTimeZone timeZone) {
+        return getInstants(startTime, endTime, timeZone, resolution);
+    }
+
+    /**
+     * {@inheritDoc}
+     */
+    @Override
+    public List<Node> getInstants(long startTime, long endTime, Resolution resolution) {
+        return getInstants(startTime, endTime, timeZone, resolution);
+    }
+
+    /**
+     * {@inheritDoc}
+     */
+    @Override
+    public List<Node> getInstants(long startTime, long endTime, DateTimeZone timeZone, Resolution resolution) {
+        List<Node> result = new LinkedList<>();
+
+        MutableDateTime time = new MutableDateTime(startTime);
+        while (!time.isAfter(endTime)) {
+            result.add(getInstant(time.getMillis(), timeZone, resolution));
+            time.add(resolution.getDateTimeFieldType().getDurationType(), 1);
+        }
+
+        return result;
+    }
+
+    /**
      * Get a node representing a specific time instant. If one doesn't exist, it will be created as well as any missing
      * nodes on the way down from parent (recursively).
      *
@@ -194,7 +238,7 @@ public class TimeTreeImpl implements TimeTree {
      *
      * @return root of the time tree.
      */
-    private Node getTimeRoot() {
+    protected Node getTimeRoot() {
         Node result;
 
         Iterator<Node> nodeIterator = GlobalGraphOperations.at(database).getAllNodesWithLabel(TimeTreeRoot).iterator();

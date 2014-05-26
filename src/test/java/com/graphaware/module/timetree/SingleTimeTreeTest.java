@@ -16,7 +16,6 @@
 
 package com.graphaware.module.timetree;
 
-import com.graphaware.test.unit.GraphUnit;
 import org.joda.time.DateTime;
 import org.joda.time.DateTimeZone;
 import org.junit.After;
@@ -27,18 +26,18 @@ import org.neo4j.graphdb.Node;
 import org.neo4j.graphdb.Transaction;
 import org.neo4j.test.TestGraphDatabaseFactory;
 
+import java.util.List;
 import java.util.TimeZone;
 
-import static com.graphaware.module.timetree.TimeTreeImpl.VALUE_PROPERTY;
+import static com.graphaware.module.timetree.SingleTimeTree.VALUE_PROPERTY;
 import static com.graphaware.test.unit.GraphUnit.*;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertTrue;
 
 /**
- * Unit test for {@link TimeTreeImpl}.
+ * Unit test for {@link SingleTimeTree}.
  */
-public class TimeTreeImplTest
-{
+public class SingleTimeTreeTest {
 
     private GraphDatabaseService database;
     private TimeTree timeTree; //class under test
@@ -48,7 +47,7 @@ public class TimeTreeImplTest
     @Before
     public void setUp() {
         database = new TestGraphDatabaseFactory().newImpermanentDatabase();
-        timeTree = new TimeTreeImpl(database);
+        timeTree = new SingleTimeTree(database);
     }
 
     @After
@@ -88,10 +87,53 @@ public class TimeTreeImplTest
     }
 
     @Test
+    public void consecutiveDaysShouldBeCreatedWhenRequested() {
+
+        //Given
+        long startDateInMillis = dateToMillis(2013, 5, 4);
+        long endDateInMillis = dateToMillis(2013, 5, 7);
+
+        //When
+        List<Node> dayNodes;
+        try (Transaction tx = database.beginTx()) {
+            dayNodes = timeTree.getInstants(startDateInMillis, endDateInMillis, UTC, Resolution.DAY);
+            tx.success();
+        }
+
+        //Then
+        assertSameGraph(database, "CREATE" +
+                "(root:TimeTreeRoot)," +
+                "(root)-[:FIRST]->(year:Year {value:2013})," +
+                "(root)-[:CHILD]->(year)," +
+                "(root)-[:LAST]->(year)," +
+                "(year)-[:FIRST]->(month:Month {value:5})," +
+                "(year)-[:CHILD]->(month)," +
+                "(year)-[:LAST]->(month)," +
+                "(month)-[:CHILD]->(day4:Day {value:4})," +
+                "(month)-[:CHILD]->(day5:Day {value:5})," +
+                "(month)-[:CHILD]->(day6:Day {value:6})," +
+                "(month)-[:CHILD]->(day7:Day {value:7})," +
+                "(month)-[:FIRST]->(day4)," +
+                "(month)-[:LAST]->(day7)," +
+                "(day4)-[:NEXT]->(day5)," +
+                "(day5)-[:NEXT]->(day6)," +
+                "(day6)-[:NEXT]->(day7)");
+
+        assertEquals(4, dayNodes.size());
+
+        try (Transaction tx = database.beginTx()) {
+            for (int i = 0; i < 4; i++) {
+                assertTrue(dayNodes.get(i).hasLabel(TimeTreeLabels.Day));
+                assertEquals(i + 4, dayNodes.get(i).getProperty(VALUE_PROPERTY));
+            }
+        }
+    }
+
+    @Test
     public void trivialTreeShouldBeCreatedWhenFirstMilliInstantIsRequested() {
         //Given
         long dateInMillis = new DateTime(2014, 4, 5, 13, 56, 22, 123, UTC).getMillis();
-        timeTree = new TimeTreeImpl(database, DateTimeZone.forTimeZone(TimeZone.getTimeZone("GMT+1")), Resolution.MILLISECOND);
+        timeTree = new SingleTimeTree(database, DateTimeZone.forTimeZone(TimeZone.getTimeZone("GMT+1")), Resolution.MILLISECOND);
 
         //When
         Node instantNode;
@@ -111,16 +153,16 @@ public class TimeTreeImplTest
                 "(year)-[:LAST]->(month)," +
                 "(month)-[:FIRST]->(day:Day {value:5})," +
                 "(month)-[:CHILD]->(day)," +
-                "(month)-[:LAST]->(day),"+
+                "(month)-[:LAST]->(day)," +
                 "(day)-[:FIRST]->(hour:Hour {value:14})," + //1 hour more!
                 "(day)-[:CHILD]->(hour)," +
-                "(day)-[:LAST]->(hour),"+
+                "(day)-[:LAST]->(hour)," +
                 "(hour)-[:FIRST]->(minute:Minute {value:56})," +
                 "(hour)-[:CHILD]->(minute)," +
-                "(hour)-[:LAST]->(minute),"+
+                "(hour)-[:LAST]->(minute)," +
                 "(minute)-[:FIRST]->(second:Second {value:22})," +
                 "(minute)-[:CHILD]->(second)," +
-                "(minute)-[:LAST]->(second),"+
+                "(minute)-[:LAST]->(second)," +
                 "(second)-[:FIRST]->(milli:Millisecond {value:123})," +
                 "(second)-[:CHILD]->(milli)," +
                 "(second)-[:LAST]->(milli)");

@@ -40,7 +40,7 @@ public class TimeTreeApi {
     @Autowired
     public TimeTreeApi(GraphDatabaseService database) {
         this.database = database;
-        timeTree = new TimeTreeImpl(database);
+        timeTree = new SingleTimeTree(database);
     }
 
     @RequestMapping(value = "/{time}", method = RequestMethod.POST)

@@ -22,7 +22,7 @@ import org.junit.Test;
 
 import java.io.IOException;
 
-import static com.graphaware.test.util.TestUtils.post;
+import static com.graphaware.test.util.TestUtils.get;
 
 /**
  * {@link IntegrationTest} for {@link TimeTree} module and {@link TimeTreeApi}.
@@ -31,6 +31,6 @@ public class TimeTreeIntegrationTest extends IntegrationTest {
 
     @Test
     public void graphAwareApisAreMountedWhenPresentOnClasspath() throws InterruptedException, IOException {
-        post("http://localhost:7474/graphaware/timetree/now/", "", HttpStatus.OK_200);
+        get("http://localhost:7474/graphaware/timetree/now/", HttpStatus.OK_200);
     }
 }

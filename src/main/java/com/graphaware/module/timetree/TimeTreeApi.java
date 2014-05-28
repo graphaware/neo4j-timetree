@@ -43,7 +43,7 @@ public class TimeTreeApi {
         timeTree = new SingleTimeTree(database);
     }
 
-    @RequestMapping(value = "/{time}", method = RequestMethod.POST)
+    @RequestMapping(value = "/{time}", method = RequestMethod.GET)
     @ResponseBody
     public long getInstant(
             @PathVariable(value = "time") long timeParam,
@@ -60,7 +60,7 @@ public class TimeTreeApi {
         return result;
     }
 
-    @RequestMapping(value = "/{rootNodeId}/{time}", method = RequestMethod.POST)
+    @RequestMapping(value = "/{rootNodeId}/{time}", method = RequestMethod.GET)
     @ResponseBody
     public long getInstantWithCustomRoot(
             @PathVariable(value = "rootNodeId") long rootNodeId,
@@ -78,7 +78,7 @@ public class TimeTreeApi {
         return result;
     }
 
-    @RequestMapping(value = "/now", method = RequestMethod.POST)
+    @RequestMapping(value = "/now", method = RequestMethod.GET)
     @ResponseBody
     public long getNow(
             @RequestParam(value = "resolution", required = false) String resolutionParam,
@@ -94,7 +94,7 @@ public class TimeTreeApi {
         return result;
     }
 
-    @RequestMapping(value = "/{rootNodeId}/now", method = RequestMethod.POST)
+    @RequestMapping(value = "/{rootNodeId}/now", method = RequestMethod.GET)
     @ResponseBody
     public long getNowWithCustomRoot(
             @PathVariable(value = "rootNodeId") long rootNodeId,

@@ -200,6 +200,14 @@ public class SingleTimeTree implements TimeTree {
      */
     @Override
     public List<Node> getInstants(long startTime, long endTime, DateTimeZone timeZone, Resolution resolution) {
+        if (timeZone == null) {
+            timeZone = this.timeZone;
+        }
+
+        if (resolution == null) {
+            resolution = this.resolution;
+        }
+
         List<Node> result = new LinkedList<>();
 
         MutableDateTime time = new MutableDateTime(startTime);

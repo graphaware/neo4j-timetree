@@ -1,7 +1,7 @@
 GraphAware Neo4j TimeTree
 =========================
 
-[![Build Status](https://travis-ci.org/graphaware/neo4j-timetree.png)](https://travis-ci.org/graphaware/neo4j-timetree) | <a href="http://graphaware.com/downloads/" target="_blank">Downloads</a> | <a href="http://graphaware.com/site/timetree/latest/apidocs/" target="_blank">Javadoc</a> | Latest Release: 2.0.3.5.5
+[![Build Status](https://travis-ci.org/graphaware/neo4j-timetree.png)](https://travis-ci.org/graphaware/neo4j-timetree) | <a href="http://graphaware.com/downloads/" target="_blank">Downloads</a> | <a href="http://graphaware.com/site/timetree/latest/apidocs/" target="_blank">Javadoc</a> | Latest Release: 2.1.0.5.5
 
 GraphAware TimeTree is a simple library for representing time in Neo4j as a tree of time instants. The tree is built on-demand,
 supports resolutions of one year down to one millisecond and has time zone support.
@@ -31,7 +31,7 @@ Releases are synced to <a href="http://search.maven.org/#search%7Cga%7C1%7Ca%3A%
         <dependency>
             <groupId>com.graphaware.neo4j</groupId>
             <artifactId>timetree</artifactId>
-            <version>2.0.3.5.5</version>
+            <version>2.1.0.5.5</version>
         </dependency>
         ...
     </dependencies>
@@ -87,10 +87,12 @@ Finally, you can provide a time-zone to the TimeTree APIs in order to create cor
 
 ### REST API
 
-When deployed in server mode, there are four URLs that you can issue GET requests to:
-* `http://your-server-address:7474/graphaware/timetree/{time}` to get a node representing a time instant, where time must be replaced by a `long` number representing the number of milliseconds since 1/1/1970. The default resolution is Day and the default time zone is UTC
+When deployed in server mode, there are six URLs that you can issue GET requests to:
+* `http://your-server-address:7474/graphaware/timetree/single/{time}` to get a node representing a time instant, where time must be replaced by a `long` number representing the number of milliseconds since 1/1/1970. The default resolution is Day and the default time zone is UTC
+* `http://your-server-address:7474/graphaware/timetree/range/{startTime}/{endTime}` to get a nodes representing time instants between {startTime} and {endTime} (inclusive). The default resolution is Day and the default time zone is UTC
 * `http://your-server-address:7474/graphaware/timetree/now` to get a node representing now. Defaults are the same as above.
-* `http://your-server-address:7474/graphaware/timetree/{rootNodeId}/{time}` to get a node representing a time instant, where {time} must be replaced by a `long` number representing the number of milliseconds since 1/1/1970 and {rootNodeId} must be replaced by the ID of an existing node that should serve as the tree root. Defaults are the same as above.
+* `http://your-server-address:7474/graphaware/timetree/{rootNodeId}/single/{time}` to get a node representing a time instant, where {time} must be replaced by a `long` number representing the number of milliseconds since 1/1/1970 and {rootNodeId} must be replaced by the ID of an existing node that should serve as the tree root. Defaults are the same as above.
+* `http://your-server-address:7474/graphaware/timetree/{rootNodeId}/range/{startTime}/{endTime}` to get a nodes representing time instants between {startTime} and {endTime} (inclusive) and {rootNodeId} must be replaced by the ID of an existing node that should serve as the tree root. Defaults are the same as above.
 * `http://your-server-address:7474/graphaware/timetree/{rootNodeId}/now` to get a node representing now, where {rootNodeId} must be replaced by the ID of an existing node that should serve as the tree root. Defaults are the same as above.
 
 You two query parameters:
@@ -107,7 +109,7 @@ You two query parameters:
 For instance, issuing the following request, asking for the hour node representing 5th April 2014 1pm (UTC time) in the
 GMT+1 time zone
 
-    GET http://your-server-address:7474/graphaware/timetree/1396706182123?resolution=Hour&timezone=GMT%2B1
+    GET http://your-server-address:7474/graphaware/timetree/single/1396706182123?resolution=Hour&timezone=GMT%2B1
 
 on an empty database will result in the following graph being generated. The response body will contain the Neo4j node ID
 of the node representing the hour. You can then use it in order to link to it.

@@ -16,8 +16,10 @@
 
 package com.graphaware.module.timetree;
 
+import com.graphaware.common.util.PropertyContainerUtils;
 import org.joda.time.DateTimeZone;
 import org.neo4j.graphdb.GraphDatabaseService;
+import org.neo4j.graphdb.Node;
 import org.neo4j.graphdb.NotFoundException;
 import org.neo4j.graphdb.Transaction;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -25,7 +27,11 @@ import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Controller;
 import org.springframework.web.bind.annotation.*;
 
+import java.util.LinkedList;
+import java.util.List;
 import java.util.TimeZone;
+
+import static com.graphaware.common.util.PropertyContainerUtils.*;
 
 /**
  * REST API for {@link TimeTree}.
@@ -43,7 +49,7 @@ public class TimeTreeApi {
         timeTree = new SingleTimeTree(database);
     }
 
-    @RequestMapping(value = "/{time}", method = RequestMethod.GET)
+    @RequestMapping(value = "/single/{time}", method = RequestMethod.GET)
     @ResponseBody
     public long getInstant(
             @PathVariable(value = "time") long timeParam,
@@ -60,7 +66,25 @@ public class TimeTreeApi {
         return result;
     }
 
-    @RequestMapping(value = "/{rootNodeId}/{time}", method = RequestMethod.GET)
+    @RequestMapping(value = "/range/{startTime}/{endTime}", method = RequestMethod.GET)
+    @ResponseBody
+    public Long[] getInstants(
+            @PathVariable(value = "startTime") long startTime,
+            @PathVariable(value = "endTime") long endTime,
+            @RequestParam(value = "resolution", required = false) String resolutionParam,
+            @RequestParam(value = "timezone", required = false) String timeZoneParam) {
+
+        Long[] result;
+
+        try (Transaction tx = database.beginTx()) {
+            result = ids(timeTree.getInstants(startTime, endTime, resolveTimeZone(timeZoneParam), resolveResolution(resolutionParam)));
+            tx.success();
+        }
+
+        return result;
+    }
+
+    @RequestMapping(value = "/{rootNodeId}/single/{time}", method = RequestMethod.GET)
     @ResponseBody
     public long getInstantWithCustomRoot(
             @PathVariable(value = "rootNodeId") long rootNodeId,
@@ -72,6 +96,25 @@ public class TimeTreeApi {
 
         try (Transaction tx = database.beginTx()) {
             result = new CustomRootTimeTree(database.getNodeById(rootNodeId)).getInstant(timeParam, resolveTimeZone(timeZoneParam), resolveResolution(resolutionParam)).getId();
+            tx.success();
+        }
+
+        return result;
+    }
+
+    @RequestMapping(value = "/{rootNodeId}/range/{startTime}/{endTime}", method = RequestMethod.GET)
+    @ResponseBody
+    public Long[] getInstantsWithCustomRoot(
+            @PathVariable(value = "rootNodeId") long rootNodeId,
+            @PathVariable(value = "startTime") long startTime,
+            @PathVariable(value = "endTime") long endTime,
+            @RequestParam(value = "resolution", required = false) String resolutionParam,
+            @RequestParam(value = "timezone", required = false) String timeZoneParam) {
+
+        Long[] result;
+
+        try (Transaction tx = database.beginTx()) {
+            result = ids(new CustomRootTimeTree(database.getNodeById(rootNodeId)).getInstants(startTime, endTime, resolveTimeZone(timeZoneParam), resolveResolution(resolutionParam)));
             tx.success();
         }
 

@@ -22,11 +22,16 @@ import org.joda.time.DateTime;
 import org.joda.time.DateTimeZone;
 import org.junit.Test;
 import org.neo4j.graphdb.DynamicLabel;
+import org.neo4j.graphdb.Node;
 import org.neo4j.graphdb.Transaction;
 
+import java.util.List;
+
+import static com.graphaware.module.timetree.SingleTimeTree.VALUE_PROPERTY;
 import static com.graphaware.test.unit.GraphUnit.assertSameGraph;
 import static com.graphaware.test.util.TestUtils.get;
 import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertTrue;
 
 /**
  * Integration test for {@link TimeTreeApi}.
@@ -39,7 +44,7 @@ public class TimeTreeApiTest extends ApiTest {
         long dateInMillis = dateToMillis(2013, 5, 4);
 
         //When
-        String result = get(getUrl() + dateInMillis, HttpStatus.SC_OK);
+        String result = get(getUrl() + "single/" + dateInMillis, HttpStatus.SC_OK);
 
         //Then
         assertSameGraph(getDatabase(), "CREATE" +
@@ -58,6 +63,38 @@ public class TimeTreeApiTest extends ApiTest {
     }
 
     @Test
+    public void consecutiveDaysShouldBeCreatedWhenRequested() {
+
+        //Given
+        long startDateInMillis = dateToMillis(2013, 5, 4);
+        long endDateInMillis = dateToMillis(2013, 5, 7);
+
+        //When
+        String result = get(getUrl() + "range/" + startDateInMillis + "/" + endDateInMillis, HttpStatus.SC_OK);
+
+        //Then
+        assertSameGraph(getDatabase(), "CREATE" +
+                "(root:TimeTreeRoot)," +
+                "(root)-[:FIRST]->(year:Year {value:2013})," +
+                "(root)-[:CHILD]->(year)," +
+                "(root)-[:LAST]->(year)," +
+                "(year)-[:FIRST]->(month:Month {value:5})," +
+                "(year)-[:CHILD]->(month)," +
+                "(year)-[:LAST]->(month)," +
+                "(month)-[:CHILD]->(day4:Day {value:4})," +
+                "(month)-[:CHILD]->(day5:Day {value:5})," +
+                "(month)-[:CHILD]->(day6:Day {value:6})," +
+                "(month)-[:CHILD]->(day7:Day {value:7})," +
+                "(month)-[:FIRST]->(day4)," +
+                "(month)-[:LAST]->(day7)," +
+                "(day4)-[:NEXT]->(day5)," +
+                "(day5)-[:NEXT]->(day6)," +
+                "(day6)-[:NEXT]->(day7)");
+
+        assertEquals("[3,4,5,6]", result);
+    }
+
+    @Test
     public void trivialTreeShouldBeCreatedWhenFirstDayIsRequestedWithCustomRoot() {
         //Given
         long dateInMillis = dateToMillis(2013, 5, 4);
@@ -68,7 +105,7 @@ public class TimeTreeApiTest extends ApiTest {
             tx.success();
         }
 
-        String result = get(getUrl() + "/0/" + dateInMillis, HttpStatus.SC_OK);
+        String result = get(getUrl() + "0/single/" + dateInMillis, HttpStatus.SC_OK);
 
         //Then
         assertSameGraph(getDatabase(), "CREATE" +
@@ -87,12 +124,49 @@ public class TimeTreeApiTest extends ApiTest {
     }
 
     @Test
+    public void consecutiveDaysShouldBeCreatedWhenRequestedWithCustomRoot() {
+
+        //Given
+        long startDateInMillis = dateToMillis(2013, 5, 4);
+        long endDateInMillis = dateToMillis(2013, 5, 7);
+
+        //When
+        try (Transaction tx = getDatabase().beginTx()) {
+            getDatabase().createNode(DynamicLabel.label("CustomRoot"));
+            tx.success();
+        }
+
+        String result = get(getUrl() + "0/range/" + startDateInMillis + "/" + endDateInMillis, HttpStatus.SC_OK);
+
+        //Then
+        assertSameGraph(getDatabase(), "CREATE" +
+                "(root:CustomRoot)," +
+                "(root)-[:FIRST]->(year:Year {value:2013})," +
+                "(root)-[:CHILD]->(year)," +
+                "(root)-[:LAST]->(year)," +
+                "(year)-[:FIRST]->(month:Month {value:5})," +
+                "(year)-[:CHILD]->(month)," +
+                "(year)-[:LAST]->(month)," +
+                "(month)-[:CHILD]->(day4:Day {value:4})," +
+                "(month)-[:CHILD]->(day5:Day {value:5})," +
+                "(month)-[:CHILD]->(day6:Day {value:6})," +
+                "(month)-[:CHILD]->(day7:Day {value:7})," +
+                "(month)-[:FIRST]->(day4)," +
+                "(month)-[:LAST]->(day7)," +
+                "(day4)-[:NEXT]->(day5)," +
+                "(day5)-[:NEXT]->(day6)," +
+                "(day6)-[:NEXT]->(day7)");
+
+        assertEquals("[3,4,5,6]", result);
+    }
+
+    @Test
     public void trivialTreeShouldBeCreatedWhenFirstMilliInstantIsRequested() {
         //Given
         long dateInMillis = new DateTime(2014, 4, 5, 13, 56, 22, 123, DateTimeZone.UTC).getMillis();
 
         //When
-        String result = get(getUrl() + dateInMillis + "?resolution=millisecond&timezone=GMT%2B1", HttpStatus.SC_OK);
+        String result = get(getUrl() + "single/" + dateInMillis + "?resolution=millisecond&timezone=GMT%2B1", HttpStatus.SC_OK);
 
         //Then
         assertSameGraph(getDatabase(), "CREATE" +

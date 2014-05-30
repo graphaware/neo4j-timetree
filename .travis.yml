@@ -1,1 +1,5 @@
 language: java
+
+branches:
+  except:
+    - 2.1

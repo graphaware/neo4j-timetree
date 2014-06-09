@@ -31,7 +31,7 @@ Releases are synced to <a href="http://search.maven.org/#search%7Cga%7C1%7Ca%3A%
         <dependency>
             <groupId>com.graphaware.neo4j</groupId>
             <artifactId>timetree</artifactId>
-            <version>2.0.3.6.5</version>
+            <version>2.0.3.6.7</version>
         </dependency>
         ...
     </dependencies>
@@ -39,7 +39,7 @@ Releases are synced to <a href="http://search.maven.org/#search%7Cga%7C1%7Ca%3A%
 #### Snapshots
 
 To use the latest development version, just clone this repository, run `mvn clean install` and change the version in the
-dependency above to 2.0.3.4.5-SNAPSHOT.
+dependency above to 2.0.3.6.8-SNAPSHOT.
 
 #### Note on Versioning Scheme
 

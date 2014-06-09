@@ -16,10 +16,8 @@
 
 package com.graphaware.module.timetree;
 
-import com.graphaware.common.util.PropertyContainerUtils;
 import org.joda.time.DateTimeZone;
 import org.neo4j.graphdb.GraphDatabaseService;
-import org.neo4j.graphdb.Node;
 import org.neo4j.graphdb.NotFoundException;
 import org.neo4j.graphdb.Transaction;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -27,11 +25,9 @@ import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Controller;
 import org.springframework.web.bind.annotation.*;
 
-import java.util.LinkedList;
-import java.util.List;
 import java.util.TimeZone;
 
-import static com.graphaware.common.util.PropertyContainerUtils.*;
+import static com.graphaware.common.util.PropertyContainerUtils.ids;
 
 /**
  * REST API for {@link TimeTree}.

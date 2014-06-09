@@ -22,16 +22,11 @@ import org.joda.time.DateTime;
 import org.joda.time.DateTimeZone;
 import org.junit.Test;
 import org.neo4j.graphdb.DynamicLabel;
-import org.neo4j.graphdb.Node;
 import org.neo4j.graphdb.Transaction;
 
-import java.util.List;
-
-import static com.graphaware.module.timetree.SingleTimeTree.VALUE_PROPERTY;
 import static com.graphaware.test.unit.GraphUnit.assertSameGraph;
 import static com.graphaware.test.util.TestUtils.get;
 import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertTrue;
 
 /**
  * Integration test for {@link TimeTreeApi}.

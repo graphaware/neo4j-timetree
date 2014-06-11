@@ -16,7 +16,7 @@
 
 package com.graphaware.module.timetree;
 
-import com.graphaware.test.integration.ServerIntegrationTest;
+import com.graphaware.test.integration.NeoServerIntegrationTest;
 import org.eclipse.jetty.http.HttpStatus;
 import org.junit.Test;
 
@@ -25,9 +25,9 @@ import java.io.IOException;
 import static com.graphaware.test.util.TestUtils.get;
 
 /**
- * {@link ServerIntegrationTest} for {@link TimeTree} module and {@link TimeTreeApi}.
+ * {@link NeoServerIntegrationTest} for {@link TimeTree} module and {@link TimeTreeApi}.
  */
-public class TimeTreeIntegrationTest extends ServerIntegrationTest {
+public class TimeTreeIntegrationTest extends NeoServerIntegrationTest {
 
     @Test
     public void graphAwareApisAreMountedWhenPresentOnClasspath() throws InterruptedException, IOException {

@@ -16,7 +16,7 @@
 
 package com.graphaware.module.timetree;
 
-import com.graphaware.test.api.ApiTest;
+import com.graphaware.test.integration.GraphAwareApiTest;
 import org.apache.http.HttpStatus;
 import org.joda.time.DateTime;
 import org.joda.time.DateTimeZone;
@@ -31,7 +31,7 @@ import static org.junit.Assert.assertEquals;
 /**
  * Integration test for {@link TimeTreeApi}.
  */
-public class TimeTreeApiTest extends ApiTest {
+public class TimeTreeApiTest extends GraphAwareApiTest {
 
     @Test
     public void trivialTreeShouldBeCreatedWhenFirstDayIsRequested() {
@@ -253,6 +253,6 @@ public class TimeTreeApiTest extends ApiTest {
     }
 
     private String getUrl() {
-        return "http://localhost:" + getPort() + "/graphaware/timetree/";
+        return baseUrl() + "/timetree/";
     }
 }

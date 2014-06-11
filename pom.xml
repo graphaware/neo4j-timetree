@@ -75,7 +75,7 @@
         <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
         <neo4j.version>2.1.1</neo4j.version>
         <spring.version>4.0.0.RELEASE</spring.version>
-        <graphaware.version>2.1.1.6</graphaware.version>
+        <graphaware.version>2.1.1.7-SNAPSHOT</graphaware.version>
     </properties>
 
     <dependencies>
@@ -84,6 +84,13 @@
         <dependency>
             <groupId>org.springframework</groupId>
             <artifactId>spring-webmvc</artifactId>
+            <version>${spring.version}</version>
+            <scope>provided</scope>
+        </dependency>
+
+        <dependency>
+            <groupId>org.springframework</groupId>
+            <artifactId>spring-tx</artifactId>
             <version>${spring.version}</version>
             <scope>provided</scope>
         </dependency>

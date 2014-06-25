@@ -16,7 +16,8 @@
 
 package com.graphaware.module.timetree;
 
-import org.apache.log4j.Logger;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.joda.time.DateTime;
 import org.joda.time.DateTimeZone;
 import org.joda.time.MutableDateTime;
@@ -43,7 +44,7 @@ import static org.neo4j.graphdb.Direction.OUTGOING;
  * is {@link Resolution#DAY}. The default {@link DateTimeZone}, if one is not explicitly provided, is UTC.
  */
 public class SingleTimeTree implements TimeTree {
-    private static final Logger LOG = Logger.getLogger(SingleTimeTree.class);
+    private static final Logger LOG = LoggerFactory.getLogger(SingleTimeTree.class);
 
     private static final Resolution DEFAULT_RESOLUTION = DAY;
     private static final DateTimeZone DEFAULT_TIME_ZONE = DateTimeZone.forTimeZone(TimeZone.getTimeZone("UTC"));

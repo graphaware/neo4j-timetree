@@ -16,7 +16,8 @@
 
 package com.graphaware.module.timetree;
 
-import org.apache.log4j.Logger;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.neo4j.graphdb.Label;
 import org.neo4j.graphdb.Node;
 
@@ -28,7 +29,7 @@ public enum TimeTreeLabels implements Label
 
     TimeTreeRoot, Year, Month, Day, Hour, Minute, Second, Millisecond;
 
-    private static final Logger LOG = Logger.getLogger(TimeTreeLabels.class);
+    private static final Logger LOG = LoggerFactory.getLogger(TimeTreeLabels.class);
 
     /**
      * Get the label representing a resolution one level lower than this label.

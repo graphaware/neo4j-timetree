@@ -20,10 +20,7 @@ import org.apache.log4j.Logger;
 import org.joda.time.DateTime;
 import org.joda.time.DateTimeZone;
 import org.joda.time.MutableDateTime;
-import org.joda.time.Period;
-import org.neo4j.graphdb.GraphDatabaseService;
-import org.neo4j.graphdb.Node;
-import org.neo4j.graphdb.Relationship;
+import org.neo4j.graphdb.*;
 import org.neo4j.tooling.GlobalGraphOperations;
 
 import java.util.Iterator;
@@ -52,6 +49,8 @@ public class SingleTimeTree implements TimeTree {
     private final GraphDatabaseService database;
     private final DateTimeZone timeZone;
     private final Resolution resolution;
+
+    private volatile Node timeTreeRoot;
 
     /**
      * Constructor for time tree with default {@link Resolution#DAY} resolution and default UTC timezone.
@@ -99,63 +98,63 @@ public class SingleTimeTree implements TimeTree {
      * {@inheritDoc}
      */
     @Override
-    public Node getNow() {
-        return getNow(timeZone, resolution);
+    public Node getNow(Transaction tx) {
+        return getNow(timeZone, resolution, tx);
     }
 
     /**
      * {@inheritDoc}
      */
     @Override
-    public Node getNow(DateTimeZone timeZone) {
-        return getNow(timeZone, resolution);
+    public Node getNow(DateTimeZone timeZone, Transaction tx) {
+        return getNow(timeZone, resolution, tx);
     }
 
     /**
      * {@inheritDoc}
      */
     @Override
-    public Node getNow(Resolution resolution) {
-        return getNow(timeZone, resolution);
+    public Node getNow(Resolution resolution, Transaction tx) {
+        return getNow(timeZone, resolution, tx);
     }
 
     /**
      * {@inheritDoc}
      */
     @Override
-    public Node getNow(DateTimeZone timeZone, Resolution resolution) {
-        return getInstant(DateTime.now().getMillis(), timeZone, resolution);
+    public Node getNow(DateTimeZone timeZone, Resolution resolution, Transaction tx) {
+        return getInstant(DateTime.now().getMillis(), timeZone, resolution, tx);
     }
 
     /**
      * {@inheritDoc}
      */
     @Override
-    public Node getInstant(long time) {
-        return getInstant(time, timeZone, resolution);
+    public Node getInstant(long time, Transaction tx) {
+        return getInstant(time, timeZone, resolution, tx);
     }
 
     /**
      * {@inheritDoc}
      */
     @Override
-    public Node getInstant(long time, DateTimeZone timeZone) {
-        return getInstant(time, timeZone, resolution);
+    public Node getInstant(long time, DateTimeZone timeZone, Transaction tx) {
+        return getInstant(time, timeZone, resolution, tx);
     }
 
     /**
      * {@inheritDoc}
      */
     @Override
-    public Node getInstant(long time, Resolution resolution) {
-        return getInstant(time, timeZone, resolution);
+    public Node getInstant(long time, Resolution resolution, Transaction tx) {
+        return getInstant(time, timeZone, resolution, tx);
     }
 
     /**
      * {@inheritDoc}
      */
     @Override
-    public Node getInstant(long time, DateTimeZone timeZone, Resolution resolution) {
+    public Node getInstant(long time, DateTimeZone timeZone, Resolution resolution, Transaction tx) {
         if (timeZone == null) {
             timeZone = this.timeZone;
         }
@@ -166,8 +165,9 @@ public class SingleTimeTree implements TimeTree {
 
         DateTime dateTime = new DateTime(time, timeZone);
 
-        Node year = findOrCreateChild(getTimeRoot(), dateTime.get(YEAR.getDateTimeFieldType()));
-
+        Node timeRoot = getTimeRoot();
+        tx.acquireWriteLock(timeRoot);
+        Node year = findOrCreateChild(timeRoot, dateTime.get(YEAR.getDateTimeFieldType()));
         return getInstant(year, dateTime, resolution);
     }
 
@@ -175,31 +175,31 @@ public class SingleTimeTree implements TimeTree {
      * {@inheritDoc}
      */
     @Override
-    public List<Node> getInstants(long startTime, long endTime) {
-        return getInstants(startTime, endTime, timeZone);
+    public List<Node> getInstants(long startTime, long endTime, Transaction tx) {
+        return getInstants(startTime, endTime, timeZone, tx);
     }
 
     /**
      * {@inheritDoc}
      */
     @Override
-    public List<Node> getInstants(long startTime, long endTime, DateTimeZone timeZone) {
-        return getInstants(startTime, endTime, timeZone, resolution);
+    public List<Node> getInstants(long startTime, long endTime, DateTimeZone timeZone, Transaction tx) {
+        return getInstants(startTime, endTime, timeZone, resolution, tx);
     }
 
     /**
      * {@inheritDoc}
      */
     @Override
-    public List<Node> getInstants(long startTime, long endTime, Resolution resolution) {
-        return getInstants(startTime, endTime, timeZone, resolution);
+    public List<Node> getInstants(long startTime, long endTime, Resolution resolution, Transaction tx) {
+        return getInstants(startTime, endTime, timeZone, resolution, tx);
     }
 
     /**
      * {@inheritDoc}
      */
     @Override
-    public List<Node> getInstants(long startTime, long endTime, DateTimeZone timeZone, Resolution resolution) {
+    public List<Node> getInstants(long startTime, long endTime, DateTimeZone timeZone, Resolution resolution, Transaction tx) {
         if (timeZone == null) {
             timeZone = this.timeZone;
         }
@@ -212,7 +212,7 @@ public class SingleTimeTree implements TimeTree {
 
         MutableDateTime time = new MutableDateTime(startTime);
         while (!time.isAfter(endTime)) {
-            result.add(getInstant(time.getMillis(), timeZone, resolution));
+            result.add(getInstant(time.getMillis(), timeZone, resolution, tx));
             time.add(resolution.getDateTimeFieldType().getDurationType(), 1);
         }
 
@@ -247,21 +247,32 @@ public class SingleTimeTree implements TimeTree {
      * @return root of the time tree.
      */
     protected Node getTimeRoot() {
-        Node result;
-
-        Iterator<Node> nodeIterator = GlobalGraphOperations.at(database).getAllNodesWithLabel(TimeTreeRoot).iterator();
-        if (nodeIterator.hasNext()) {
-            result = nodeIterator.next();
-            if (nodeIterator.hasNext()) {
-                LOG.error("There is more than one time tree root!");
-                throw new IllegalStateException("There is more than one time tree root!");
-            }
-            return result;
+        if (timeTreeRoot != null) {
+            return timeTreeRoot;
         }
 
-        LOG.info("Creating time tree root");
+        synchronized (this) {
+            if (timeTreeRoot != null) {
+                return timeTreeRoot;
+            }
 
-        return database.createNode(TimeTreeRoot);
+            Node result;
+
+            Iterator<Node> nodeIterator = GlobalGraphOperations.at(database).getAllNodesWithLabel(TimeTreeRoot).iterator();
+            if (nodeIterator.hasNext()) {
+                result = nodeIterator.next();
+                if (nodeIterator.hasNext()) {
+                    LOG.error("There is more than one time tree root!");
+                    throw new IllegalStateException("There is more than one time tree root!");
+                }
+                return result;
+            }
+
+            LOG.info("Creating time tree root");
+
+            timeTreeRoot = database.createNode(TimeTreeRoot);
+            return timeTreeRoot;
+        }
     }
 
     /**

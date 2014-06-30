@@ -21,8 +21,13 @@ import org.eclipse.jetty.http.HttpStatus;
 import org.junit.Test;
 
 import java.io.IOException;
+import java.util.concurrent.ExecutorService;
+import java.util.concurrent.Executors;
+import java.util.concurrent.TimeUnit;
+import java.util.concurrent.atomic.AtomicInteger;
 
 import static com.graphaware.test.util.TestUtils.get;
+import static org.junit.Assert.assertEquals;
 
 /**
  * {@link NeoServerIntegrationTest} for {@link TimeTree} module and {@link TimeTreeApi}.
@@ -32,5 +37,27 @@ public class TimeTreeIntegrationTest extends NeoServerIntegrationTest {
     @Test
     public void graphAwareApisAreMountedWhenPresentOnClasspath() throws InterruptedException, IOException {
         get("http://localhost:7474/graphaware/timetree/now/", HttpStatus.OK_200);
+    }
+
+    @Test
+    public void verifyLotsOfConcurrentRequestsDoNotCauseExceptions() throws InterruptedException {
+        ExecutorService executor = Executors.newFixedThreadPool(20);
+        int noRequests = 1000;
+        final AtomicInteger successfulRequests = new AtomicInteger(0);
+
+        for (int i = 0; i < noRequests; i++) {
+            executor.execute(new Runnable() {
+                @Override
+                public void run() {
+                    get("http://localhost:7474/graphaware/timetree/now?resolution=millisecond", HttpStatus.OK_200);
+                    successfulRequests.incrementAndGet();
+                }
+            });
+        }
+
+        executor.shutdown();
+        executor.awaitTermination(30, TimeUnit.SECONDS);
+
+        assertEquals(noRequests, successfulRequests.get());
     }
 }

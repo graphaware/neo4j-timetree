@@ -67,7 +67,7 @@ public class CustomRootTimeTreeTest {
         Node dayNode;
         try (Transaction tx = database.beginTx()) {
             TimeTree timeTree = new CustomRootTimeTree(database.getNodeById(0));
-            dayNode = timeTree.getInstant(dateInMillis);
+            dayNode = timeTree.getInstant(dateInMillis, tx);
             tx.success();
         }
 

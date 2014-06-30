@@ -18,6 +18,7 @@ package com.graphaware.module.timetree;
 
 import org.joda.time.DateTimeZone;
 import org.neo4j.graphdb.Node;
+import org.neo4j.graphdb.Transaction;
 
 import java.util.List;
 
@@ -26,8 +27,7 @@ import java.util.List;
  * nodes that represent instances of time, making sure that a tree of time is maintained with each created node.
  * There is no support for changes or deletes.
  */
-public interface TimeTree
-{
+public interface TimeTree {
 
     /**
      * Get a node representing this time instant. If one doesn't exist, it will be created.
@@ -38,9 +38,10 @@ public interface TimeTree
      * The time zone of the time instant depends on the implementation, which can choose a default, require to be
      * configured with a default when instantiated, or both.
      *
+     * @param tx currently running transaction.
      * @return node representing the time instant when this method was called.
      */
-    Node getNow();
+    Node getNow(Transaction tx);
 
     /**
      * Get a node representing this time instant. If one doesn't exist, it will be created.
@@ -49,9 +50,10 @@ public interface TimeTree
      * which can choose a sensible default, require to be configured with a default when instantiated, or both.
      *
      * @param timeZone specific time zone.
+     * @param tx       currently running transaction.
      * @return node representing the time instant when this method was called.
      */
-    Node getNow(DateTimeZone timeZone);
+    Node getNow(DateTimeZone timeZone, Transaction tx);
 
     /**
      * Get a node representing this time instant. If one doesn't exist, it will be created.
@@ -60,18 +62,20 @@ public interface TimeTree
      * configured with a default when instantiated, or both.
      *
      * @param resolution specific resolution.
+     * @param tx         currently running transaction.
      * @return node representing the time instant when this method was called.
      */
-    Node getNow(Resolution resolution);
+    Node getNow(Resolution resolution, Transaction tx);
 
     /**
      * Get a node representing this time instant. If one doesn't exist, it will be created.
      *
      * @param timeZone   specific time zone.
      * @param resolution specific resolution.
+     * @param tx         currently running transaction.
      * @return node representing the time instant when this method was called.
      */
-    Node getNow(DateTimeZone timeZone, Resolution resolution);
+    Node getNow(DateTimeZone timeZone, Resolution resolution, Transaction tx);
 
     /**
      * Get a node representing a specific time instant. If one doesn't exist, it will be created.
@@ -83,9 +87,10 @@ public interface TimeTree
      * configured with a default when instantiated, or both.
      *
      * @param time UTC time in ms from 1/1/1970.
+     * @param tx   currently running transaction.
      * @return node representing a specific time instant.
      */
-    Node getInstant(long time);
+    Node getInstant(long time, Transaction tx);
 
     /**
      * Get a node representing a specific time instant. If one doesn't exist, it will be created.
@@ -95,9 +100,10 @@ public interface TimeTree
      *
      * @param time     UTC time in ms from 1/1/1970.
      * @param timeZone specific time zone.
+     * @param tx       currently running transaction.
      * @return node representing a specific time instant.
      */
-    Node getInstant(long time, DateTimeZone timeZone);
+    Node getInstant(long time, DateTimeZone timeZone, Transaction tx);
 
     /**
      * Get a node representing a specific time instant. If one doesn't exist, it will be created.
@@ -107,9 +113,10 @@ public interface TimeTree
      *
      * @param time       UTC time in ms from 1/1/1970.
      * @param resolution specific resolution.
+     * @param tx         currently running transaction.
      * @return node representing a specific time instant.
      */
-    Node getInstant(long time, Resolution resolution);
+    Node getInstant(long time, Resolution resolution, Transaction tx);
 
     /**
      * Get a node representing a specific time instant. If one doesn't exist, it will be created.
@@ -117,9 +124,10 @@ public interface TimeTree
      * @param time       UTC time in ms from 1/1/1970.
      * @param timeZone   specific time zone.
      * @param resolution specific resolution.
+     * @param tx         currently running transaction.
      * @return node representing a specific time instant.
      */
-    Node getInstant(long time, DateTimeZone timeZone, Resolution resolution);
+    Node getInstant(long time, DateTimeZone timeZone, Resolution resolution, Transaction tx);
 
     /**
      * Get nodes representing all time instants in the specified range (inclusive). The ones that don't exist will be created.
@@ -132,9 +140,10 @@ public interface TimeTree
      *
      * @param startTime UTC time in ms from 1/1/1970 of the start of the interval (inclusive).
      * @param endTime   UTC time in ms from 1/1/1970 of the end of the interval (inclusive).
+     * @param tx        currently running transaction.
      * @return nodes representing all time instants in the interval, ordered chronologically.
      */
-    List<Node> getInstants(long startTime, long endTime);
+    List<Node> getInstants(long startTime, long endTime, Transaction tx);
 
     /**
      * Get nodes representing all time instants in the specified range (inclusive). The ones that don't exist will be created.
@@ -145,9 +154,10 @@ public interface TimeTree
      * @param startTime UTC time in ms from 1/1/1970 of the start of the interval (inclusive).
      * @param endTime   UTC time in ms from 1/1/1970 of the end of the interval (inclusive).
      * @param timeZone  specific time zone.
+     * @param tx        currently running transaction.
      * @return nodes representing all time instants in the interval, ordered chronologically.
      */
-    List<Node> getInstants(long startTime, long endTime, DateTimeZone timeZone);
+    List<Node> getInstants(long startTime, long endTime, DateTimeZone timeZone, Transaction tx);
 
     /**
      * Get nodes representing all time instants in the specified range (inclusive). The ones that don't exist will be created.
@@ -158,9 +168,10 @@ public interface TimeTree
      * @param startTime  UTC time in ms from 1/1/1970 of the start of the interval (inclusive).
      * @param endTime    UTC time in ms from 1/1/1970 of the end of the interval (inclusive).
      * @param resolution specific resolution.
+     * @param tx         currently running transaction.
      * @return nodes representing all time instants in the interval, ordered chronologically.
      */
-    List<Node> getInstants(long startTime, long endTime, Resolution resolution);
+    List<Node> getInstants(long startTime, long endTime, Resolution resolution, Transaction tx);
 
     /**
      * Get nodes representing all time instants in the specified range (inclusive). The ones that don't exist will be created.
@@ -169,7 +180,8 @@ public interface TimeTree
      * @param endTime    UTC time in ms from 1/1/1970 of the end of the interval (inclusive).
      * @param timeZone   specific time zone.
      * @param resolution specific resolution.
+     * @param tx         currently running transaction.
      * @return nodes representing all time instants in the interval, ordered chronologically.
      */
-    List<Node> getInstants(long startTime, long endTime, DateTimeZone timeZone, Resolution resolution);
+    List<Node> getInstants(long startTime, long endTime, DateTimeZone timeZone, Resolution resolution, Transaction tx);
 }

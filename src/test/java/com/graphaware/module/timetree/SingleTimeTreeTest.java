@@ -64,7 +64,7 @@ public class SingleTimeTreeTest {
         //When
         Node dayNode;
         try (Transaction tx = database.beginTx()) {
-            dayNode = timeTree.getInstant(dateInMillis);
+            dayNode = timeTree.getInstant(dateInMillis, tx);
             tx.success();
         }
 
@@ -97,7 +97,7 @@ public class SingleTimeTreeTest {
         //When
         List<Node> dayNodes;
         try (Transaction tx = database.beginTx()) {
-            dayNodes = timeTree.getInstants(startDateInMillis, endDateInMillis, UTC, Resolution.DAY);
+            dayNodes = timeTree.getInstants(startDateInMillis, endDateInMillis, UTC, Resolution.DAY, tx);
             tx.success();
         }
 
@@ -139,7 +139,7 @@ public class SingleTimeTreeTest {
         //When
         Node instantNode;
         try (Transaction tx = database.beginTx()) {
-            instantNode = timeTree.getInstant(dateInMillis);
+            instantNode = timeTree.getInstant(dateInMillis, tx);
             tx.success();
         }
 
@@ -182,7 +182,7 @@ public class SingleTimeTreeTest {
         //When
         Node dayNode;
         try (Transaction tx = database.beginTx()) {
-            dayNode = timeTree.getNow(Resolution.DAY);
+            dayNode = timeTree.getNow(Resolution.DAY, tx);
             tx.success();
         }
 
@@ -212,13 +212,13 @@ public class SingleTimeTreeTest {
 
         //When
         try (Transaction tx = database.beginTx()) {
-            timeTree.getInstant(now.getMillis(), Resolution.DAY);
+            timeTree.getInstant(now.getMillis(), Resolution.DAY, tx);
             tx.success();
         }
 
         Node dayNode;
         try (Transaction tx = database.beginTx()) {
-            dayNode = timeTree.getInstant(now.getMillis(), Resolution.DAY);
+            dayNode = timeTree.getInstant(now.getMillis(), Resolution.DAY, tx);
             tx.success();
         }
 
@@ -245,22 +245,22 @@ public class SingleTimeTreeTest {
     public void fullTreeShouldBeCreatedWhenAFewDaysAreRequested() {
         //Given
         try (Transaction tx = database.beginTx()) {
-            timeTree.getInstant(dateToMillis(2012, 11, 1));
+            timeTree.getInstant(dateToMillis(2012, 11, 1), tx);
             tx.success();
         }
         try (Transaction tx = database.beginTx()) {
-            timeTree.getInstant(dateToMillis(2012, 11, 10));
+            timeTree.getInstant(dateToMillis(2012, 11, 10), tx);
             tx.success();
         }
         try (Transaction tx = database.beginTx()) {
-            timeTree.getInstant(dateToMillis(2013, 1, 2));
-            timeTree.getInstant(dateToMillis(2013, 1, 1));
-            timeTree.getInstant(dateToMillis(2013, 1, 4));
+            timeTree.getInstant(dateToMillis(2013, 1, 2), tx);
+            timeTree.getInstant(dateToMillis(2013, 1, 1), tx);
+            timeTree.getInstant(dateToMillis(2013, 1, 4), tx);
             tx.success();
         }
         try (Transaction tx = database.beginTx()) {
-            timeTree.getInstant(dateToMillis(2013, 3, 10));
-            timeTree.getInstant(dateToMillis(2013, 2, 1));
+            timeTree.getInstant(dateToMillis(2013, 3, 10), tx);
+            timeTree.getInstant(dateToMillis(2013, 2, 1), tx);
             tx.success();
         }
 
@@ -272,22 +272,22 @@ public class SingleTimeTreeTest {
     public void fullTreeShouldBeCreatedWhenAFewDaysAreRequested2() {
         //Given
         try (Transaction tx = database.beginTx()) {
-            timeTree.getInstant(dateToMillis(2013, 1, 2));
-            timeTree.getInstant(dateToMillis(2013, 1, 4));
-            timeTree.getInstant(dateToMillis(2013, 1, 1));
+            timeTree.getInstant(dateToMillis(2013, 1, 2), tx);
+            timeTree.getInstant(dateToMillis(2013, 1, 4), tx);
+            timeTree.getInstant(dateToMillis(2013, 1, 1), tx);
             tx.success();
         }
         try (Transaction tx = database.beginTx()) {
-            timeTree.getInstant(dateToMillis(2013, 2, 1));
+            timeTree.getInstant(dateToMillis(2013, 2, 1), tx);
             tx.success();
         }
         try (Transaction tx = database.beginTx()) {
-            timeTree.getInstant(dateToMillis(2012, 11, 1));
+            timeTree.getInstant(dateToMillis(2012, 11, 1), tx);
             tx.success();
         }
         try (Transaction tx = database.beginTx()) {
-            timeTree.getInstant(dateToMillis(2013, 3, 10));
-            timeTree.getInstant(dateToMillis(2012, 11, 10));
+            timeTree.getInstant(dateToMillis(2013, 3, 10), tx);
+            timeTree.getInstant(dateToMillis(2012, 11, 10), tx);
             tx.success();
         }
 

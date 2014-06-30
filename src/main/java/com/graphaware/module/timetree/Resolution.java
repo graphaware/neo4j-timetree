@@ -16,7 +16,8 @@
 
 package com.graphaware.module.timetree;
 
-import org.apache.log4j.Logger;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.joda.time.DateTimeFieldType;
 import org.neo4j.graphdb.Label;
 import org.neo4j.graphdb.Node;
@@ -34,7 +35,7 @@ public enum Resolution {
     SECOND(TimeTreeLabels.Second, DateTimeFieldType.secondOfMinute()),
     MILLISECOND(TimeTreeLabels.Millisecond, DateTimeFieldType.millisOfSecond());
 
-    private static final Logger LOG = Logger.getLogger(Resolution.class);
+    private static final Logger LOG = LoggerFactory.getLogger(Resolution.class);
 
     private final Label label;
     private final DateTimeFieldType dateTimeFieldType;

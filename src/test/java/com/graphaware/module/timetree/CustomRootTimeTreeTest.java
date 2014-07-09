@@ -16,6 +16,7 @@
 
 package com.graphaware.module.timetree;
 
+import com.graphaware.test.integration.DatabaseIntegrationTest;
 import org.joda.time.DateTime;
 import org.joda.time.DateTimeZone;
 import org.junit.After;
@@ -38,24 +39,13 @@ import static org.junit.Assert.assertTrue;
 /**
  * Unit test for {@link com.graphaware.module.timetree.SingleTimeTree}.
  */
-public class CustomRootTimeTreeTest {
-
-    private GraphDatabaseService database;
+public class CustomRootTimeTreeTest extends DatabaseIntegrationTest {
 
     private static final DateTimeZone UTC = DateTimeZone.forTimeZone(TimeZone.getTimeZone("UTC"));
 
-    @Before
-    public void setUp() {
-        database = new TestGraphDatabaseFactory().newImpermanentDatabase();
-        try (Transaction tx = database.beginTx()) {
-            database.createNode(DynamicLabel.label("CustomRoot"));
-            tx.success();
-        }
-    }
-
-    @After
-    public void tearDown() {
-        database.shutdown();
+    @Override
+    protected void populateDatabase(GraphDatabaseService database) {
+        database.createNode(DynamicLabel.label("CustomRoot"));
     }
 
     @Test
@@ -65,14 +55,14 @@ public class CustomRootTimeTreeTest {
 
         //When
         Node dayNode;
-        try (Transaction tx = database.beginTx()) {
-            TimeTree timeTree = new CustomRootTimeTree(database.getNodeById(0));
+        try (Transaction tx = getDatabase().beginTx()) {
+            TimeTree timeTree = new CustomRootTimeTree(getDatabase().getNodeById(0));
             dayNode = timeTree.getInstant(dateInMillis, tx);
             tx.success();
         }
 
         //Then
-        assertSameGraph(database, "CREATE" +
+        assertSameGraph(getDatabase(), "CREATE" +
                 "(root:CustomRoot)," +
                 "(root)-[:FIRST]->(year:Year {value:2013})," +
                 "(root)-[:CHILD]->(year)," +
@@ -84,7 +74,7 @@ public class CustomRootTimeTreeTest {
                 "(month)-[:CHILD]->(day)," +
                 "(month)-[:LAST]->(day)");
 
-        try (Transaction tx = database.beginTx()) {
+        try (Transaction tx = getDatabase().beginTx()) {
             assertTrue(dayNode.hasLabel(TimeTreeLabels.Day));
             assertEquals(4, dayNode.getProperty(VALUE_PROPERTY));
         }

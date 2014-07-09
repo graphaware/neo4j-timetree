@@ -16,6 +16,7 @@
 
 package com.graphaware.module.timetree;
 
+import com.graphaware.test.integration.DatabaseIntegrationTest;
 import org.joda.time.DateTime;
 import org.joda.time.DateTimeZone;
 import org.junit.After;
@@ -38,22 +39,16 @@ import static org.junit.Assert.assertTrue;
 /**
  * Unit test for {@link SingleTimeTree}.
  */
-public class SingleTimeTreeTest {
+public class SingleTimeTreeTest extends DatabaseIntegrationTest {
 
-    private GraphDatabaseService database;
     private TimeTree timeTree; //class under test
 
     private static final DateTimeZone UTC = DateTimeZone.forTimeZone(TimeZone.getTimeZone("UTC"));
 
     @Before
-    public void setUp() {
-        database = new TestGraphDatabaseFactory().newImpermanentDatabase();
-        timeTree = new SingleTimeTree(database);
-    }
-
-    @After
-    public void tearDown() {
-        database.shutdown();
+    public void setUp() throws Exception {
+        super.setUp();
+        timeTree = new SingleTimeTree(getDatabase());
     }
 
     @Test
@@ -63,13 +58,13 @@ public class SingleTimeTreeTest {
 
         //When
         Node dayNode;
-        try (Transaction tx = database.beginTx()) {
+        try (Transaction tx = getDatabase().beginTx()) {
             dayNode = timeTree.getInstant(dateInMillis, tx);
             tx.success();
         }
 
         //Then
-        assertSameGraph(database, "CREATE" +
+        assertSameGraph(getDatabase(), "CREATE" +
                 "(root:TimeTreeRoot)," +
                 "(root)-[:FIRST]->(year:Year {value:2013})," +
                 "(root)-[:CHILD]->(year)," +
@@ -81,7 +76,7 @@ public class SingleTimeTreeTest {
                 "(month)-[:CHILD]->(day)," +
                 "(month)-[:LAST]->(day)");
 
-        try (Transaction tx = database.beginTx()) {
+        try (Transaction tx = getDatabase().beginTx()) {
             assertTrue(dayNode.hasLabel(TimeTreeLabels.Day));
             assertEquals(4, dayNode.getProperty(VALUE_PROPERTY));
         }
@@ -96,13 +91,13 @@ public class SingleTimeTreeTest {
 
         //When
         List<Node> dayNodes;
-        try (Transaction tx = database.beginTx()) {
+        try (Transaction tx = getDatabase().beginTx()) {
             dayNodes = timeTree.getInstants(startDateInMillis, endDateInMillis, UTC, Resolution.DAY, tx);
             tx.success();
         }
 
         //Then
-        assertSameGraph(database, "CREATE" +
+        assertSameGraph(getDatabase(), "CREATE" +
                 "(root:TimeTreeRoot)," +
                 "(root)-[:FIRST]->(year:Year {value:2013})," +
                 "(root)-[:CHILD]->(year)," +
@@ -122,7 +117,7 @@ public class SingleTimeTreeTest {
 
         assertEquals(4, dayNodes.size());
 
-        try (Transaction tx = database.beginTx()) {
+        try (Transaction tx = getDatabase().beginTx()) {
             for (int i = 0; i < 4; i++) {
                 assertTrue(dayNodes.get(i).hasLabel(TimeTreeLabels.Day));
                 assertEquals(i + 4, dayNodes.get(i).getProperty(VALUE_PROPERTY));
@@ -134,17 +129,17 @@ public class SingleTimeTreeTest {
     public void trivialTreeShouldBeCreatedWhenFirstMilliInstantIsRequested() {
         //Given
         long dateInMillis = new DateTime(2014, 4, 5, 13, 56, 22, 123, UTC).getMillis();
-        timeTree = new SingleTimeTree(database, DateTimeZone.forTimeZone(TimeZone.getTimeZone("GMT+1")), Resolution.MILLISECOND);
+        timeTree = new SingleTimeTree(getDatabase(), DateTimeZone.forTimeZone(TimeZone.getTimeZone("GMT+1")), Resolution.MILLISECOND);
 
         //When
         Node instantNode;
-        try (Transaction tx = database.beginTx()) {
+        try (Transaction tx = getDatabase().beginTx()) {
             instantNode = timeTree.getInstant(dateInMillis, tx);
             tx.success();
         }
 
         //Then
-        assertSameGraph(database, "CREATE" +
+        assertSameGraph(getDatabase(), "CREATE" +
                 "(root:TimeTreeRoot)," +
                 "(root)-[:FIRST]->(year:Year {value:2014})," +
                 "(root)-[:CHILD]->(year)," +
@@ -168,7 +163,7 @@ public class SingleTimeTreeTest {
                 "(second)-[:CHILD]->(milli)," +
                 "(second)-[:LAST]->(milli)");
 
-        try (Transaction tx = database.beginTx()) {
+        try (Transaction tx = getDatabase().beginTx()) {
             assertTrue(instantNode.hasLabel(TimeTreeLabels.Millisecond));
             assertEquals(123, instantNode.getProperty(VALUE_PROPERTY));
         }
@@ -181,13 +176,13 @@ public class SingleTimeTreeTest {
 
         //When
         Node dayNode;
-        try (Transaction tx = database.beginTx()) {
+        try (Transaction tx = getDatabase().beginTx()) {
             dayNode = timeTree.getNow(Resolution.DAY, tx);
             tx.success();
         }
 
         //Then
-        assertSameGraph(database, "CREATE" +
+        assertSameGraph(getDatabase(), "CREATE" +
                 "(root:TimeTreeRoot)," +
                 "(root)-[:FIRST]->(year:Year {value:" + now.getYear() + "})," +
                 "(root)-[:CHILD]->(year)," +
@@ -199,7 +194,7 @@ public class SingleTimeTreeTest {
                 "(month)-[:CHILD]->(day)," +
                 "(month)-[:LAST]->(day)");
 
-        try (Transaction tx = database.beginTx()) {
+        try (Transaction tx = getDatabase().beginTx()) {
             assertTrue(dayNode.hasLabel(TimeTreeLabels.Day));
             assertEquals(now.getDayOfMonth(), dayNode.getProperty(VALUE_PROPERTY));
         }
@@ -211,19 +206,19 @@ public class SingleTimeTreeTest {
         DateTime now = DateTime.now(UTC);
 
         //When
-        try (Transaction tx = database.beginTx()) {
+        try (Transaction tx = getDatabase().beginTx()) {
             timeTree.getInstant(now.getMillis(), Resolution.DAY, tx);
             tx.success();
         }
 
         Node dayNode;
-        try (Transaction tx = database.beginTx()) {
+        try (Transaction tx = getDatabase().beginTx()) {
             dayNode = timeTree.getInstant(now.getMillis(), Resolution.DAY, tx);
             tx.success();
         }
 
         //Then
-        assertSameGraph(database, "CREATE" +
+        assertSameGraph(getDatabase(), "CREATE" +
                 "(root:TimeTreeRoot)," +
                 "(root)-[:FIRST]->(year:Year {value:" + now.getYear() + "})," +
                 "(root)-[:CHILD]->(year)," +
@@ -235,7 +230,7 @@ public class SingleTimeTreeTest {
                 "(month)-[:CHILD]->(day)," +
                 "(month)-[:LAST]->(day)");
 
-        try (Transaction tx = database.beginTx()) {
+        try (Transaction tx = getDatabase().beginTx()) {
             assertTrue(dayNode.hasLabel(TimeTreeLabels.Day));
             assertEquals(now.getDayOfMonth(), dayNode.getProperty(VALUE_PROPERTY));
         }
@@ -244,21 +239,21 @@ public class SingleTimeTreeTest {
     @Test
     public void fullTreeShouldBeCreatedWhenAFewDaysAreRequested() {
         //Given
-        try (Transaction tx = database.beginTx()) {
+        try (Transaction tx = getDatabase().beginTx()) {
             timeTree.getInstant(dateToMillis(2012, 11, 1), tx);
             tx.success();
         }
-        try (Transaction tx = database.beginTx()) {
+        try (Transaction tx = getDatabase().beginTx()) {
             timeTree.getInstant(dateToMillis(2012, 11, 10), tx);
             tx.success();
         }
-        try (Transaction tx = database.beginTx()) {
+        try (Transaction tx = getDatabase().beginTx()) {
             timeTree.getInstant(dateToMillis(2013, 1, 2), tx);
             timeTree.getInstant(dateToMillis(2013, 1, 1), tx);
             timeTree.getInstant(dateToMillis(2013, 1, 4), tx);
             tx.success();
         }
-        try (Transaction tx = database.beginTx()) {
+        try (Transaction tx = getDatabase().beginTx()) {
             timeTree.getInstant(dateToMillis(2013, 3, 10), tx);
             timeTree.getInstant(dateToMillis(2013, 2, 1), tx);
             tx.success();
@@ -271,21 +266,21 @@ public class SingleTimeTreeTest {
     @Test
     public void fullTreeShouldBeCreatedWhenAFewDaysAreRequested2() {
         //Given
-        try (Transaction tx = database.beginTx()) {
+        try (Transaction tx = getDatabase().beginTx()) {
             timeTree.getInstant(dateToMillis(2013, 1, 2), tx);
             timeTree.getInstant(dateToMillis(2013, 1, 4), tx);
             timeTree.getInstant(dateToMillis(2013, 1, 1), tx);
             tx.success();
         }
-        try (Transaction tx = database.beginTx()) {
+        try (Transaction tx = getDatabase().beginTx()) {
             timeTree.getInstant(dateToMillis(2013, 2, 1), tx);
             tx.success();
         }
-        try (Transaction tx = database.beginTx()) {
+        try (Transaction tx = getDatabase().beginTx()) {
             timeTree.getInstant(dateToMillis(2012, 11, 1), tx);
             tx.success();
         }
-        try (Transaction tx = database.beginTx()) {
+        try (Transaction tx = getDatabase().beginTx()) {
             timeTree.getInstant(dateToMillis(2013, 3, 10), tx);
             timeTree.getInstant(dateToMillis(2012, 11, 10), tx);
             tx.success();
@@ -296,7 +291,7 @@ public class SingleTimeTreeTest {
     }
 
     private void verifyFullTree() {
-        assertSameGraph(database, "CREATE" +
+        assertSameGraph(getDatabase(), "CREATE" +
                 "(root:TimeTreeRoot)," +
                 "(root)-[:FIRST]->(year2012:Year {value:2012})," +
                 "(root)-[:LAST]->(year2013:Year {value:2013})," +

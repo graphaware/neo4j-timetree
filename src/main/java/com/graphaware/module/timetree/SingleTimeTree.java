@@ -16,13 +16,16 @@
 
 package com.graphaware.module.timetree;
 
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 import org.joda.time.DateTime;
 import org.joda.time.DateTimeZone;
 import org.joda.time.MutableDateTime;
-import org.neo4j.graphdb.*;
+import org.neo4j.graphdb.GraphDatabaseService;
+import org.neo4j.graphdb.Node;
+import org.neo4j.graphdb.Relationship;
+import org.neo4j.graphdb.Transaction;
 import org.neo4j.tooling.GlobalGraphOperations;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import java.util.Iterator;
 import java.util.LinkedList;
@@ -100,61 +103,17 @@ public class SingleTimeTree implements TimeTree {
      */
     @Override
     public Node getNow(Transaction tx) {
-        return getNow(timeZone, resolution, tx);
+        TimeInstant timeInstant = new TimeInstant();
+        return getNow(timeInstant, tx);
     }
 
-    /**
-     * {@inheritDoc}
-     */
+
     @Override
-    public Node getNow(DateTimeZone timeZone, Transaction tx) {
-        return getNow(timeZone, resolution, tx);
+    public Node getNow(TimeInstant timeInstant, Transaction tx) {
+        return getInstant(timeInstant, tx);
     }
 
-    /**
-     * {@inheritDoc}
-     */
-    @Override
-    public Node getNow(Resolution resolution, Transaction tx) {
-        return getNow(timeZone, resolution, tx);
-    }
 
-    /**
-     * {@inheritDoc}
-     */
-    @Override
-    public Node getNow(DateTimeZone timeZone, Resolution resolution, Transaction tx) {
-        return getInstant(DateTime.now().getMillis(), timeZone, resolution, tx);
-    }
-
-    /**
-     * {@inheritDoc}
-     */
-    @Override
-    public Node getInstant(long time, Transaction tx) {
-        return getInstant(time, timeZone, resolution, tx);
-    }
-
-    /**
-     * {@inheritDoc}
-     */
-    @Override
-    public Node getInstant(long time, DateTimeZone timeZone, Transaction tx) {
-        return getInstant(time, timeZone, resolution, tx);
-    }
-
-    /**
-     * {@inheritDoc}
-     */
-    @Override
-    public Node getInstant(long time, Resolution resolution, Transaction tx) {
-        return getInstant(time, timeZone, resolution, tx);
-    }
-
-    /**
-     * {@inheritDoc}
-     */
-    @Override
     public Node getInstant(long time, DateTimeZone timeZone, Resolution resolution, Transaction tx) {
         if (timeZone == null) {
             timeZone = this.timeZone;
@@ -170,6 +129,24 @@ public class SingleTimeTree implements TimeTree {
         tx.acquireWriteLock(timeRoot);
         Node year = findOrCreateChild(timeRoot, dateTime.get(YEAR.getDateTimeFieldType()));
         return getInstant(year, dateTime, resolution);
+    }
+
+    @Override
+    public Node getInstant(TimeInstant timeInstant, Transaction tx) {
+        if (timeInstant.getTimezone() == null) {
+            timeInstant.setTimezone(timeZone);
+        }
+
+        if (timeInstant.getResolution() == null) {
+            timeInstant.setResolution(resolution);
+        }
+
+        DateTime dateTime = new DateTime(timeInstant.getTime(), timeInstant.getTimezone());
+
+        Node timeRoot = getTimeRoot();
+        tx.acquireWriteLock(timeRoot);
+        Node year = findOrCreateChild(timeRoot, dateTime.get(YEAR.getDateTimeFieldType()));
+        return getInstant(year, dateTime, timeInstant.getResolution());
     }
 
     /**

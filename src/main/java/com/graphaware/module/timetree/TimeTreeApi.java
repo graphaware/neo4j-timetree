@@ -23,7 +23,6 @@ import org.neo4j.graphdb.Transaction;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Controller;
-import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.TimeZone;
@@ -54,9 +53,15 @@ public class TimeTreeApi {
             @RequestParam(value = "timezone", required = false) String timeZoneParam) {
 
         long id;
-
+        TimeInstant timeInstant = new TimeInstant(timeParam);
+        if (resolutionParam != null) {
+            timeInstant.setResolution(resolveResolution(resolutionParam));
+        }
+        if (timeZoneParam != null) {
+            timeInstant.setTimezone(resolveTimeZone(timeZoneParam));
+        }
         try (Transaction tx = database.beginTx()) {
-            id = timeTree.getInstant(timeParam, resolveTimeZone(timeZoneParam), resolveResolution(resolutionParam), tx).getId();
+            id = timeTree.getInstant(timeInstant, tx).getId();
             tx.success();
         }
 
@@ -90,9 +95,15 @@ public class TimeTreeApi {
             @RequestParam(value = "timezone", required = false) String timeZoneParam) {
 
         long id;
-
+        TimeInstant timeInstant = new TimeInstant(timeParam);
+        if (resolutionParam != null) {
+            timeInstant.setResolution(resolveResolution(resolutionParam));
+        }
+        if (timeZoneParam != null) {
+            timeInstant.setTimezone(resolveTimeZone(timeZoneParam));
+        }
         try (Transaction tx = database.beginTx()) {
-            id = new CustomRootTimeTree(database.getNodeById(rootNodeId)).getInstant(timeParam, resolveTimeZone(timeZoneParam), resolveResolution(resolutionParam), tx).getId();
+            id = new CustomRootTimeTree(database.getNodeById(rootNodeId)).getInstant(timeInstant, tx).getId();
             tx.success();
         }
 
@@ -125,9 +136,15 @@ public class TimeTreeApi {
             @RequestParam(value = "timezone", required = false) String timeZoneParam) {
 
         long id;
-
+        TimeInstant timeInstant = new TimeInstant();
+        if (timeZoneParam != null) {
+            timeInstant.setTimezone(resolveTimeZone(timeZoneParam));
+        }
+        if (resolutionParam != null) {
+            timeInstant.setResolution(resolveResolution(resolutionParam));
+        }
         try (Transaction tx = database.beginTx()) {
-            id = timeTree.getNow(resolveTimeZone(timeZoneParam), resolveResolution(resolutionParam), tx).getId();
+            id = timeTree.getNow(timeInstant, tx).getId();
             tx.success();
         }
 
@@ -142,9 +159,15 @@ public class TimeTreeApi {
             @RequestParam(value = "timezone", required = false) String timeZoneParam) {
 
         long id;
-
+        TimeInstant timeInstant = new TimeInstant();
+        if (timeZoneParam != null) {
+            timeInstant.setTimezone(resolveTimeZone(timeZoneParam));
+        }
+        if (resolutionParam != null) {
+            timeInstant.setResolution(resolveResolution(resolutionParam));
+        }
         try (Transaction tx = database.beginTx()) {
-            id = new CustomRootTimeTree(database.getNodeById(rootNodeId)).getNow(resolveTimeZone(timeZoneParam), resolveResolution(resolutionParam), tx).getId();
+            id = new CustomRootTimeTree(database.getNodeById(rootNodeId)).getNow(timeInstant, tx).getId();
             tx.success();
         }
 

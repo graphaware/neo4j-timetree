@@ -19,16 +19,12 @@ package com.graphaware.module.timetree;
 import com.graphaware.test.integration.DatabaseIntegrationTest;
 import org.joda.time.DateTime;
 import org.joda.time.DateTimeZone;
-import org.junit.After;
-import org.junit.Before;
 import org.junit.Test;
 import org.neo4j.graphdb.DynamicLabel;
 import org.neo4j.graphdb.GraphDatabaseService;
 import org.neo4j.graphdb.Node;
 import org.neo4j.graphdb.Transaction;
-import org.neo4j.test.TestGraphDatabaseFactory;
 
-import java.util.List;
 import java.util.TimeZone;
 
 import static com.graphaware.module.timetree.SingleTimeTree.VALUE_PROPERTY;
@@ -57,7 +53,7 @@ public class CustomRootTimeTreeTest extends DatabaseIntegrationTest {
         Node dayNode;
         try (Transaction tx = getDatabase().beginTx()) {
             TimeTree timeTree = new CustomRootTimeTree(getDatabase().getNodeById(0));
-            dayNode = timeTree.getInstant(dateInMillis, tx);
+            dayNode = timeTree.getInstant(new TimeInstant(dateInMillis), tx);
             tx.success();
         }
 

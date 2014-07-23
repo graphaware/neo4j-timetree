@@ -43,91 +43,24 @@ public interface TimeTree {
      */
     Node getNow(Transaction tx);
 
-    /**
-     * Get a node representing this time instant. If one doesn't exist, it will be created.
-     * <p/>
-     * The resolution of the time instant (i.e., whether it is a day, hour, minute, etc.) depends on the implementation,
-     * which can choose a sensible default, require to be configured with a default when instantiated, or both.
-     *
-     * @param timeZone specific time zone.
-     * @param tx       currently running transaction.
-     * @return node representing the time instant when this method was called.
-     */
-    Node getNow(DateTimeZone timeZone, Transaction tx);
-
-    /**
-     * Get a node representing this time instant. If one doesn't exist, it will be created.
-     * <p/>
-     * The time zone of the time instant depends on the implementation, which can choose a default, require to be
-     * configured with a default when instantiated, or both.
-     *
-     * @param resolution specific resolution.
-     * @param tx         currently running transaction.
-     * @return node representing the time instant when this method was called.
-     */
-    Node getNow(Resolution resolution, Transaction tx);
 
     /**
      * Get a node representing this time instant. If one doesn't exist, it will be created.
      *
-     * @param timeZone   specific time zone.
-     * @param resolution specific resolution.
-     * @param tx         currently running transaction.
-     * @return node representing the time instant when this method was called.
+     * @param timeInstant specific TimeInstant
+     * @param tx          currently running transaction.
+     * @return node representing the time instant
      */
-    Node getNow(DateTimeZone timeZone, Resolution resolution, Transaction tx);
-
-    /**
-     * Get a node representing a specific time instant. If one doesn't exist, it will be created.
-     * <p/>
-     * The resolution of the time instant (i.e., whether it is a day, hour, minute, etc.) depends on the implementation,
-     * which can choose a sensible default, require to be configured with a default when instantiated, or both.
-     * <p/>
-     * The time zone of the time instant depends on the implementation, which can choose a default, require to be
-     * configured with a default when instantiated, or both.
-     *
-     * @param time UTC time in ms from 1/1/1970.
-     * @param tx   currently running transaction.
-     * @return node representing a specific time instant.
-     */
-    Node getInstant(long time, Transaction tx);
-
-    /**
-     * Get a node representing a specific time instant. If one doesn't exist, it will be created.
-     * <p/>
-     * The resolution of the time instant (i.e., whether it is a day, hour, minute, etc.) depends on the implementation,
-     * which can choose a sensible default, require to be configured with a default when instantiated, or both.
-     *
-     * @param time     UTC time in ms from 1/1/1970.
-     * @param timeZone specific time zone.
-     * @param tx       currently running transaction.
-     * @return node representing a specific time instant.
-     */
-    Node getInstant(long time, DateTimeZone timeZone, Transaction tx);
-
-    /**
-     * Get a node representing a specific time instant. If one doesn't exist, it will be created.
-     * <p/>
-     * The time zone of the time instant depends on the implementation, which can choose a default, require to be
-     * configured with a default when instantiated, or both.
-     *
-     * @param time       UTC time in ms from 1/1/1970.
-     * @param resolution specific resolution.
-     * @param tx         currently running transaction.
-     * @return node representing a specific time instant.
-     */
-    Node getInstant(long time, Resolution resolution, Transaction tx);
+    Node getNow(TimeInstant timeInstant, Transaction tx);
 
     /**
      * Get a node representing a specific time instant. If one doesn't exist, it will be created.
      *
-     * @param time       UTC time in ms from 1/1/1970.
-     * @param timeZone   specific time zone.
-     * @param resolution specific resolution.
-     * @param tx         currently running transaction.
+     * @param timeInstant specific TimeInstant
+     * @param tx          currently running transaction.
      * @return node representing a specific time instant.
      */
-    Node getInstant(long time, DateTimeZone timeZone, Resolution resolution, Transaction tx);
+    Node getInstant(TimeInstant timeInstant, Transaction tx);
 
     /**
      * Get nodes representing all time instants in the specified range (inclusive). The ones that don't exist will be created.

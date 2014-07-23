@@ -19,20 +19,16 @@ package com.graphaware.module.timetree;
 import com.graphaware.test.integration.DatabaseIntegrationTest;
 import org.joda.time.DateTime;
 import org.joda.time.DateTimeZone;
-import org.junit.After;
 import org.junit.Before;
 import org.junit.Test;
-import org.neo4j.graphdb.DynamicLabel;
-import org.neo4j.graphdb.GraphDatabaseService;
 import org.neo4j.graphdb.Node;
 import org.neo4j.graphdb.Transaction;
-import org.neo4j.test.TestGraphDatabaseFactory;
 
 import java.util.List;
 import java.util.TimeZone;
 
 import static com.graphaware.module.timetree.SingleTimeTree.VALUE_PROPERTY;
-import static com.graphaware.test.unit.GraphUnit.*;
+import static com.graphaware.test.unit.GraphUnit.assertSameGraph;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertTrue;
 
@@ -55,11 +51,11 @@ public class SingleTimeTreeTest extends DatabaseIntegrationTest {
     public void trivialTreeShouldBeCreatedWhenFirstDayIsRequested() {
         //Given
         long dateInMillis = dateToMillis(2013, 5, 4);
-
+        TimeInstant timeInstant = new TimeInstant(dateInMillis);
         //When
         Node dayNode;
         try (Transaction tx = getDatabase().beginTx()) {
-            dayNode = timeTree.getInstant(dateInMillis, tx);
+            dayNode = timeTree.getInstant(timeInstant, tx);
             tx.success();
         }
 
@@ -130,11 +126,11 @@ public class SingleTimeTreeTest extends DatabaseIntegrationTest {
         //Given
         long dateInMillis = new DateTime(2014, 4, 5, 13, 56, 22, 123, UTC).getMillis();
         timeTree = new SingleTimeTree(getDatabase(), DateTimeZone.forTimeZone(TimeZone.getTimeZone("GMT+1")), Resolution.MILLISECOND);
-
+        TimeInstant timeInstant = new TimeInstant(dateInMillis);
         //When
         Node instantNode;
         try (Transaction tx = getDatabase().beginTx()) {
-            instantNode = timeTree.getInstant(dateInMillis, tx);
+            instantNode = timeTree.getInstant(timeInstant, tx);
             tx.success();
         }
 
@@ -177,7 +173,7 @@ public class SingleTimeTreeTest extends DatabaseIntegrationTest {
         //When
         Node dayNode;
         try (Transaction tx = getDatabase().beginTx()) {
-            dayNode = timeTree.getNow(Resolution.DAY, tx);
+            dayNode = timeTree.getNow(tx);
             tx.success();
         }
 
@@ -205,15 +201,17 @@ public class SingleTimeTreeTest extends DatabaseIntegrationTest {
         //Given
         DateTime now = DateTime.now(UTC);
 
+        TimeInstant timeInstant = new TimeInstant();
+        timeInstant.setResolution(Resolution.DAY);
         //When
         try (Transaction tx = getDatabase().beginTx()) {
-            timeTree.getInstant(now.getMillis(), Resolution.DAY, tx);
+            timeTree.getInstant(timeInstant, tx);
             tx.success();
         }
 
         Node dayNode;
         try (Transaction tx = getDatabase().beginTx()) {
-            dayNode = timeTree.getInstant(now.getMillis(), Resolution.DAY, tx);
+            dayNode = timeTree.getInstant(timeInstant, tx);
             tx.success();
         }
 
@@ -239,23 +237,27 @@ public class SingleTimeTreeTest extends DatabaseIntegrationTest {
     @Test
     public void fullTreeShouldBeCreatedWhenAFewDaysAreRequested() {
         //Given
+
         try (Transaction tx = getDatabase().beginTx()) {
-            timeTree.getInstant(dateToMillis(2012, 11, 1), tx);
+            timeTree.getInstant(new TimeInstant(dateToMillis(2012, 11, 1)), tx);
+            tx.success();
+        }
+
+        try (Transaction tx = getDatabase().beginTx()) {
+            timeTree.getInstant(new TimeInstant(dateToMillis(2012, 11, 10)), tx);
+            tx.success();
+        }
+
+
+        try (Transaction tx = getDatabase().beginTx()) {
+            timeTree.getInstant(new TimeInstant(dateToMillis(2013, 1, 2)), tx);
+            timeTree.getInstant(new TimeInstant(dateToMillis(2013, 1, 1)), tx);
+            timeTree.getInstant(new TimeInstant(dateToMillis(2013, 1, 4)), tx);
             tx.success();
         }
         try (Transaction tx = getDatabase().beginTx()) {
-            timeTree.getInstant(dateToMillis(2012, 11, 10), tx);
-            tx.success();
-        }
-        try (Transaction tx = getDatabase().beginTx()) {
-            timeTree.getInstant(dateToMillis(2013, 1, 2), tx);
-            timeTree.getInstant(dateToMillis(2013, 1, 1), tx);
-            timeTree.getInstant(dateToMillis(2013, 1, 4), tx);
-            tx.success();
-        }
-        try (Transaction tx = getDatabase().beginTx()) {
-            timeTree.getInstant(dateToMillis(2013, 3, 10), tx);
-            timeTree.getInstant(dateToMillis(2013, 2, 1), tx);
+            timeTree.getInstant(new TimeInstant(dateToMillis(2013, 3, 10)), tx);
+            timeTree.getInstant(new TimeInstant(dateToMillis(2013, 2, 1)), tx);
             tx.success();
         }
 
@@ -267,22 +269,22 @@ public class SingleTimeTreeTest extends DatabaseIntegrationTest {
     public void fullTreeShouldBeCreatedWhenAFewDaysAreRequested2() {
         //Given
         try (Transaction tx = getDatabase().beginTx()) {
-            timeTree.getInstant(dateToMillis(2013, 1, 2), tx);
-            timeTree.getInstant(dateToMillis(2013, 1, 4), tx);
-            timeTree.getInstant(dateToMillis(2013, 1, 1), tx);
+            timeTree.getInstant(new TimeInstant(dateToMillis(2013, 1, 2)), tx);
+            timeTree.getInstant(new TimeInstant(dateToMillis(2013, 1, 4)), tx);
+            timeTree.getInstant(new TimeInstant(dateToMillis(2013, 1, 1)), tx);
             tx.success();
         }
         try (Transaction tx = getDatabase().beginTx()) {
-            timeTree.getInstant(dateToMillis(2013, 2, 1), tx);
+            timeTree.getInstant(new TimeInstant(dateToMillis(2013, 2, 1)), tx);
             tx.success();
         }
         try (Transaction tx = getDatabase().beginTx()) {
-            timeTree.getInstant(dateToMillis(2012, 11, 1), tx);
+            timeTree.getInstant(new TimeInstant(dateToMillis(2012, 11, 1)), tx);
             tx.success();
         }
         try (Transaction tx = getDatabase().beginTx()) {
-            timeTree.getInstant(dateToMillis(2013, 3, 10), tx);
-            timeTree.getInstant(dateToMillis(2012, 11, 10), tx);
+            timeTree.getInstant(new TimeInstant(dateToMillis(2013, 3, 10)), tx);
+            timeTree.getInstant(new TimeInstant(dateToMillis(2012, 11, 10)), tx);
             tx.success();
         }
 

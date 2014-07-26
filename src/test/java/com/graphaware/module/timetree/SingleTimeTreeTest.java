@@ -290,6 +290,19 @@ public class SingleTimeTreeTest extends DatabaseIntegrationTest {
         verifyFullTree();
     }
 
+    @Test(expected = IllegalArgumentException.class)
+    public void getInstantsWithStartTimeAfterEndTimeThrows() {
+        //Given
+        long startTime = dateToMillis(2013, 1, 2);
+        long endTime = dateToMillis(2013, 1, 1);
+
+        // When
+        try (Transaction tx = getDatabase().beginTx()) {
+            timeTree.getInstants(startTime, endTime, tx);
+            // Then throw
+        }
+    }
+
     private void verifyFullTree() {
         assertSameGraph(getDatabase(), "CREATE" +
                 "(root:TimeTreeRoot)," +

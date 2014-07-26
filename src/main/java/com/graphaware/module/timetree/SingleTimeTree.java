@@ -201,6 +201,10 @@ public class SingleTimeTree implements TimeTree {
      */
     @Override
     public List<Node> getInstants(long startTime, long endTime, DateTimeZone timeZone, Resolution resolution, Transaction tx) {
+        if (startTime > endTime) {
+            throw new IllegalArgumentException("startTime must be smaller than endTime");
+        }
+
         if (timeZone == null) {
             timeZone = this.timeZone;
         }

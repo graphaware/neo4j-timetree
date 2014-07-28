@@ -21,6 +21,8 @@ import org.joda.time.DateTime;
 import org.joda.time.DateTimeZone;
 import org.junit.Before;
 import org.junit.Test;
+import org.neo4j.graphdb.Direction;
+import org.neo4j.graphdb.DynamicRelationshipType;
 import org.neo4j.graphdb.Node;
 import org.neo4j.graphdb.Transaction;
 
@@ -298,6 +300,87 @@ public class SingleTimeTreeTest extends DatabaseIntegrationTest {
 
         //Then
         verifyFullTree();
+    }
+
+
+    @Test
+    public void eventAndTimeInstantShouldBeCreatedWhenEventIsAttached() {
+        //Given
+        DateTime now = DateTime.now(UTC);
+        TimeInstant timeInstant=new TimeInstant();
+        timeInstant.setResolution(Resolution.DAY);
+        timeInstant.setTimezone(UTC);
+        Node event;
+
+        try (Transaction tx = getDatabase().beginTx()) {
+            event=getDatabase().createNode();
+            event.setProperty("name","eventA");
+            tx.success();
+        }
+
+        //When
+        try (Transaction tx = getDatabase().beginTx()) {
+            timeTree.attachEventToInstant(event, DynamicRelationshipType.withName("HAS_EVENT"), Direction.INCOMING,timeInstant,tx);
+            tx.success();
+        }
+
+        //Then
+        assertSameGraph(getDatabase(), "CREATE" +
+                "(root:TimeTreeRoot)," +
+                "(root)-[:FIRST]->(year:Year {value:" + now.getYear() + "})," +
+                "(root)-[:CHILD]->(year)," +
+                "(root)-[:LAST]->(year)," +
+                "(year)-[:FIRST]->(month:Month {value:" + now.getMonthOfYear() + "})," +
+                "(year)-[:CHILD]->(month)," +
+                "(year)-[:LAST]->(month)," +
+                "(month)-[:FIRST]->(day:Day {value:" + now.getDayOfMonth() + "})," +
+                "(month)-[:CHILD]->(day)," +
+                "(month)-[:LAST]->(day)," +
+                "(day)-[:HAS_EVENT]->(event {name:'eventA'})");
+
+
+    }
+
+    @Test
+    public void multipleEventsAndTimeInstantShouldBeCreatedWhenEventIsAttached() {
+        //Given
+        DateTime now = DateTime.now(UTC);
+        TimeInstant timeInstant=new TimeInstant();
+        timeInstant.setResolution(Resolution.DAY);
+        timeInstant.setTimezone(UTC);
+        Node event1,event2;
+
+        try (Transaction tx = getDatabase().beginTx()) {
+            event1=getDatabase().createNode();
+            event1.setProperty("name","eventA");
+            event2=getDatabase().createNode();
+            event2.setProperty("name","eventB");
+            tx.success();
+        }
+
+        //When
+        try (Transaction tx = getDatabase().beginTx()) {
+            timeTree.attachEventToInstant(event1, DynamicRelationshipType.withName("HAS_EVENT"), Direction.INCOMING,timeInstant,tx);
+            timeTree.attachEventToInstant(event2, DynamicRelationshipType.withName("HAS_EVENT"), Direction.INCOMING,timeInstant,tx);
+            tx.success();
+        }
+
+        //Then
+        assertSameGraph(getDatabase(), "CREATE" +
+                "(root:TimeTreeRoot)," +
+                "(root)-[:FIRST]->(year:Year {value:" + now.getYear() + "})," +
+                "(root)-[:CHILD]->(year)," +
+                "(root)-[:LAST]->(year)," +
+                "(year)-[:FIRST]->(month:Month {value:" + now.getMonthOfYear() + "})," +
+                "(year)-[:CHILD]->(month)," +
+                "(year)-[:LAST]->(month)," +
+                "(month)-[:FIRST]->(day:Day {value:" + now.getDayOfMonth() + "})," +
+                "(month)-[:CHILD]->(day)," +
+                "(month)-[:LAST]->(day)," +
+                "(day)-[:HAS_EVENT]->(event1 {name:'eventA'})," +
+                "(day)-[:HAS_EVENT]->(event2 {name:'eventB'})");
+
+
     }
 
     private void verifyFullTree() {

@@ -19,10 +19,7 @@ package com.graphaware.module.timetree;
 import org.joda.time.DateTime;
 import org.joda.time.DateTimeZone;
 import org.joda.time.MutableDateTime;
-import org.neo4j.graphdb.GraphDatabaseService;
-import org.neo4j.graphdb.Node;
-import org.neo4j.graphdb.Relationship;
-import org.neo4j.graphdb.Transaction;
+import org.neo4j.graphdb.*;
 import org.neo4j.tooling.GlobalGraphOperations;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -180,6 +177,17 @@ public class SingleTimeTree implements TimeTree {
         }
 
         return result;
+    }
+
+    @Override
+    public void attachEventToInstant(Node eventNode, RelationshipType eventRelation, Direction eventRelationDirection, TimeInstant timeInstant, Transaction tx) {
+        Node timeInstantNode=getInstant(timeInstant,tx);
+        if(eventRelationDirection.equals(Direction.OUTGOING)) {
+            eventNode.createRelationshipTo(timeInstantNode,eventRelation);
+        }
+        else {
+            timeInstantNode.createRelationshipTo(eventNode,eventRelation);
+        }
     }
 
     /**

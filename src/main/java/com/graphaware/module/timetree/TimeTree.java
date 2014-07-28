@@ -17,7 +17,9 @@
 package com.graphaware.module.timetree;
 
 import org.joda.time.DateTimeZone;
+import org.neo4j.graphdb.Direction;
 import org.neo4j.graphdb.Node;
+import org.neo4j.graphdb.RelationshipType;
 import org.neo4j.graphdb.Transaction;
 
 import java.util.List;
@@ -70,4 +72,15 @@ public interface TimeTree {
      * @return nodes representing all time instants in the interval, ordered chronologically.
      */
     List<Node> getInstants(TimeInstant startTime, TimeInstant endTime, Transaction tx);
+
+    /**
+     * Attach an event to a node representing a specific time instant. If the time instant doesn't exist, it will be created.
+     * @param eventNode                 event node to be associated with this instant of time
+     * @param eventRelation             RelationshipType between the event node and the time instant node
+     * @param eventRelationDirection    Direction of the eventRelation from the event node to the time instant node
+     * @param timeInstant               specific TimeInstant to attach the event to
+     * @param tx         currently running transaction.
+     */
+    void attachEventToInstant(Node eventNode, RelationshipType eventRelation, Direction eventRelationDirection, TimeInstant timeInstant, Transaction tx);
+
 }

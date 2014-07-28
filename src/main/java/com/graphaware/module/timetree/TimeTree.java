@@ -64,57 +64,10 @@ public interface TimeTree {
 
     /**
      * Get nodes representing all time instants in the specified range (inclusive). The ones that don't exist will be created.
-     * <p/>
-     * The resolution of the time instants (i.e., whether it is a day, hour, minute, etc.) depends on the implementation,
-     * which can choose a sensible default, require to be configured with a default when instantiated, or both.
-     * <p/>
-     * The time zone of the time instants depends on the implementation, which can choose a default, require to be
-     * configured with a default when instantiated, or both.
-     *
-     * @param startTime UTC time in ms from 1/1/1970 of the start of the interval (inclusive).
-     * @param endTime   UTC time in ms from 1/1/1970 of the end of the interval (inclusive).
+     * @param startTime TimeInstant representing the start of the interval (inclusive)
+     * @param endTime   TimeInstant representing the end of the interval (inclusive)
      * @param tx        currently running transaction.
      * @return nodes representing all time instants in the interval, ordered chronologically.
      */
-    List<Node> getInstants(long startTime, long endTime, Transaction tx);
-
-    /**
-     * Get nodes representing all time instants in the specified range (inclusive). The ones that don't exist will be created.
-     * <p/>
-     * The resolution of the time instants (i.e., whether it is a day, hour, minute, etc.) depends on the implementation,
-     * which can choose a sensible default, require to be configured with a default when instantiated, or both.
-     *
-     * @param startTime UTC time in ms from 1/1/1970 of the start of the interval (inclusive).
-     * @param endTime   UTC time in ms from 1/1/1970 of the end of the interval (inclusive).
-     * @param timeZone  specific time zone.
-     * @param tx        currently running transaction.
-     * @return nodes representing all time instants in the interval, ordered chronologically.
-     */
-    List<Node> getInstants(long startTime, long endTime, DateTimeZone timeZone, Transaction tx);
-
-    /**
-     * Get nodes representing all time instants in the specified range (inclusive). The ones that don't exist will be created.
-     * <p/>
-     * The time zone of the time instants depends on the implementation, which can choose a default, require to be
-     * configured with a default when instantiated, or both.
-     *
-     * @param startTime  UTC time in ms from 1/1/1970 of the start of the interval (inclusive).
-     * @param endTime    UTC time in ms from 1/1/1970 of the end of the interval (inclusive).
-     * @param resolution specific resolution.
-     * @param tx         currently running transaction.
-     * @return nodes representing all time instants in the interval, ordered chronologically.
-     */
-    List<Node> getInstants(long startTime, long endTime, Resolution resolution, Transaction tx);
-
-    /**
-     * Get nodes representing all time instants in the specified range (inclusive). The ones that don't exist will be created.
-     *
-     * @param startTime  UTC time in ms from 1/1/1970 of the start of the interval (inclusive).
-     * @param endTime    UTC time in ms from 1/1/1970 of the end of the interval (inclusive).
-     * @param timeZone   specific time zone.
-     * @param resolution specific resolution.
-     * @param tx         currently running transaction.
-     * @return nodes representing all time instants in the interval, ordered chronologically.
-     */
-    List<Node> getInstants(long startTime, long endTime, DateTimeZone timeZone, Resolution resolution, Transaction tx);
+    List<Node> getInstants(TimeInstant startTime, TimeInstant endTime, Transaction tx);
 }

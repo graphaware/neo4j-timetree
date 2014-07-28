@@ -78,8 +78,18 @@ public class TimeTreeApi {
 
         Long[] ids;
 
+        TimeInstant startTimeInstant = new TimeInstant(startTime);
+        TimeInstant endTimeInstant = new TimeInstant(endTime);
+        if (resolutionParam != null) {
+            startTimeInstant.setResolution(resolveResolution(resolutionParam));
+            endTimeInstant.setResolution(resolveResolution(resolutionParam));
+        }
+        if (timeZoneParam != null) {
+            startTimeInstant.setTimezone(resolveTimeZone(timeZoneParam));
+            endTimeInstant.setTimezone(resolveTimeZone(timeZoneParam));
+        }
         try (Transaction tx = database.beginTx()) {
-            ids = ids(timeTree.getInstants(startTime, endTime, resolveTimeZone(timeZoneParam), resolveResolution(resolutionParam), tx));
+            ids = ids(timeTree.getInstants(startTimeInstant,endTimeInstant, tx));
             tx.success();
         }
 
@@ -120,9 +130,18 @@ public class TimeTreeApi {
             @RequestParam(value = "timezone", required = false) String timeZoneParam) {
 
         Long[] ids;
-
+        TimeInstant startTimeInstant = new TimeInstant(startTime);
+        TimeInstant endTimeInstant = new TimeInstant(endTime);
+        if (resolutionParam != null) {
+            startTimeInstant.setResolution(resolveResolution(resolutionParam));
+            endTimeInstant.setResolution(resolveResolution(resolutionParam));
+        }
+        if (timeZoneParam != null) {
+            startTimeInstant.setTimezone(resolveTimeZone(timeZoneParam));
+            endTimeInstant.setTimezone(resolveTimeZone(timeZoneParam));
+        }
         try (Transaction tx = database.beginTx()) {
-            ids = ids(new CustomRootTimeTree(database.getNodeById(rootNodeId)).getInstants(startTime, endTime, resolveTimeZone(timeZoneParam), resolveResolution(resolutionParam), tx));
+            ids = ids(new CustomRootTimeTree(database.getNodeById(rootNodeId)).getInstants(startTimeInstant,endTimeInstant, tx));
             tx.success();
         }
 

@@ -114,7 +114,7 @@ public class SingleTimeTree implements TimeTree {
     }
 
 
-    public Node getInstant(long time, DateTimeZone timeZone, Resolution resolution, Transaction tx) {
+    private Node getInstant(long time, DateTimeZone timeZone, Resolution resolution, Transaction tx) {
         if (timeZone == null) {
             timeZone = this.timeZone;
         }
@@ -149,49 +149,34 @@ public class SingleTimeTree implements TimeTree {
         return getInstant(year, dateTime, timeInstant.getResolution());
     }
 
-    /**
-     * {@inheritDoc}
-     */
-    @Override
-    public List<Node> getInstants(long startTime, long endTime, Transaction tx) {
-        return getInstants(startTime, endTime, timeZone, tx);
-    }
 
-    /**
-     * {@inheritDoc}
-     */
     @Override
-    public List<Node> getInstants(long startTime, long endTime, DateTimeZone timeZone, Transaction tx) {
-        return getInstants(startTime, endTime, timeZone, resolution, tx);
-    }
+    public List<Node> getInstants(TimeInstant startTime, TimeInstant endTime, Transaction tx) {
 
-    /**
-     * {@inheritDoc}
-     */
-    @Override
-    public List<Node> getInstants(long startTime, long endTime, Resolution resolution, Transaction tx) {
-        return getInstants(startTime, endTime, timeZone, resolution, tx);
-    }
-
-    /**
-     * {@inheritDoc}
-     */
-    @Override
-    public List<Node> getInstants(long startTime, long endTime, DateTimeZone timeZone, Resolution resolution, Transaction tx) {
-        if (timeZone == null) {
-            timeZone = this.timeZone;
+        if(startTime.getTime()>endTime.getTime()) {
+            throw new IllegalArgumentException("Start time must be less than End time");
+        }
+        if (startTime.getTimezone() == null) {
+            startTime.setTimezone(timeZone);
+            if(endTime.getTimezone()!=null && (!startTime.getTimezone().equals(endTime.getTimezone()))) {
+                throw new IllegalArgumentException("The timezone of startTime and endTime must match");
+            }
         }
 
-        if (resolution == null) {
-            resolution = this.resolution;
+        if (startTime.getResolution() == null) {
+            startTime.setResolution(resolution);
+            if(endTime.getResolution()!=null && (!startTime.getResolution().equals(endTime.getResolution()))) {
+                throw new IllegalArgumentException("The resolution of startTime and endTime must match");
+            }
         }
+
 
         List<Node> result = new LinkedList<>();
 
-        MutableDateTime time = new MutableDateTime(startTime);
-        while (!time.isAfter(endTime)) {
-            result.add(getInstant(time.getMillis(), timeZone, resolution, tx));
-            time.add(resolution.getDateTimeFieldType().getDurationType(), 1);
+        MutableDateTime time = new MutableDateTime(startTime.getTime());
+        while (!time.isAfter(endTime.getTime())) {
+            result.add(getInstant(time.getMillis(), startTime.getTimezone(), startTime.getResolution(), tx));
+            time.add(startTime.getResolution().getDateTimeFieldType().getDurationType(), 1);
         }
 
         return result;

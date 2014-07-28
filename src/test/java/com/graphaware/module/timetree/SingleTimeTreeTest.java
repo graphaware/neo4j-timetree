@@ -85,10 +85,18 @@ public class SingleTimeTreeTest extends DatabaseIntegrationTest {
         long startDateInMillis = dateToMillis(2013, 5, 4);
         long endDateInMillis = dateToMillis(2013, 5, 7);
 
+        TimeInstant startTime=new TimeInstant(startDateInMillis);
+        startTime.setResolution(Resolution.DAY);
+        startTime.setTimezone(UTC);
+
+        TimeInstant endTime=new TimeInstant(endDateInMillis);
+        endTime.setResolution(Resolution.DAY);
+        endTime.setTimezone(UTC);
+
         //When
         List<Node> dayNodes;
         try (Transaction tx = getDatabase().beginTx()) {
-            dayNodes = timeTree.getInstants(startDateInMillis, endDateInMillis, UTC, Resolution.DAY, tx);
+            dayNodes = timeTree.getInstants(startTime, endTime, tx);
             tx.success();
         }
 

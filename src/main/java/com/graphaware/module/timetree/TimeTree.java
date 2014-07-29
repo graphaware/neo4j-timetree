@@ -22,6 +22,7 @@ import org.neo4j.graphdb.Node;
 import org.neo4j.graphdb.RelationshipType;
 import org.neo4j.graphdb.Transaction;
 
+import javax.management.relation.RelationType;
 import java.util.List;
 
 /**
@@ -82,5 +83,10 @@ public interface TimeTree {
      * @param tx         currently running transaction.
      */
     void attachEventToInstant(Node eventNode, RelationshipType eventRelation, Direction eventRelationDirection, TimeInstant timeInstant, Transaction tx);
+
+    List<Node> getEventsAtInstant(TimeInstant timeInstant, Transaction tx);
+
+    List<Node> getEventsBetweenInstants(TimeInstant startTime, TimeInstant endTime, Transaction tx);
+
 
 }

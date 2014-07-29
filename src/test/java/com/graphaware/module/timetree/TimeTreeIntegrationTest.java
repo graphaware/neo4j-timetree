@@ -30,7 +30,7 @@ import static com.graphaware.test.util.TestUtils.get;
 import static org.junit.Assert.assertEquals;
 
 /**
- * {@link NeoServerIntegrationTest} for {@link TimeTree} module and {@link TimeTreeApi}.
+ * {@link NeoServerIntegrationTest} for {@link TimeTree} module and {@link com.graphaware.module.timetree.api.TimeTreeApi}.
  */
 public class TimeTreeIntegrationTest extends NeoServerIntegrationTest {
 

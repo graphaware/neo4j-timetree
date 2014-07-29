@@ -24,10 +24,7 @@ import org.neo4j.tooling.GlobalGraphOperations;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import java.util.Iterator;
-import java.util.LinkedList;
-import java.util.List;
-import java.util.TimeZone;
+import java.util.*;
 
 import static com.graphaware.module.timetree.Resolution.*;
 import static com.graphaware.module.timetree.TimeTreeLabels.TimeTreeRoot;
@@ -188,6 +185,35 @@ public class SingleTimeTree implements TimeTree {
         else {
             timeInstantNode.createRelationshipTo(eventNode,eventRelation);
         }
+    }
+
+    @Override
+    public List<Node> getEventsAtInstant(TimeInstant timeInstant, Transaction tx) {
+        List<Node> events=new ArrayList<>();
+        List<String> timeTreeRelationships = TimeTreeRelationshipTypes.getTimeTreeRelationshipNames();
+        Node timeInstantNode=getInstant(timeInstant,tx);
+        for(Relationship rel : timeInstantNode.getRelationships()) {
+            if(!timeTreeRelationships.contains(rel.getType().name())) {
+                events.add(rel.getOtherNode(timeInstantNode));
+            }
+        }
+        return events;
+    }
+
+    @Override
+    public List<Node> getEventsBetweenInstants(TimeInstant startTime, TimeInstant endTime, Transaction tx) {
+        List<Node> events=new ArrayList<>();
+        List<String> timeTreeRelationships = TimeTreeRelationshipTypes.getTimeTreeRelationshipNames();
+
+        List<Node> timeInstants = getInstants(startTime, endTime, tx);
+        for(Node timeInstantNode : timeInstants) {
+            for (Relationship rel : timeInstantNode.getRelationships()) {
+                if (!timeTreeRelationships.contains(rel.getType().name())) {
+                    events.add(rel.getOtherNode(timeInstantNode));
+                }
+            }
+        }
+        return events;
     }
 
     /**

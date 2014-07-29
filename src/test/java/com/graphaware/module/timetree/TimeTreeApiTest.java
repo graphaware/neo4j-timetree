@@ -21,15 +21,14 @@ import org.apache.http.HttpStatus;
 import org.joda.time.DateTime;
 import org.joda.time.DateTimeZone;
 import org.junit.Test;
-import org.neo4j.graphdb.DynamicLabel;
-import org.neo4j.graphdb.Transaction;
+import org.neo4j.graphdb.*;
 
 import static com.graphaware.test.unit.GraphUnit.assertSameGraph;
 import static com.graphaware.test.util.TestUtils.get;
 import static org.junit.Assert.assertEquals;
 
 /**
- * Integration test for {@link TimeTreeApi}.
+ * Integration test for {@link com.graphaware.module.timetree.api.TimeTreeApi}.
  */
 public class TimeTreeApiTest extends GraphAwareApiTest {
 

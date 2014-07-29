@@ -14,12 +14,11 @@
  * <http://www.gnu.org/licenses/>.
  */
 
-package com.graphaware.module.timetree;
+package com.graphaware.module.timetree.api;
 
+import com.graphaware.module.timetree.*;
 import org.joda.time.DateTimeZone;
-import org.neo4j.graphdb.GraphDatabaseService;
-import org.neo4j.graphdb.NotFoundException;
-import org.neo4j.graphdb.Transaction;
+import org.neo4j.graphdb.*;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Controller;
@@ -30,7 +29,7 @@ import java.util.TimeZone;
 import static com.graphaware.common.util.PropertyContainerUtils.ids;
 
 /**
- * REST API for {@link TimeTree}.
+ * REST API for {@link com.graphaware.module.timetree.TimeTree}.
  */
 @Controller
 @RequestMapping("/timetree")
@@ -66,6 +65,29 @@ public class TimeTreeApi {
         }
 
         return id;
+    }
+
+
+    @RequestMapping(value = "/single/event", method = RequestMethod.POST)
+    @ResponseBody
+    public void attachEventToInstant(@RequestBody Event event) {
+
+        if(event.getEventTime()==null || event.getEventRelationDirection()==null || event.getEventRelationType()==null) {
+            throw new IllegalArgumentException("Missing value for event time, event relationship type or event relationship direction");
+        }
+
+
+        TimeInstant timeInstant = new TimeInstant(event.getEventTime().getTime());
+
+        try (Transaction tx = database.beginTx()) {
+            Node eventNode=database.getNodeById(event.getEventNodeId());
+            if(eventNode==null) {
+                throw new IllegalArgumentException("Event node does not exist");
+            }
+            timeTree.attachEventToInstant(eventNode, resolveRelationship(event.getEventRelationType()), resolveDirection(event.getEventRelationDirection()), timeInstant, tx);
+            tx.success();
+        }
+
     }
 
     @RequestMapping(value = "/range/{startTime}/{endTime}", method = RequestMethod.GET)
@@ -208,6 +230,23 @@ public class TimeTreeApi {
         }
         return resolution;
     }
+
+    private RelationshipType resolveRelationship(String relationship) {
+        RelationshipType relationshipType = null;
+        if (relationship != null) {
+            relationshipType = DynamicRelationshipType.withName(relationship);
+        }
+        return relationshipType;
+    }
+
+    private Direction resolveDirection(String direction) {
+        Direction dir = null;
+        if (direction != null) {
+            dir=Direction.valueOf(direction);
+        }
+        return dir;
+    }
+
 
     @ExceptionHandler(IllegalArgumentException.class)
     @ResponseStatus(HttpStatus.BAD_REQUEST)

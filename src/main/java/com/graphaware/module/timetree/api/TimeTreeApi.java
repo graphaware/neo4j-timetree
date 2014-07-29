@@ -68,7 +68,7 @@ public class TimeTreeApi {
     }
 
 
-    @RequestMapping(value = "/single/event", method = RequestMethod.POST)
+  /*  @RequestMapping(value = "/single/event", method = RequestMethod.POST)
     @ResponseBody
     public void attachEventToInstant(@RequestBody Event event) {
 
@@ -88,7 +88,7 @@ public class TimeTreeApi {
             tx.success();
         }
 
-    }
+    }*/
 
     @RequestMapping(value = "/range/{startTime}/{endTime}", method = RequestMethod.GET)
     @ResponseBody

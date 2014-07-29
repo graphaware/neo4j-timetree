@@ -147,19 +147,19 @@ public class SingleTimeTree implements TimeTree {
     @Override
     public List<Node> getInstants(TimeInstant startTime, TimeInstant endTime, Transaction tx) {
 
-        if(startTime.getTime()>endTime.getTime()) {
+        if (startTime.getTime() > endTime.getTime()) {
             throw new IllegalArgumentException("Start time must be less than End time");
         }
         if (startTime.getTimezone() == null) {
             startTime.setTimezone(timeZone);
-            if(endTime.getTimezone()!=null && (!startTime.getTimezone().equals(endTime.getTimezone()))) {
+            if (endTime.getTimezone() != null && (!startTime.getTimezone().equals(endTime.getTimezone()))) {
                 throw new IllegalArgumentException("The timezone of startTime and endTime must match");
             }
         }
 
         if (startTime.getResolution() == null) {
             startTime.setResolution(resolution);
-            if(endTime.getResolution()!=null && (!startTime.getResolution().equals(endTime.getResolution()))) {
+            if (endTime.getResolution() != null && (!startTime.getResolution().equals(endTime.getResolution()))) {
                 throw new IllegalArgumentException("The resolution of startTime and endTime must match");
             }
         }
@@ -178,43 +178,93 @@ public class SingleTimeTree implements TimeTree {
 
     @Override
     public void attachEventToInstant(Node eventNode, RelationshipType eventRelation, Direction eventRelationDirection, TimeInstant timeInstant, Transaction tx) {
-        Node timeInstantNode=getInstant(timeInstant,tx);
-        if(eventRelationDirection.equals(Direction.OUTGOING)) {
-            eventNode.createRelationshipTo(timeInstantNode,eventRelation);
-        }
-        else {
-            timeInstantNode.createRelationshipTo(eventNode,eventRelation);
+        Node timeInstantNode = getInstant(timeInstant, tx);
+        if (eventRelationDirection.equals(Direction.OUTGOING)) {
+            eventNode.createRelationshipTo(timeInstantNode, eventRelation);
+        } else {
+            timeInstantNode.createRelationshipTo(eventNode, eventRelation);
         }
     }
 
     @Override
-    public List<Node> getEventsAtInstant(TimeInstant timeInstant, Transaction tx) {
-        List<Node> events=new ArrayList<>();
-        List<String> timeTreeRelationships = TimeTreeRelationshipTypes.getTimeTreeRelationshipNames();
-        Node timeInstantNode=getInstant(timeInstant,tx);
-        for(Relationship rel : timeInstantNode.getRelationships()) {
-            if(!timeTreeRelationships.contains(rel.getType().name())) {
-                events.add(rel.getOtherNode(timeInstantNode));
-            }
-        }
-        return events;
+    public List<Event> getEventsAtInstant(TimeInstant timeInstant, Transaction tx) {
+        return getEventsAtInstant(timeInstant,null,tx);
     }
 
     @Override
-    public List<Node> getEventsBetweenInstants(TimeInstant startTime, TimeInstant endTime, Transaction tx) {
-        List<Node> events=new ArrayList<>();
-        List<String> timeTreeRelationships = TimeTreeRelationshipTypes.getTimeTreeRelationshipNames();
+    public List<Event> getEventsBetweenInstants(TimeInstant startTime, TimeInstant endTime, Transaction tx) {
+       return getEventsBetweenInstants(startTime,endTime,null,tx);
+    }
 
-        List<Node> timeInstants = getInstants(startTime, endTime, tx);
-        for(Node timeInstantNode : timeInstants) {
-            for (Relationship rel : timeInstantNode.getRelationships()) {
-                if (!timeTreeRelationships.contains(rel.getType().name())) {
-                    events.add(rel.getOtherNode(timeInstantNode));
+    @Override
+    public List<Event> getEventsAtInstant(TimeInstant timeInstant, RelationshipType eventRelation, Transaction tx) {
+        List<Event> events = new ArrayList<>();
+        List<String> timeTreeRelationships = TimeTreeRelationshipTypes.getTimeTreeRelationshipNames();
+        Node timeInstantNode = getInstant(timeInstant, tx);
+        for (Relationship rel : timeInstantNode.getRelationships()) {
+            if (!timeTreeRelationships.contains(rel.getType().name())) {
+                if(eventRelation==null || (eventRelation.name().equals(rel.getType().name()))) {
+                    Event event = new Event();
+                    event.setEventNode(rel.getOtherNode(timeInstantNode));
+                    event.setEventRelation(rel.getType());
+                    event.setTimeInstant(timeInstant);
+                    events.add(event);
                 }
             }
         }
         return events;
     }
+
+    @Override
+    public List<Event> getEventsBetweenInstants(TimeInstant startTime, TimeInstant endTime, RelationshipType eventRelation, Transaction tx) {
+        List<Event> events = new ArrayList<>();
+        List<String> timeTreeRelationships = TimeTreeRelationshipTypes.getTimeTreeRelationshipNames();
+
+
+        if (startTime.getTime() > endTime.getTime()) {
+            throw new IllegalArgumentException("Start time must be less than End time");
+        }
+        if (startTime.getTimezone() == null) {
+            startTime.setTimezone(timeZone);
+            if (endTime.getTimezone() != null && (!startTime.getTimezone().equals(endTime.getTimezone()))) {
+                throw new IllegalArgumentException("The timezone of startTime and endTime must match");
+            }
+        }
+
+        if (startTime.getResolution() == null) {
+            startTime.setResolution(resolution);
+            if (endTime.getResolution() != null && (!startTime.getResolution().equals(endTime.getResolution()))) {
+                throw new IllegalArgumentException("The resolution of startTime and endTime must match");
+            }
+        }
+
+
+        MutableDateTime time = new MutableDateTime(startTime.getTime());
+        while (!time.isAfter(endTime.getTime())) {
+            TimeInstant timeInstant = resolveTimeInstant(time.getMillis(), startTime.getTimezone(), startTime.getResolution());
+            Node timeInstantNode = getInstant(time.getMillis(), startTime.getTimezone(), startTime.getResolution(), tx);
+            for (Relationship rel : timeInstantNode.getRelationships()) {
+                if (!timeTreeRelationships.contains(rel.getType().name())) {
+                    if(eventRelation==null || (eventRelation.name().equals(rel.getType().name()))) {
+                        Event event = new Event();
+                        event.setEventNode(rel.getOtherNode(timeInstantNode));
+                        event.setEventRelation(rel.getType());
+                        event.setTimeInstant(timeInstant);
+                        events.add(event);
+                    }
+                }
+            }
+
+            time.add(startTime.getResolution().getDateTimeFieldType().getDurationType(), 1);
+        }
+
+        return events;
+    }
+
+    private TimeInstant resolveTimeInstant(long millis, DateTimeZone timeZone, Resolution resolution) {
+        return null;
+    }
+
 
     /**
      * Get a node representing a specific time instant. If one doesn't exist, it will be created as well as any missing

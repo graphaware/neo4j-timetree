@@ -28,6 +28,10 @@ public enum TimeTreeRelationshipTypes implements RelationshipType
 {
     FIRST, LAST, NEXT, CHILD;
 
+    /**
+     * Get all TimeTree relationship names
+     * @return List of TimeTree relationship names
+     */
     public static List<String> getTimeTreeRelationshipNames() {
         List<String> relationNames=new ArrayList<>();
         for(TimeTreeRelationshipTypes type : values()) {

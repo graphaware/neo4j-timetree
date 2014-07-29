@@ -84,9 +84,39 @@ public interface TimeTree {
      */
     void attachEventToInstant(Node eventNode, RelationshipType eventRelation, Direction eventRelationDirection, TimeInstant timeInstant, Transaction tx);
 
-    List<Node> getEventsAtInstant(TimeInstant timeInstant, Transaction tx);
+    /**
+     * Get events attached to a specific time instant. If the time instant doesn't exist, it will be created.
+     * @param timeInstant   specific TimeInstant
+     * @param tx            currently running transaction.
+     * @return events attached to the time instant
+     */
+    List<Event> getEventsAtInstant(TimeInstant timeInstant, Transaction tx);
 
-    List<Node> getEventsBetweenInstants(TimeInstant startTime, TimeInstant endTime, Transaction tx);
+    /**
+     * Get events attached to all time instants in the specified range (inclusive). The time instants that don't exist will be created.
+     * @param startTime     TimeInstant representing the start of the interval (inclusive)
+     * @param endTime       TimeInstant representing the end of the interval (inclusive)
+     * @param tx            currently running transaction.
+     * @return events attached to all time instants in the interval, ordered chronologically
+     */
+    List<Event> getEventsBetweenInstants(TimeInstant startTime, TimeInstant endTime, Transaction tx);
 
+    /**
+     *  Get events attached to a specific time instant with a specific relation. If the time instant doesn't exist, it will be created.
+     * @param timeInstant   specific TimeInstant
+     * @param eventRelation relationship attaching the event to the timeInstant
+     * @param tx            currently running transaction.
+     * @return events attached to the time instant with the specified relation
+     */
+    List<Event> getEventsAtInstant(TimeInstant timeInstant, RelationshipType eventRelation, Transaction tx);
 
+    /**
+     * Get events attached to all time instants with the specified relation, in the specified range (inclusive). The time instants that don't exist will be created.
+     * @param startTime     TimeInstant representing the start of the interval (inclusive)
+     * @param endTime       TimeInstant representing the end of the interval (inclusive)
+     * @param eventRelation relationship attaching the event to the timeInstant
+     * @param tx            currently running transaction.
+     * @return events attached to all time instants in the interval with the specified relation, ordered chronologically
+     */
+    List<Event> getEventsBetweenInstants(TimeInstant startTime, TimeInstant endTime, RelationshipType eventRelation, Transaction tx);
 }

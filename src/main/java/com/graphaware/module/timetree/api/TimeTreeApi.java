@@ -53,12 +53,7 @@ public class TimeTreeApi {
 
         long id;
         TimeInstant timeInstant = new TimeInstant(timeParam);
-        if (resolutionParam != null) {
-            timeInstant.setResolution(resolveResolution(resolutionParam));
-        }
-        if (timeZoneParam != null) {
-            timeInstant.setTimezone(resolveTimeZone(timeZoneParam));
-        }
+        setTimeInstantDefaults(resolutionParam, timeZoneParam, timeInstant);
         try (Transaction tx = database.beginTx()) {
             id = timeTree.getInstant(timeInstant, tx).getId();
             tx.success();
@@ -66,6 +61,7 @@ public class TimeTreeApi {
 
         return id;
     }
+
 
     @RequestMapping(value = "/single/{time}/events", method = RequestMethod.GET)
     @ResponseBody
@@ -78,12 +74,7 @@ public class TimeTreeApi {
         List<EventTimeInstant> events;
         TimeInstant timeInstant = new TimeInstant(timeParam);
         RelationshipType eventRelationshipType = null;
-        if (resolutionParam != null) {
-            timeInstant.setResolution(resolveResolution(resolutionParam));
-        }
-        if (timeZoneParam != null) {
-            timeInstant.setTimezone(resolveTimeZone(timeZoneParam));
-        }
+        setTimeInstantDefaults(resolutionParam, timeZoneParam, timeInstant);
         if (eventRelation != null) {
             eventRelationshipType = DynamicRelationshipType.withName(eventRelation);
         }
@@ -95,14 +86,14 @@ public class TimeTreeApi {
         return events;
     }
 
+
     @RequestMapping(value = "/single/event", method = RequestMethod.POST)
     @ResponseBody
-    public void attachEventToInstant(@RequestBody EventTimeInstant event) {
+    public void attachEventToInstant(@RequestBody DirectedEventTimeInstant event) {
 
         if (event.getTime() == 0 || event.getEventRelationshipType() == null || event.getEventRelationshipDirection() == null) {
             throw new IllegalArgumentException("Missing value for event time, event relationship type or event relationship direction");
         }
-
 
         TimeInstant timeInstant = new TimeInstant(event.getTime());
 
@@ -111,8 +102,8 @@ public class TimeTreeApi {
             timeTree.attachEventToInstant(eventNode, resolveRelationship(event.getEventRelationshipType()), resolveDirection(event.getEventRelationshipDirection()), timeInstant, tx);
             tx.success();
         }
-
     }
+
 
     @RequestMapping(value = "/range/{startTime}/{endTime}", method = RequestMethod.GET)
     @ResponseBody
@@ -126,14 +117,7 @@ public class TimeTreeApi {
 
         TimeInstant startTimeInstant = new TimeInstant(startTime);
         TimeInstant endTimeInstant = new TimeInstant(endTime);
-        if (resolutionParam != null) {
-            startTimeInstant.setResolution(resolveResolution(resolutionParam));
-            endTimeInstant.setResolution(resolveResolution(resolutionParam));
-        }
-        if (timeZoneParam != null) {
-            startTimeInstant.setTimezone(resolveTimeZone(timeZoneParam));
-            endTimeInstant.setTimezone(resolveTimeZone(timeZoneParam));
-        }
+        setTimeInstantDefaults(resolutionParam, timeZoneParam, startTimeInstant, endTimeInstant);
         try (Transaction tx = database.beginTx()) {
             ids = ids(timeTree.getInstants(startTimeInstant, endTimeInstant, tx));
             tx.success();
@@ -142,9 +126,10 @@ public class TimeTreeApi {
         return ids;
     }
 
+
     @RequestMapping(value = "/range/{startTime}/{endTime}/events", method = RequestMethod.GET)
     @ResponseBody
-    public List<Event> getEventsInRange(
+    public List<EventTimeInstant> getEventsInRange(
             @PathVariable(value = "startTime") long startTime,
             @PathVariable(value = "endTime") long endTime,
             @RequestParam(value = "resolution", required = false) String resolutionParam,
@@ -152,28 +137,23 @@ public class TimeTreeApi {
             @RequestParam(value = "eventRelation", required = false) String eventRelation) {
 
         RelationshipType eventRelationshipType = null;
-        List<Event> events;
+        List<EventTimeInstant> events;
 
         TimeInstant startTimeInstant = new TimeInstant(startTime);
         TimeInstant endTimeInstant = new TimeInstant(endTime);
-        if (resolutionParam != null) {
-            startTimeInstant.setResolution(resolveResolution(resolutionParam));
-            endTimeInstant.setResolution(resolveResolution(resolutionParam));
-        }
-        if (timeZoneParam != null) {
-            startTimeInstant.setTimezone(resolveTimeZone(timeZoneParam));
-            endTimeInstant.setTimezone(resolveTimeZone(timeZoneParam));
-        }
+        setTimeInstantDefaults(resolutionParam, timeZoneParam, startTimeInstant, endTimeInstant);
+
         if (eventRelation != null) {
             eventRelationshipType = DynamicRelationshipType.withName(eventRelation);
         }
         try (Transaction tx = database.beginTx()) {
-            events = timeTree.getEventsBetweenInstants(startTimeInstant, endTimeInstant, eventRelationshipType, tx);
+            events = convertEvents(timeTree.getEventsBetweenInstants(startTimeInstant, endTimeInstant, eventRelationshipType, tx));
             tx.success();
         }
 
         return events;
     }
+
 
     @RequestMapping(value = "/{rootNodeId}/single/{time}", method = RequestMethod.GET)
     @ResponseBody
@@ -185,12 +165,7 @@ public class TimeTreeApi {
 
         long id;
         TimeInstant timeInstant = new TimeInstant(timeParam);
-        if (resolutionParam != null) {
-            timeInstant.setResolution(resolveResolution(resolutionParam));
-        }
-        if (timeZoneParam != null) {
-            timeInstant.setTimezone(resolveTimeZone(timeZoneParam));
-        }
+        setTimeInstantDefaults(resolutionParam, timeZoneParam, timeInstant);
         try (Transaction tx = database.beginTx()) {
             id = new CustomRootTimeTree(database.getNodeById(rootNodeId)).getInstant(timeInstant, tx).getId();
             tx.success();
@@ -198,6 +173,7 @@ public class TimeTreeApi {
 
         return id;
     }
+
 
     @RequestMapping(value = "/{rootNodeId}/range/{startTime}/{endTime}", method = RequestMethod.GET)
     @ResponseBody
@@ -211,14 +187,8 @@ public class TimeTreeApi {
         Long[] ids;
         TimeInstant startTimeInstant = new TimeInstant(startTime);
         TimeInstant endTimeInstant = new TimeInstant(endTime);
-        if (resolutionParam != null) {
-            startTimeInstant.setResolution(resolveResolution(resolutionParam));
-            endTimeInstant.setResolution(resolveResolution(resolutionParam));
-        }
-        if (timeZoneParam != null) {
-            startTimeInstant.setTimezone(resolveTimeZone(timeZoneParam));
-            endTimeInstant.setTimezone(resolveTimeZone(timeZoneParam));
-        }
+        setTimeInstantDefaults(resolutionParam, timeZoneParam, startTimeInstant, endTimeInstant);
+
         try (Transaction tx = database.beginTx()) {
             ids = ids(new CustomRootTimeTree(database.getNodeById(rootNodeId)).getInstants(startTimeInstant, endTimeInstant, tx));
             tx.success();
@@ -227,39 +197,36 @@ public class TimeTreeApi {
         return ids;
     }
 
+
     @RequestMapping(value = "/{rootNodeId}/single/{time}/events", method = RequestMethod.GET)
     @ResponseBody
-    public List<Event> getEventsAtInstantWithCustomRoot(
+    public List<EventTimeInstant> getEventsAtInstantWithCustomRoot(
             @PathVariable(value = "rootNodeId") long rootNodeId,
             @PathVariable(value = "time") long timeParam,
             @RequestParam(value = "resolution", required = false) String resolutionParam,
             @RequestParam(value = "timezone", required = false) String timeZoneParam,
             @RequestParam(value = "eventRelation", required = false) String eventRelation) {
 
-        List<Event> events;
+        List<EventTimeInstant> events;
         TimeInstant timeInstant = new TimeInstant(timeParam);
         RelationshipType eventRelationshipType = null;
 
-        if (resolutionParam != null) {
-            timeInstant.setResolution(resolveResolution(resolutionParam));
-        }
-        if (timeZoneParam != null) {
-            timeInstant.setTimezone(resolveTimeZone(timeZoneParam));
-        }
+        setTimeInstantDefaults(resolutionParam, timeZoneParam, timeInstant);
         if (eventRelation != null) {
             eventRelationshipType = DynamicRelationshipType.withName(eventRelation);
         }
         try (Transaction tx = database.beginTx()) {
-            events = new CustomRootTimeTree(database.getNodeById(rootNodeId)).getEventsAtInstant(timeInstant, eventRelationshipType, tx);
+            events = convertEvents(new CustomRootTimeTree(database.getNodeById(rootNodeId)).getEventsAtInstant(timeInstant, eventRelationshipType, tx));
             tx.success();
         }
 
         return events;
     }
 
+
     @RequestMapping(value = "/{rootNodeId}/range/{startTime}/{endTime}/events", method = RequestMethod.GET)
     @ResponseBody
-    public List<Event> getEventsInRangeWithCustomRoot(
+    public List<EventTimeInstant> getEventsInRangeWithCustomRoot(
             @PathVariable(value = "rootNodeId") long rootNodeId,
             @PathVariable(value = "startTime") long startTime,
             @PathVariable(value = "endTime") long endTime,
@@ -267,37 +234,32 @@ public class TimeTreeApi {
             @RequestParam(value = "timezone", required = false) String timeZoneParam,
             @RequestParam(value = "eventRelation", required = false) String eventRelation) {
 
-        List<Event> events;
+        List<EventTimeInstant> events;
         RelationshipType eventRelationshipType = null;
         TimeInstant startTimeInstant = new TimeInstant(startTime);
         TimeInstant endTimeInstant = new TimeInstant(endTime);
-        if (resolutionParam != null) {
-            startTimeInstant.setResolution(resolveResolution(resolutionParam));
-            endTimeInstant.setResolution(resolveResolution(resolutionParam));
-        }
-        if (timeZoneParam != null) {
-            startTimeInstant.setTimezone(resolveTimeZone(timeZoneParam));
-            endTimeInstant.setTimezone(resolveTimeZone(timeZoneParam));
-        }
+
+        setTimeInstantDefaults(resolutionParam, timeZoneParam, startTimeInstant, endTimeInstant);
+
         if (eventRelation != null) {
             eventRelationshipType = DynamicRelationshipType.withName(eventRelation);
         }
         try (Transaction tx = database.beginTx()) {
-            events = new CustomRootTimeTree(database.getNodeById(rootNodeId)).getEventsBetweenInstants(startTimeInstant, endTimeInstant, eventRelationshipType, tx);
+            events = convertEvents(new CustomRootTimeTree(database.getNodeById(rootNodeId)).getEventsBetweenInstants(startTimeInstant, endTimeInstant, eventRelationshipType, tx));
             tx.success();
         }
 
         return events;
     }
 
+
     @RequestMapping(value = "{rootNodeId}/single/event", method = RequestMethod.POST)
     @ResponseBody
-    public void attachEventToInstantWithCustomRoot(@RequestBody EventTimeInstant event, @PathVariable(value = "rootNodeId") long rootNodeId) {
+    public void attachEventToInstantWithCustomRoot(@RequestBody DirectedEventTimeInstant event, @PathVariable(value = "rootNodeId") long rootNodeId) {
 
         if (event.getTime() == 0 || event.getEventRelationshipType() == null || event.getEventRelationshipDirection() == null) {
             throw new IllegalArgumentException("Missing value for event time, event relationship type or event relationship direction");
         }
-
 
         TimeInstant timeInstant = new TimeInstant(event.getTime());
 
@@ -318,12 +280,8 @@ public class TimeTreeApi {
 
         long id;
         TimeInstant timeInstant = new TimeInstant();
-        if (timeZoneParam != null) {
-            timeInstant.setTimezone(resolveTimeZone(timeZoneParam));
-        }
-        if (resolutionParam != null) {
-            timeInstant.setResolution(resolveResolution(resolutionParam));
-        }
+        setTimeInstantDefaults(resolutionParam, timeZoneParam, timeInstant);
+
         try (Transaction tx = database.beginTx()) {
             id = timeTree.getNow(timeInstant, tx).getId();
             tx.success();
@@ -331,6 +289,7 @@ public class TimeTreeApi {
 
         return id;
     }
+
 
     @RequestMapping(value = "/{rootNodeId}/now", method = RequestMethod.GET)
     @ResponseBody
@@ -341,18 +300,28 @@ public class TimeTreeApi {
 
         long id;
         TimeInstant timeInstant = new TimeInstant();
-        if (timeZoneParam != null) {
-            timeInstant.setTimezone(resolveTimeZone(timeZoneParam));
-        }
-        if (resolutionParam != null) {
-            timeInstant.setResolution(resolveResolution(resolutionParam));
-        }
+        setTimeInstantDefaults(resolutionParam, timeZoneParam, timeInstant);
+
         try (Transaction tx = database.beginTx()) {
             id = new CustomRootTimeTree(database.getNodeById(rootNodeId)).getNow(timeInstant, tx).getId();
             tx.success();
         }
 
         return id;
+    }
+
+    private void setTimeInstantDefaults(String resolutionParam, String timeZoneParam, TimeInstant timeInstant) {
+        if (resolutionParam != null) {
+            timeInstant.setResolution(resolveResolution(resolutionParam));
+        }
+        if (timeZoneParam != null) {
+            timeInstant.setTimezone(resolveTimeZone(timeZoneParam));
+        }
+    }
+
+    private void setTimeInstantDefaults(String resolutionParam, String timeZoneParam, TimeInstant timeInstant1, TimeInstant timeInstant2) {
+        setTimeInstantDefaults(resolutionParam, timeZoneParam, timeInstant1);
+        setTimeInstantDefaults(resolutionParam, timeZoneParam, timeInstant2);
     }
 
     private DateTimeZone resolveTimeZone(String timeZoneParam) {

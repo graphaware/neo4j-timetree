@@ -24,7 +24,6 @@ public class EventTimeInstant {
 
     private long eventNodeId;
     private String eventRelationshipType;
-    private String eventRelationshipDirection;
     private String timezone;
     private String resolution;
     private long time;
@@ -81,11 +80,5 @@ public class EventTimeInstant {
         this.time = time;
     }
 
-    public String getEventRelationshipDirection() {
-        return eventRelationshipDirection;
-    }
 
-    public void setEventRelationshipDirection(String eventRelationshipDirection) {
-        this.eventRelationshipDirection = eventRelationshipDirection;
-    }
 }

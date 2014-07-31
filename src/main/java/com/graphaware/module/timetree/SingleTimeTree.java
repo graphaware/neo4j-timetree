@@ -262,7 +262,10 @@ public class SingleTimeTree implements TimeTree {
     }
 
     private TimeInstant resolveTimeInstant(long millis, DateTimeZone timeZone, Resolution resolution) {
-        return null;
+        TimeInstant timeInstant = new TimeInstant(millis);
+        timeInstant.setResolution(resolution);
+        timeInstant.setTimezone(timeZone);
+        return timeInstant;
     }
 
 

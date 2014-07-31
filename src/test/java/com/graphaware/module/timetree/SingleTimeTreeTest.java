@@ -385,7 +385,7 @@ public class SingleTimeTreeTest extends DatabaseIntegrationTest {
     }
 
     @Test
-    public void multipleEventsAndTimeInstantsShouldBeCreatedWhenEventIsAttached() {
+    public void multipleEventsAndTimeInstantsShouldBeCreatedWhenEventsAreAttached() {
         //Given
         TimeInstant timeInstant1 = new TimeInstant(dateToMillis(2012, 11, 1));
         timeInstant1.setResolution(Resolution.DAY);
@@ -617,6 +617,20 @@ public class SingleTimeTreeTest extends DatabaseIntegrationTest {
             tx.success();
         }
     }
+
+    @Test(expected = IllegalArgumentException.class)
+    public void getInstantsWithStartTimeAfterEndTimeThrows() {
+        //Given
+        long startTime = dateToMillis(2013, 1, 2);
+        long endTime = dateToMillis(2013, 1, 1);
+
+        // When
+        try (Transaction tx = getDatabase().beginTx()) {
+            timeTree.getInstants(new TimeInstant(startTime), new TimeInstant(endTime), tx);
+            // Then throw
+        }
+    }
+
 
     private void verifyFullTree() {
         assertSameGraph(getDatabase(), "CREATE" +

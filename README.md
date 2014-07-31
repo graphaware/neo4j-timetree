@@ -129,7 +129,7 @@ The POST body resembles:
      {
             "eventNodeId": 99,
             "eventRelationshipType": "HAS_EVENT",
-            "eventRelationshipDirection": "OUTGOING",
+            "eventRelationshipDirection": "INCOMING",
             "timezone": "UTC",
             "resolution": "DAY",
             "time": 1403506278000

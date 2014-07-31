@@ -16,13 +16,11 @@
 
 package com.graphaware.module.timetree;
 
-import org.joda.time.DateTimeZone;
 import org.neo4j.graphdb.Direction;
 import org.neo4j.graphdb.Node;
 import org.neo4j.graphdb.RelationshipType;
 import org.neo4j.graphdb.Transaction;
 
-import javax.management.relation.RelationType;
 import java.util.List;
 
 /**
@@ -67,6 +65,7 @@ public interface TimeTree {
 
     /**
      * Get nodes representing all time instants in the specified range (inclusive). The ones that don't exist will be created.
+     *
      * @param startTime TimeInstant representing the start of the interval (inclusive)
      * @param endTime   TimeInstant representing the end of the interval (inclusive)
      * @param tx        currently running transaction.
@@ -76,33 +75,37 @@ public interface TimeTree {
 
     /**
      * Attach an event to a node representing a specific time instant. If the time instant doesn't exist, it will be created.
-     * @param eventNode                 event node to be associated with this instant of time
-     * @param eventRelation             RelationshipType between the event node and the time instant node
-     * @param eventRelationDirection    Direction of the eventRelation from the event node to the time instant node
-     * @param timeInstant               specific TimeInstant to attach the event to
-     * @param tx         currently running transaction.
+     *
+     * @param eventNode              event node to be associated with this instant of time
+     * @param eventRelation          RelationshipType between the event node and the time instant node
+     * @param eventRelationDirection Direction of the eventRelation from the event node to the time instant node
+     * @param timeInstant            specific TimeInstant to attach the event to
+     * @param tx                     currently running transaction.
      */
     void attachEventToInstant(Node eventNode, RelationshipType eventRelation, Direction eventRelationDirection, TimeInstant timeInstant, Transaction tx);
 
     /**
      * Get events attached to a specific time instant. If the time instant doesn't exist, it will be created.
-     * @param timeInstant   specific TimeInstant
-     * @param tx            currently running transaction.
+     *
+     * @param timeInstant specific TimeInstant
+     * @param tx          currently running transaction.
      * @return events attached to the time instant
      */
     List<Event> getEventsAtInstant(TimeInstant timeInstant, Transaction tx);
 
     /**
      * Get events attached to all time instants in the specified range (inclusive). The time instants that don't exist will be created.
-     * @param startTime     TimeInstant representing the start of the interval (inclusive)
-     * @param endTime       TimeInstant representing the end of the interval (inclusive)
-     * @param tx            currently running transaction.
+     *
+     * @param startTime TimeInstant representing the start of the interval (inclusive)
+     * @param endTime   TimeInstant representing the end of the interval (inclusive)
+     * @param tx        currently running transaction.
      * @return events attached to all time instants in the interval, ordered chronologically
      */
     List<Event> getEventsBetweenInstants(TimeInstant startTime, TimeInstant endTime, Transaction tx);
 
     /**
-     *  Get events attached to a specific time instant with a specific relation. If the time instant doesn't exist, it will be created.
+     * Get events attached to a specific time instant with a specific relation. If the time instant doesn't exist, it will be created.
+     *
      * @param timeInstant   specific TimeInstant
      * @param eventRelation relationship attaching the event to the timeInstant
      * @param tx            currently running transaction.
@@ -112,6 +115,7 @@ public interface TimeTree {
 
     /**
      * Get events attached to all time instants with the specified relation, in the specified range (inclusive). The time instants that don't exist will be created.
+     *
      * @param startTime     TimeInstant representing the start of the interval (inclusive)
      * @param endTime       TimeInstant representing the end of the interval (inclusive)
      * @param eventRelation relationship attaching the event to the timeInstant

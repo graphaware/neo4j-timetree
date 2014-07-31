@@ -15,7 +15,6 @@
  */
 package com.graphaware.module.timetree;
 
-import org.neo4j.graphdb.Direction;
 import org.neo4j.graphdb.Node;
 import org.neo4j.graphdb.RelationshipType;
 
@@ -30,6 +29,7 @@ public class Event {
 
     /**
      * Get the time instant to which this event is attached
+     *
      * @return the TimeInstant
      */
     public TimeInstant getTimeInstant() {
@@ -38,6 +38,7 @@ public class Event {
 
     /**
      * Sets the TimeInstant to which this event is attached
+     *
      * @param timeInstant specific TimeInstant
      */
     public void setTimeInstant(TimeInstant timeInstant) {
@@ -46,6 +47,7 @@ public class Event {
 
     /**
      * Get the node representing the event
+     *
      * @return event node
      */
     public Node getEventNode() {
@@ -54,6 +56,7 @@ public class Event {
 
     /**
      * Set the node representing the event
+     *
      * @param eventNode the event node
      */
     public void setEventNode(Node eventNode) {
@@ -62,6 +65,7 @@ public class Event {
 
     /**
      * Get the relationship that between the event and the time instant
+     *
      * @return the relationship between the event and the time instant
      */
     public RelationshipType getEventRelation() {
@@ -70,6 +74,7 @@ public class Event {
 
     /**
      * Set the relationship between the event and time instant
+     *
      * @param eventRelation
      */
     public void setEventRelation(RelationshipType eventRelation) {

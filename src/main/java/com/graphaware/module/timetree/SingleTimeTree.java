@@ -188,12 +188,12 @@ public class SingleTimeTree implements TimeTree {
 
     @Override
     public List<Event> getEventsAtInstant(TimeInstant timeInstant, Transaction tx) {
-        return getEventsAtInstant(timeInstant,null,tx);
+        return getEventsAtInstant(timeInstant, null, tx);
     }
 
     @Override
     public List<Event> getEventsBetweenInstants(TimeInstant startTime, TimeInstant endTime, Transaction tx) {
-       return getEventsBetweenInstants(startTime,endTime,null,tx);
+        return getEventsBetweenInstants(startTime, endTime, null, tx);
     }
 
     @Override
@@ -203,7 +203,7 @@ public class SingleTimeTree implements TimeTree {
         Node timeInstantNode = getInstant(timeInstant, tx);
         for (Relationship rel : timeInstantNode.getRelationships()) {
             if (!timeTreeRelationships.contains(rel.getType().name())) {
-                if(eventRelation==null || (eventRelation.name().equals(rel.getType().name()))) {
+                if (eventRelation == null || (eventRelation.name().equals(rel.getType().name()))) {
                     Event event = new Event();
                     event.setEventNode(rel.getOtherNode(timeInstantNode));
                     event.setEventRelation(rel.getType());
@@ -245,7 +245,7 @@ public class SingleTimeTree implements TimeTree {
             Node timeInstantNode = getInstant(time.getMillis(), startTime.getTimezone(), startTime.getResolution(), tx);
             for (Relationship rel : timeInstantNode.getRelationships()) {
                 if (!timeTreeRelationships.contains(rel.getType().name())) {
-                    if(eventRelation==null || (eventRelation.name().equals(rel.getType().name()))) {
+                    if (eventRelation == null || (eventRelation.name().equals(rel.getType().name()))) {
                         Event event = new Event();
                         event.setEventNode(rel.getOtherNode(timeInstantNode));
                         event.setEventRelation(rel.getType());

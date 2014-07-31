@@ -24,17 +24,17 @@ import java.util.List;
 /**
  * {@link org.neo4j.graphdb.RelationshipType}s for {@link TimeTree}.
  */
-public enum TimeTreeRelationshipTypes implements RelationshipType
-{
+public enum TimeTreeRelationshipTypes implements RelationshipType {
     FIRST, LAST, NEXT, CHILD;
 
     /**
      * Get all TimeTree relationship names
+     *
      * @return List of TimeTree relationship names
      */
     public static List<String> getTimeTreeRelationshipNames() {
-        List<String> relationNames=new ArrayList<>();
-        for(TimeTreeRelationshipTypes type : values()) {
+        List<String> relationNames = new ArrayList<>();
+        for (TimeTreeRelationshipTypes type : values()) {
             relationNames.add(type.name());
         }
         return relationNames;

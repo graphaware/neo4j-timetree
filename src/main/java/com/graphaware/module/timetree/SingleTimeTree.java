@@ -212,8 +212,10 @@ public class SingleTimeTree implements TimeTree {
                 }
             }
         }
+
         return events;
     }
+
 
     @Override
     public List<Event> getEventsBetweenInstants(TimeInstant startTime, TimeInstant endTime, RelationshipType eventRelation, Transaction tx) {

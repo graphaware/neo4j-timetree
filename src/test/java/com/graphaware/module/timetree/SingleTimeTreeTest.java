@@ -303,7 +303,6 @@ public class SingleTimeTreeTest extends DatabaseIntegrationTest {
         verifyFullTree();
     }
 
-
     @Test
     public void eventAndTimeInstantShouldBeCreatedWhenEventIsAttached() {
         //Given
@@ -630,7 +629,6 @@ public class SingleTimeTreeTest extends DatabaseIntegrationTest {
             // Then throw
         }
     }
-
 
     private void verifyFullTree() {
         assertSameGraph(getDatabase(), "CREATE" +

@@ -23,9 +23,10 @@ import org.neo4j.graphdb.Transaction;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Controller;
-import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.bind.annotation.*;
 
+import java.util.Collections;
+import java.util.Map;
 import java.util.TimeZone;
 
 import static com.graphaware.common.util.PropertyContainerUtils.ids;
@@ -169,11 +170,14 @@ public class TimeTreeApi {
 
     @ExceptionHandler(IllegalArgumentException.class)
     @ResponseStatus(HttpStatus.BAD_REQUEST)
-    public void handleIllegalArguments() {
+    public Map<String, String> handleIllegalArgument(IllegalArgumentException e) {
+        return Collections.singletonMap("message", e.getMessage());
     }
 
     @ExceptionHandler(NotFoundException.class)
     @ResponseStatus(HttpStatus.NOT_FOUND)
-    public void handleNotFound() {
+    public Map<String, String> handleNotFound(NotFoundException e) {
+        timeTree.invalidateCaches();
+        return Collections.singletonMap("message", e.getMessage());
     }
 }

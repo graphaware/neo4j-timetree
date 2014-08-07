@@ -37,6 +37,10 @@ public interface TimeTree {
      * <p/>
      * The time zone of the time instant depends on the implementation, which can choose a default, require to be
      * configured with a default when instantiated, or both.
+     * <p>
+     * Note that this may throw an org.neo4j.graphdb.NotFoundException if the root of the single time tree has been deleted.
+     * If this occurs, call invalidateCaches() and retry this method.
+     * </p>
      *
      * @param tx currently running transaction.
      * @return node representing the time instant when this method was called.
@@ -48,6 +52,10 @@ public interface TimeTree {
      * <p/>
      * The resolution of the time instant (i.e., whether it is a day, hour, minute, etc.) depends on the implementation,
      * which can choose a sensible default, require to be configured with a default when instantiated, or both.
+     * <p>
+     * Note that this may throw an org.neo4j.graphdb.NotFoundException if the root of the single time tree has been deleted.
+     * If this occurs, call invalidateCaches() and retry this method.
+     * </p>
      *
      * @param timeZone specific time zone.
      * @param tx       currently running transaction.
@@ -60,6 +68,10 @@ public interface TimeTree {
      * <p/>
      * The time zone of the time instant depends on the implementation, which can choose a default, require to be
      * configured with a default when instantiated, or both.
+     * <p>
+     * Note that this may throw an org.neo4j.graphdb.NotFoundException if the root of the single time tree has been deleted.
+     * If this occurs, call invalidateCaches() and retry this method.
+     * </p>
      *
      * @param resolution specific resolution.
      * @param tx         currently running transaction.
@@ -69,6 +81,11 @@ public interface TimeTree {
 
     /**
      * Get a node representing this time instant. If one doesn't exist, it will be created.
+     *
+     * <p>
+     * Note that this may throw an org.neo4j.graphdb.NotFoundException if the root of the single time tree has been deleted.
+     * If this occurs, call invalidateCaches() and retry this method.
+     * </p>
      *
      * @param timeZone   specific time zone.
      * @param resolution specific resolution.
@@ -85,6 +102,10 @@ public interface TimeTree {
      * <p/>
      * The time zone of the time instant depends on the implementation, which can choose a default, require to be
      * configured with a default when instantiated, or both.
+     * <p>
+     * Note that this may throw an org.neo4j.graphdb.NotFoundException if the root of the single time tree has been deleted.
+     * If this occurs, call invalidateCaches() and retry this method.
+     * </p>
      *
      * @param time UTC time in ms from 1/1/1970.
      * @param tx   currently running transaction.
@@ -97,7 +118,10 @@ public interface TimeTree {
      * <p/>
      * The resolution of the time instant (i.e., whether it is a day, hour, minute, etc.) depends on the implementation,
      * which can choose a sensible default, require to be configured with a default when instantiated, or both.
-     *
+     * <p>
+     * Note that this may throw an org.neo4j.graphdb.NotFoundException if the root of the single time tree has been deleted.
+     * If this occurs, call invalidateCaches() and retry this method.
+     * </p>
      * @param time     UTC time in ms from 1/1/1970.
      * @param timeZone specific time zone.
      * @param tx       currently running transaction.
@@ -110,7 +134,10 @@ public interface TimeTree {
      * <p/>
      * The time zone of the time instant depends on the implementation, which can choose a default, require to be
      * configured with a default when instantiated, or both.
-     *
+     * <p>
+     * Note that this may throw an org.neo4j.graphdb.NotFoundException if the root of the single time tree has been deleted.
+     * If this occurs, call invalidateCaches() and retry this method.
+     * </p>
      * @param time       UTC time in ms from 1/1/1970.
      * @param resolution specific resolution.
      * @param tx         currently running transaction.
@@ -120,6 +147,11 @@ public interface TimeTree {
 
     /**
      * Get a node representing a specific time instant. If one doesn't exist, it will be created.
+     *
+     * <p>
+     * Note that this may throw an org.neo4j.graphdb.NotFoundException if the root of the single time tree has been deleted.
+     * If this occurs, call invalidateCaches() and retry this method.
+     * </p>
      *
      * @param time       UTC time in ms from 1/1/1970.
      * @param timeZone   specific time zone.
@@ -137,6 +169,10 @@ public interface TimeTree {
      * <p/>
      * The time zone of the time instants depends on the implementation, which can choose a default, require to be
      * configured with a default when instantiated, or both.
+     * <p>
+     * Note that this may throw an org.neo4j.graphdb.NotFoundException if the root of the single time tree has been deleted.
+     * If this occurs, call invalidateCaches() and retry this method.
+     * </p>
      *
      * @param startTime UTC time in ms from 1/1/1970 of the start of the interval (inclusive).
      * @param endTime   UTC time in ms from 1/1/1970 of the end of the interval (inclusive).
@@ -150,6 +186,10 @@ public interface TimeTree {
      * <p/>
      * The resolution of the time instants (i.e., whether it is a day, hour, minute, etc.) depends on the implementation,
      * which can choose a sensible default, require to be configured with a default when instantiated, or both.
+     * <p>
+     * Note that this may throw an org.neo4j.graphdb.NotFoundException if the root of the single time tree has been deleted.
+     * If this occurs, call invalidateCaches() and retry this method.
+     * </p>
      *
      * @param startTime UTC time in ms from 1/1/1970 of the start of the interval (inclusive).
      * @param endTime   UTC time in ms from 1/1/1970 of the end of the interval (inclusive).
@@ -164,6 +204,10 @@ public interface TimeTree {
      * <p/>
      * The time zone of the time instants depends on the implementation, which can choose a default, require to be
      * configured with a default when instantiated, or both.
+     * <p>
+     * Note that this may throw an org.neo4j.graphdb.NotFoundException if the root of the single time tree has been deleted.
+     * If this occurs, call invalidateCaches() and retry this method.
+     * </p>
      *
      * @param startTime  UTC time in ms from 1/1/1970 of the start of the interval (inclusive).
      * @param endTime    UTC time in ms from 1/1/1970 of the end of the interval (inclusive).
@@ -175,6 +219,10 @@ public interface TimeTree {
 
     /**
      * Get nodes representing all time instants in the specified range (inclusive). The ones that don't exist will be created.
+     * <p>
+     * Note that this may throw an org.neo4j.graphdb.NotFoundException if the root of the single time tree has been deleted.
+     * If this occurs, call invalidateCaches() and retry this method.
+     * </p>
      *
      * @param startTime  UTC time in ms from 1/1/1970 of the start of the interval (inclusive).
      * @param endTime    UTC time in ms from 1/1/1970 of the end of the interval (inclusive).
@@ -184,4 +232,10 @@ public interface TimeTree {
      * @return nodes representing all time instants in the interval, ordered chronologically.
      */
     List<Node> getInstants(long startTime, long endTime, DateTimeZone timeZone, Resolution resolution, Transaction tx);
+
+    /**
+     * Invalidate time tree root caching.
+     * Use when the root node of the time tree has been deleted and a NotFoundException is thrown to reset the time tree.
+     */
+    void invalidateCaches();
 }

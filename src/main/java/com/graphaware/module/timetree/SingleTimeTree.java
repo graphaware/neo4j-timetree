@@ -16,13 +16,16 @@
 
 package com.graphaware.module.timetree;
 
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 import org.joda.time.DateTime;
 import org.joda.time.DateTimeZone;
 import org.joda.time.MutableDateTime;
-import org.neo4j.graphdb.*;
+import org.neo4j.graphdb.GraphDatabaseService;
+import org.neo4j.graphdb.Node;
+import org.neo4j.graphdb.Relationship;
+import org.neo4j.graphdb.Transaction;
 import org.neo4j.tooling.GlobalGraphOperations;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import java.util.Iterator;
 import java.util.LinkedList;
@@ -222,6 +225,11 @@ public class SingleTimeTree implements TimeTree {
         }
 
         return result;
+    }
+
+    @Override
+    public void invalidateCaches() {
+        timeTreeRoot=null;
     }
 
     /**

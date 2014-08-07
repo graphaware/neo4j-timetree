@@ -16,23 +16,22 @@
 
 package com.graphaware.module.timetree;
 
+import com.graphaware.common.util.PropertyContainerUtils;
 import com.graphaware.test.integration.DatabaseIntegrationTest;
 import org.joda.time.DateTime;
 import org.joda.time.DateTimeZone;
-import org.junit.After;
 import org.junit.Before;
 import org.junit.Test;
-import org.neo4j.graphdb.DynamicLabel;
-import org.neo4j.graphdb.GraphDatabaseService;
 import org.neo4j.graphdb.Node;
+import org.neo4j.graphdb.NotFoundException;
 import org.neo4j.graphdb.Transaction;
-import org.neo4j.test.TestGraphDatabaseFactory;
+import org.neo4j.tooling.GlobalGraphOperations;
 
 import java.util.List;
 import java.util.TimeZone;
 
 import static com.graphaware.module.timetree.SingleTimeTree.VALUE_PROPERTY;
-import static com.graphaware.test.unit.GraphUnit.*;
+import static com.graphaware.test.unit.GraphUnit.assertSameGraph;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertTrue;
 
@@ -302,6 +301,82 @@ public class SingleTimeTreeTest extends DatabaseIntegrationTest {
             // Then throw
         }
     }
+
+    @Test(expected = NotFoundException.class)
+    public void whenTheRootIsDeletedSubsequentRestApiCallsShouldThrowNotFoundException() {
+        //Given
+        long dateInMillis = dateToMillis(2013, 5, 4);
+        try (Transaction tx = getDatabase().beginTx()) {
+            timeTree.getInstant(dateInMillis, tx);
+            tx.success();
+        }
+
+        //When
+        try(Transaction tx = getDatabase().beginTx()) {
+            for(Node node : GlobalGraphOperations.at(getDatabase()).getAllNodes()) {
+                PropertyContainerUtils.deleteNodeAndRelationships(node);
+            }
+            tx.success();
+        }
+
+
+        //Then
+        try (Transaction tx = getDatabase().beginTx()) {
+            timeTree.getInstant(dateInMillis, tx);
+            tx.success();
+        }
+        //NotFoundException should be thrown
+    }
+
+    @Test
+    public void whenTheRootIsDeletedAndCacheInvalidatedTimeInstantShouldBeCreated() {
+        //Given
+        long dateInMillis = dateToMillis(2013, 5, 4);
+        Node dayNode;
+        try (Transaction tx = getDatabase().beginTx()) {
+            timeTree.getInstant(dateInMillis, tx);
+            tx.success();
+        }
+
+        //When
+        try(Transaction tx = getDatabase().beginTx()) {
+            for(Node node : GlobalGraphOperations.at(getDatabase()).getAllNodes()) {
+                PropertyContainerUtils.deleteNodeAndRelationships(node);
+            }
+            tx.success();
+        }
+        try (Transaction tx = getDatabase().beginTx()) {
+            timeTree.getInstant(dateInMillis, tx);
+            tx.success();
+        }
+        catch(NotFoundException nfe) {
+            timeTree.invalidateCaches();
+        }
+
+        //Then
+        try (Transaction tx = getDatabase().beginTx()) {
+            dayNode = timeTree.getInstant(dateInMillis, tx);
+            tx.success();
+        }
+
+        assertSameGraph(getDatabase(), "CREATE" +
+                "(root:TimeTreeRoot)," +
+                "(root)-[:FIRST]->(year:Year {value:2013})," +
+                "(root)-[:CHILD]->(year)," +
+                "(root)-[:LAST]->(year)," +
+                "(year)-[:FIRST]->(month:Month {value:5})," +
+                "(year)-[:CHILD]->(month)," +
+                "(year)-[:LAST]->(month)," +
+                "(month)-[:FIRST]->(day:Day {value:4})," +
+                "(month)-[:CHILD]->(day)," +
+                "(month)-[:LAST]->(day)");
+
+        try (Transaction tx = getDatabase().beginTx()) {
+            assertTrue(dayNode.hasLabel(TimeTreeLabels.Day));
+            assertEquals(4, dayNode.getProperty(VALUE_PROPERTY));
+        }
+    }
+
 
     private void verifyFullTree() {
         assertSameGraph(getDatabase(), "CREATE" +

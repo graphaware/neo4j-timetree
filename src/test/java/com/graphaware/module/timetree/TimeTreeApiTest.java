@@ -16,13 +16,16 @@
 
 package com.graphaware.module.timetree;
 
+import com.graphaware.common.util.PropertyContainerUtils;
 import com.graphaware.test.integration.GraphAwareApiTest;
 import org.apache.http.HttpStatus;
 import org.joda.time.DateTime;
 import org.joda.time.DateTimeZone;
 import org.junit.Test;
 import org.neo4j.graphdb.DynamicLabel;
+import org.neo4j.graphdb.Node;
 import org.neo4j.graphdb.Transaction;
+import org.neo4j.tooling.GlobalGraphOperations;
 
 import static com.graphaware.test.unit.GraphUnit.assertSameGraph;
 import static com.graphaware.test.util.TestUtils.get;
@@ -243,6 +246,68 @@ public class TimeTreeApiTest extends GraphAwareApiTest {
 
         assertEquals("3", result);
     }
+
+
+    @Test
+    public void whenTheRootIsDeletedSubsequentRestApiCallsShouldThrowNotFoundException() {
+        //Given
+        long dateInMillis = dateToMillis(2013, 5, 4);
+        String result = get(getUrl() + "single/" + dateInMillis, HttpStatus.SC_OK);
+        assertEquals("3", result);
+
+        //When
+        try(Transaction tx = getDatabase().beginTx()) {
+            for(Node node : GlobalGraphOperations.at(getDatabase()).getAllNodes()) {
+                PropertyContainerUtils.deleteNodeAndRelationships(node);
+            }
+            tx.success();
+        }
+
+        //Then
+        get(getUrl() + "single/" + dateInMillis, HttpStatus.SC_NOT_FOUND);
+
+        //Caches invalidated, try again
+        result = get(getUrl() + "single/" + dateInMillis, HttpStatus.SC_OK);
+
+        assertSameGraph(getDatabase(), "CREATE" +
+                "(root:TimeTreeRoot)," +
+                "(root)-[:FIRST]->(year:Year {value:2013})," +
+                "(root)-[:CHILD]->(year)," +
+                "(root)-[:LAST]->(year)," +
+                "(year)-[:FIRST]->(month:Month {value:5})," +
+                "(year)-[:CHILD]->(month)," +
+                "(year)-[:LAST]->(month)," +
+                "(month)-[:FIRST]->(day:Day {value:4})," +
+                "(month)-[:CHILD]->(day)," +
+                "(month)-[:LAST]->(day)");
+
+        assertEquals("7", result);
+    }
+
+    @Test
+    public void whenTheCustomRootIsDeletedSubsequentRestApiCallsShouldThrowNotFoundException() {
+        //Given
+        try (Transaction tx = getDatabase().beginTx()) {
+            getDatabase().createNode(DynamicLabel.label("CustomRoot"));
+            tx.success();
+        }
+
+        long dateInMillis = dateToMillis(2013, 5, 4);
+        String result = get(getUrl() + "0/single/" + dateInMillis, HttpStatus.SC_OK);
+        assertEquals("3", result);
+
+        //When
+        try(Transaction tx = getDatabase().beginTx()) {
+            for(Node node : GlobalGraphOperations.at(getDatabase()).getAllNodes()) {
+                PropertyContainerUtils.deleteNodeAndRelationships(node);
+            }
+            tx.success();
+        }
+
+        //Then
+        get(getUrl() + "0/single/" + dateInMillis, HttpStatus.SC_NOT_FOUND);
+    }
+
 
     private long dateToMillis(int year, int month, int day) {
         return dateToDateTime(year, month, day).getMillis();

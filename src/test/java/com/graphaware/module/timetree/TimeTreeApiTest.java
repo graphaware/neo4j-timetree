@@ -507,8 +507,8 @@ public class TimeTreeApiTest extends GraphAwareApiTest {
         assertEquals("3", result);
 
         //When
-        try(Transaction tx = getDatabase().beginTx()) {
-            for(Node node : GlobalGraphOperations.at(getDatabase()).getAllNodes()) {
+        try (Transaction tx = getDatabase().beginTx()) {
+            for (Node node : GlobalGraphOperations.at(getDatabase()).getAllNodes()) {
                 PropertyContainerUtils.deleteNodeAndRelationships(node);
             }
             tx.success();
@@ -548,8 +548,8 @@ public class TimeTreeApiTest extends GraphAwareApiTest {
         assertEquals("3", result);
 
         //When
-        try(Transaction tx = getDatabase().beginTx()) {
-            for(Node node : GlobalGraphOperations.at(getDatabase()).getAllNodes()) {
+        try (Transaction tx = getDatabase().beginTx()) {
+            for (Node node : GlobalGraphOperations.at(getDatabase()).getAllNodes()) {
                 PropertyContainerUtils.deleteNodeAndRelationships(node);
             }
             tx.success();

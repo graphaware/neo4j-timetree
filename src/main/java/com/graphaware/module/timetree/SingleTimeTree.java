@@ -101,30 +101,18 @@ public class SingleTimeTree implements TimeTree {
         return getNow(timeInstant, tx);
     }
 
-
+    /**
+     * {@inheritDoc}
+     */
     @Override
     public Node getNow(TimeInstant timeInstant, Transaction tx) {
         return getInstant(timeInstant, tx);
     }
 
 
-    private Node getInstant(long time, DateTimeZone timeZone, Resolution resolution, Transaction tx) {
-        if (timeZone == null) {
-            timeZone = this.timeZone;
-        }
-
-        if (resolution == null) {
-            resolution = this.resolution;
-        }
-
-        DateTime dateTime = new DateTime(time, timeZone);
-
-        Node timeRoot = getTimeRoot();
-        tx.acquireWriteLock(timeRoot);
-        Node year = findOrCreateChild(timeRoot, dateTime.get(YEAR.getDateTimeFieldType()));
-        return getInstant(year, dateTime, resolution);
-    }
-
+    /**
+     * {@inheritDoc}
+     */
     @Override
     public Node getInstant(TimeInstant timeInstant, Transaction tx) {
         if (timeInstant.getTimezone() == null) {
@@ -143,7 +131,9 @@ public class SingleTimeTree implements TimeTree {
         return getInstant(year, dateTime, timeInstant.getResolution());
     }
 
-
+    /**
+     * {@inheritDoc}
+     */
     @Override
     public List<Node> getInstants(TimeInstant startTime, TimeInstant endTime, Transaction tx) {
 
@@ -176,6 +166,9 @@ public class SingleTimeTree implements TimeTree {
         return result;
     }
 
+    /**
+     * {@inheritDoc}
+     */
     @Override
     public void attachEventToInstant(Node eventNode, RelationshipType eventRelation, Direction eventRelationDirection, TimeInstant timeInstant, Transaction tx) {
         Node timeInstantNode = getInstant(timeInstant, tx);
@@ -186,16 +179,25 @@ public class SingleTimeTree implements TimeTree {
         }
     }
 
+    /**
+     * {@inheritDoc}
+     */
     @Override
     public List<Event> getEventsAtInstant(TimeInstant timeInstant, Transaction tx) {
         return getEventsAtInstant(timeInstant, null, tx);
     }
 
+    /**
+     * {@inheritDoc}
+     */
     @Override
     public List<Event> getEventsBetweenInstants(TimeInstant startTime, TimeInstant endTime, Transaction tx) {
         return getEventsBetweenInstants(startTime, endTime, null, tx);
     }
 
+    /**
+     * {@inheritDoc}
+     */
     @Override
     public List<Event> getEventsAtInstant(TimeInstant timeInstant, RelationshipType eventRelation, Transaction tx) {
         List<Event> events = new ArrayList<>();
@@ -216,7 +218,9 @@ public class SingleTimeTree implements TimeTree {
         return events;
     }
 
-
+    /**
+     * {@inheritDoc}
+     */
     @Override
     public List<Event> getEventsBetweenInstants(TimeInstant startTime, TimeInstant endTime, RelationshipType eventRelation, Transaction tx) {
         List<Event> events = new ArrayList<>();
@@ -263,39 +267,12 @@ public class SingleTimeTree implements TimeTree {
         return events;
     }
 
+    /**
+     * {@inheritDoc}
+     */
     @Override
     public void invalidateCaches() {
-        timeTreeRoot=null;
-    }
-    
-    private TimeInstant resolveTimeInstant(long millis, DateTimeZone timeZone, Resolution resolution) {
-        TimeInstant timeInstant = new TimeInstant(millis);
-        timeInstant.setResolution(resolution);
-        timeInstant.setTimezone(timeZone);
-        return timeInstant;
-    }
-
-
-    /**
-     * Get a node representing a specific time instant. If one doesn't exist, it will be created as well as any missing
-     * nodes on the way down from parent (recursively).
-     *
-     * @param parent           parent node on path to desired instant node.
-     * @param dateTime         time instant.
-     * @param targetResolution target child resolution. Recursion stops when at this level.
-     * @return node representing the time instant at the desired resolution level.
-     */
-    private Node getInstant(Node parent, DateTime dateTime, Resolution targetResolution) {
-        Resolution currentResolution = findForNode(parent);
-
-        if (currentResolution.equals(targetResolution)) {
-            return parent;
-        }
-
-        Node child = findOrCreateChild(parent, dateTime.get(currentResolution.getChild().getDateTimeFieldType()));
-
-        //recursion
-        return getInstant(child, dateTime, targetResolution);
+        timeTreeRoot = null;
     }
 
     /**
@@ -330,6 +307,63 @@ public class SingleTimeTree implements TimeTree {
             timeTreeRoot = database.createNode(TimeTreeRoot);
             return timeTreeRoot;
         }
+    }
+
+    private TimeInstant resolveTimeInstant(long millis, DateTimeZone timeZone, Resolution resolution) {
+        TimeInstant timeInstant = new TimeInstant(millis);
+        timeInstant.setResolution(resolution);
+        timeInstant.setTimezone(timeZone);
+        return timeInstant;
+    }
+
+
+    /**
+     * Get a node representing a specific time instant. If one doesn't exist, it will be created as well as any missing
+     * nodes on the way down from parent (recursively).
+     *
+     * @param parent           parent node on path to desired instant node.
+     * @param dateTime         time instant.
+     * @param targetResolution target child resolution. Recursion stops when at this level.
+     * @return node representing the time instant at the desired resolution level.
+     */
+    private Node getInstant(Node parent, DateTime dateTime, Resolution targetResolution) {
+        Resolution currentResolution = findForNode(parent);
+
+        if (currentResolution.equals(targetResolution)) {
+            return parent;
+        }
+
+        Node child = findOrCreateChild(parent, dateTime.get(currentResolution.getChild().getDateTimeFieldType()));
+
+        //recursion
+        return getInstant(child, dateTime, targetResolution);
+    }
+
+
+    /**
+     * Get a node representing a specific time instant. If one doesn't exist, it will be created as well as any missing
+     * nodes on the way down from parent (recursively).
+     *
+     * @param time       time in ms from 1/1/1970
+     * @param timeZone   timezone
+     * @param resolution {@link com.graphaware.module.timetree.Resolution} to be used for this time instant
+     * @return node representing the time instant at the desired resolution level.
+     */
+    private Node getInstant(long time, DateTimeZone timeZone, Resolution resolution, Transaction tx) {
+        if (timeZone == null) {
+            timeZone = this.timeZone;
+        }
+
+        if (resolution == null) {
+            resolution = this.resolution;
+        }
+
+        DateTime dateTime = new DateTime(time, timeZone);
+
+        Node timeRoot = getTimeRoot();
+        tx.acquireWriteLock(timeRoot);
+        Node year = findOrCreateChild(timeRoot, dateTime.get(YEAR.getDateTimeFieldType()));
+        return getInstant(year, dateTime, resolution);
     }
 
     /**

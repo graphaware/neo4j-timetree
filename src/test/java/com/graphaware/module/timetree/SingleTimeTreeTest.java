@@ -22,11 +22,7 @@ import org.joda.time.DateTime;
 import org.joda.time.DateTimeZone;
 import org.junit.Before;
 import org.junit.Test;
-import org.neo4j.graphdb.Direction;
-import org.neo4j.graphdb.DynamicRelationshipType;
-import org.neo4j.graphdb.Node;
-import org.neo4j.graphdb.NotFoundException;
-import org.neo4j.graphdb.Transaction;
+import org.neo4j.graphdb.*;
 import org.neo4j.tooling.GlobalGraphOperations;
 
 import java.util.ArrayList;
@@ -638,13 +634,13 @@ public class SingleTimeTreeTest extends DatabaseIntegrationTest {
         //Given
         long dateInMillis = dateToMillis(2013, 5, 4);
         try (Transaction tx = getDatabase().beginTx()) {
-            timeTree.getInstant(dateInMillis, tx);
+            timeTree.getInstant(new TimeInstant(dateInMillis), tx);
             tx.success();
         }
 
         //When
-        try(Transaction tx = getDatabase().beginTx()) {
-            for(Node node : GlobalGraphOperations.at(getDatabase()).getAllNodes()) {
+        try (Transaction tx = getDatabase().beginTx()) {
+            for (Node node : GlobalGraphOperations.at(getDatabase()).getAllNodes()) {
                 PropertyContainerUtils.deleteNodeAndRelationships(node);
             }
             tx.success();
@@ -653,7 +649,7 @@ public class SingleTimeTreeTest extends DatabaseIntegrationTest {
 
         //Then
         try (Transaction tx = getDatabase().beginTx()) {
-            timeTree.getInstant(dateInMillis, tx);
+            timeTree.getInstant(new TimeInstant(dateInMillis), tx);
             tx.success();
         }
         //NotFoundException should be thrown
@@ -665,28 +661,27 @@ public class SingleTimeTreeTest extends DatabaseIntegrationTest {
         long dateInMillis = dateToMillis(2013, 5, 4);
         Node dayNode;
         try (Transaction tx = getDatabase().beginTx()) {
-            timeTree.getInstant(dateInMillis, tx);
+            timeTree.getInstant(new TimeInstant(dateInMillis), tx);
             tx.success();
         }
 
         //When
-        try(Transaction tx = getDatabase().beginTx()) {
-            for(Node node : GlobalGraphOperations.at(getDatabase()).getAllNodes()) {
+        try (Transaction tx = getDatabase().beginTx()) {
+            for (Node node : GlobalGraphOperations.at(getDatabase()).getAllNodes()) {
                 PropertyContainerUtils.deleteNodeAndRelationships(node);
             }
             tx.success();
         }
         try (Transaction tx = getDatabase().beginTx()) {
-            timeTree.getInstant(dateInMillis, tx);
+            timeTree.getInstant(new TimeInstant(dateInMillis), tx);
             tx.success();
-        }
-        catch(NotFoundException nfe) {
+        } catch (NotFoundException nfe) {
             timeTree.invalidateCaches();
         }
 
         //Then
         try (Transaction tx = getDatabase().beginTx()) {
-            dayNode = timeTree.getInstant(dateInMillis, tx);
+            dayNode = timeTree.getInstant(new TimeInstant(dateInMillis), tx);
             tx.success();
         }
 

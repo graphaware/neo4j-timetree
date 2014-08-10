@@ -23,10 +23,6 @@ import org.joda.time.DateTimeZone;
 import org.junit.Test;
 import org.neo4j.graphdb.*;
 import org.neo4j.tooling.GlobalGraphOperations;
-import org.neo4j.graphdb.DynamicLabel;
-import org.neo4j.graphdb.GraphDatabaseService;
-import org.neo4j.graphdb.Node;
-import org.neo4j.graphdb.Transaction;
 
 import java.util.TimeZone;
 
@@ -86,13 +82,13 @@ public class CustomRootTimeTreeTest extends DatabaseIntegrationTest {
         TimeTree timeTree;
         try (Transaction tx = getDatabase().beginTx()) {
             timeTree = new CustomRootTimeTree(getDatabase().getNodeById(0));
-            timeTree.getInstant(dateInMillis, tx);
+            timeTree.getInstant(new TimeInstant(dateInMillis), tx);
             tx.success();
         }
 
         //When
-        try(Transaction tx = getDatabase().beginTx()) {
-            for(Node node : GlobalGraphOperations.at(getDatabase()).getAllNodes()) {
+        try (Transaction tx = getDatabase().beginTx()) {
+            for (Node node : GlobalGraphOperations.at(getDatabase()).getAllNodes()) {
                 PropertyContainerUtils.deleteNodeAndRelationships(node);
             }
             tx.success();
@@ -101,7 +97,7 @@ public class CustomRootTimeTreeTest extends DatabaseIntegrationTest {
 
         //Then
         try (Transaction tx = getDatabase().beginTx()) {
-            timeTree.getInstant(dateInMillis, tx);
+            timeTree.getInstant(new TimeInstant(dateInMillis), tx);
             tx.success();
         }
         //NotFoundException should be thrown

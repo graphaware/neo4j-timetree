@@ -4,7 +4,8 @@ GraphAware Neo4j TimeTree
 [![Build Status](https://travis-ci.org/graphaware/neo4j-timetree.png)](https://travis-ci.org/graphaware/neo4j-timetree) | <a href="http://graphaware.com/downloads/" target="_blank">Downloads</a> | <a href="http://graphaware.com/site/timetree/latest/apidocs/" target="_blank">Javadoc</a> | Latest Release: 2.1.3.10.11
 
 GraphAware TimeTree is a simple library for representing time in Neo4j as a tree of time instants. The tree is built on-demand,
-supports resolutions of one year down to one millisecond and has time zone support.
+supports resolutions of one year down to one millisecond and has time zone support. It also supports attaching event nodes to a time instant(created on demand).
+
 
 Getting the Software
 --------------------
@@ -83,19 +84,27 @@ You can select the "resolution" of the time instant you will get from TimeTree. 
 event happened in April, nothing more. In that case, you can request the node representing April. Equally, you can request
 nodes representing concrete millisecond instants, if you so desire.
 
-Finally, you can provide a time-zone to the TimeTree APIs in order to create correctly labelled nodes for specific time instants.
+You may also provide a time-zone to the TimeTree APIs in order to create correctly labelled nodes for specific time instants.
+
+Finally, the GraphAware TimeTree supports both attaching event nodes to time instants, and fetching events attached
+to a time instant or between two time instants.
 
 ### REST API
 
-When deployed in server mode, there are six URLs that you can issue GET requests to:
+When deployed in server mode, there are nine URLs that you can issue GET requests to:
+
 * `http://your-server-address:7474/graphaware/timetree/single/{time}` to get a node representing a time instant, where time must be replaced by a `long` number representing the number of milliseconds since 1/1/1970. The default resolution is Day and the default time zone is UTC
-* `http://your-server-address:7474/graphaware/timetree/range/{startTime}/{endTime}` to get a nodes representing time instants between {startTime} and {endTime} (inclusive). The default resolution is Day and the default time zone is UTC
+* `http://your-server-address:7474/graphaware/timetree/single/{time}/events` to get events attached to a time instant, where time must be replaced by a `long` number representing the number of milliseconds since 1/1/1970. The default resolution is Day and the default time zone is UTC
+* `http://your-server-address:7474/graphaware/timetree/range/{startTime}/{endTime}` to get nodes representing time instants between {startTime} and {endTime} (inclusive). The default resolution is Day and the default time zone is UTC
+* `http://your-server-address:7474/graphaware/timetree/range/{startTime}/{endTime}/events` to get events that occurred between {startTime} and {endTime} (inclusive). The default resolution is Day and the default time zone is UTC
 * `http://your-server-address:7474/graphaware/timetree/now` to get a node representing now. Defaults are the same as above.
 * `http://your-server-address:7474/graphaware/timetree/{rootNodeId}/single/{time}` to get a node representing a time instant, where {time} must be replaced by a `long` number representing the number of milliseconds since 1/1/1970 and {rootNodeId} must be replaced by the ID of an existing node that should serve as the tree root. Defaults are the same as above.
-* `http://your-server-address:7474/graphaware/timetree/{rootNodeId}/range/{startTime}/{endTime}` to get a nodes representing time instants between {startTime} and {endTime} (inclusive) and {rootNodeId} must be replaced by the ID of an existing node that should serve as the tree root. Defaults are the same as above.
+* `http://your-server-address:7474/graphaware/timetree/{rootNodeId}/single/{time}/events` to get events attached to a time instant, where {time} must be replaced by a `long` number representing the number of milliseconds since 1/1/1970 and {rootNodeId} must be replaced by the ID of an existing node that should serve as the tree root. Defaults are the same as above.
+* `http://your-server-address:7474/graphaware/timetree/{rootNodeId}/range/{startTime}/{endTime}/events` to get events that occurred between {startTime} and {endTime} (inclusive) and {rootNodeId} must be replaced by the ID of an existing node that should serve as the tree root. Defaults are the same as above.
 * `http://your-server-address:7474/graphaware/timetree/{rootNodeId}/now` to get a node representing now, where {rootNodeId} must be replaced by the ID of an existing node that should serve as the tree root. Defaults are the same as above.
 
-You two query parameters:
+You have three query parameters:
+
 * `resolution`, which can take on the following values:
     * `Year`
     * `Month`
@@ -105,6 +114,38 @@ You two query parameters:
     * `Second`
     * `Millisecond`
 * `timezone`, which can be a String representation of any `java.util.TimeZone`
+* `eventRelation`, which is a String representation of the RelationshipType that relates the event to a time instant. 
+The default is all relationships, which is useful if you have different kinds of events occurring at the same time instant,
+  and related to the time instant with different relationship types. Here the default will give you all events that occurred at that time instant.
+
+Attaching an event to a time instant requires a POST request to:
+
+* `http://your-server-address:7474/graphaware/timetree/single/event` to attach an existing event node to a node representing a time instant.
+* `http://your-server-address:7474/graphaware/timetree/{rootNodeId}/single/event` to attach an existing event node to a node representing a time instant, where {rootNodeId} must be replaced by the ID of an existing node that should serve as the tree root
+
+The POST body resembles:
+
+```json
+     {
+            "eventNodeId": 99,
+            "eventRelationshipType": "HAS_EVENT",
+            "eventRelationshipDirection": "INCOMING",
+            "timezone": "UTC",
+            "resolution": "DAY",
+            "time": 1403506278000
+     }
+```
+
+where
+
+* `eventNodeId` is the node ID of an existing event node
+* `eventRelationshipType` is the name of the relationship type that should be used to attach the event to the time instant
+* `eventRelationshipDirection` specifies the direction of the relation from the event node to the time instant
+* `timezone` is a String representation of any `java.util.TimeZone`
+* `resolution` as described above
+* `time` is a number representing the number of milliseconds since 1/1/1970 
+ 
+ 
 
 For instance, issuing the following request, asking for the hour node representing 5th April 2014 1pm (UTC time) in the
 GMT+1 time zone

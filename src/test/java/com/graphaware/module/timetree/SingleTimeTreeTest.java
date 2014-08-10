@@ -22,11 +22,14 @@ import org.joda.time.DateTime;
 import org.joda.time.DateTimeZone;
 import org.junit.Before;
 import org.junit.Test;
+import org.neo4j.graphdb.Direction;
+import org.neo4j.graphdb.DynamicRelationshipType;
 import org.neo4j.graphdb.Node;
 import org.neo4j.graphdb.NotFoundException;
 import org.neo4j.graphdb.Transaction;
 import org.neo4j.tooling.GlobalGraphOperations;
 
+import java.util.ArrayList;
 import java.util.List;
 import java.util.TimeZone;
 
@@ -54,11 +57,11 @@ public class SingleTimeTreeTest extends DatabaseIntegrationTest {
     public void trivialTreeShouldBeCreatedWhenFirstDayIsRequested() {
         //Given
         long dateInMillis = dateToMillis(2013, 5, 4);
-
+        TimeInstant timeInstant = new TimeInstant(dateInMillis);
         //When
         Node dayNode;
         try (Transaction tx = getDatabase().beginTx()) {
-            dayNode = timeTree.getInstant(dateInMillis, tx);
+            dayNode = timeTree.getInstant(timeInstant, tx);
             tx.success();
         }
 
@@ -88,10 +91,18 @@ public class SingleTimeTreeTest extends DatabaseIntegrationTest {
         long startDateInMillis = dateToMillis(2013, 5, 4);
         long endDateInMillis = dateToMillis(2013, 5, 7);
 
+        TimeInstant startTime = new TimeInstant(startDateInMillis);
+        startTime.setResolution(Resolution.DAY);
+        startTime.setTimezone(UTC);
+
+        TimeInstant endTime = new TimeInstant(endDateInMillis);
+        endTime.setResolution(Resolution.DAY);
+        endTime.setTimezone(UTC);
+
         //When
         List<Node> dayNodes;
         try (Transaction tx = getDatabase().beginTx()) {
-            dayNodes = timeTree.getInstants(startDateInMillis, endDateInMillis, UTC, Resolution.DAY, tx);
+            dayNodes = timeTree.getInstants(startTime, endTime, tx);
             tx.success();
         }
 
@@ -129,11 +140,11 @@ public class SingleTimeTreeTest extends DatabaseIntegrationTest {
         //Given
         long dateInMillis = new DateTime(2014, 4, 5, 13, 56, 22, 123, UTC).getMillis();
         timeTree = new SingleTimeTree(getDatabase(), DateTimeZone.forTimeZone(TimeZone.getTimeZone("GMT+1")), Resolution.MILLISECOND);
-
+        TimeInstant timeInstant = new TimeInstant(dateInMillis);
         //When
         Node instantNode;
         try (Transaction tx = getDatabase().beginTx()) {
-            instantNode = timeTree.getInstant(dateInMillis, tx);
+            instantNode = timeTree.getInstant(timeInstant, tx);
             tx.success();
         }
 
@@ -176,7 +187,7 @@ public class SingleTimeTreeTest extends DatabaseIntegrationTest {
         //When
         Node dayNode;
         try (Transaction tx = getDatabase().beginTx()) {
-            dayNode = timeTree.getNow(Resolution.DAY, tx);
+            dayNode = timeTree.getNow(tx);
             tx.success();
         }
 
@@ -204,15 +215,17 @@ public class SingleTimeTreeTest extends DatabaseIntegrationTest {
         //Given
         DateTime now = DateTime.now(UTC);
 
+        TimeInstant timeInstant = new TimeInstant();
+        timeInstant.setResolution(Resolution.DAY);
         //When
         try (Transaction tx = getDatabase().beginTx()) {
-            timeTree.getInstant(now.getMillis(), Resolution.DAY, tx);
+            timeTree.getInstant(timeInstant, tx);
             tx.success();
         }
 
         Node dayNode;
         try (Transaction tx = getDatabase().beginTx()) {
-            dayNode = timeTree.getInstant(now.getMillis(), Resolution.DAY, tx);
+            dayNode = timeTree.getInstant(timeInstant, tx);
             tx.success();
         }
 
@@ -238,23 +251,27 @@ public class SingleTimeTreeTest extends DatabaseIntegrationTest {
     @Test
     public void fullTreeShouldBeCreatedWhenAFewDaysAreRequested() {
         //Given
+
         try (Transaction tx = getDatabase().beginTx()) {
-            timeTree.getInstant(dateToMillis(2012, 11, 1), tx);
+            timeTree.getInstant(new TimeInstant(dateToMillis(2012, 11, 1)), tx);
+            tx.success();
+        }
+
+        try (Transaction tx = getDatabase().beginTx()) {
+            timeTree.getInstant(new TimeInstant(dateToMillis(2012, 11, 10)), tx);
+            tx.success();
+        }
+
+
+        try (Transaction tx = getDatabase().beginTx()) {
+            timeTree.getInstant(new TimeInstant(dateToMillis(2013, 1, 2)), tx);
+            timeTree.getInstant(new TimeInstant(dateToMillis(2013, 1, 1)), tx);
+            timeTree.getInstant(new TimeInstant(dateToMillis(2013, 1, 4)), tx);
             tx.success();
         }
         try (Transaction tx = getDatabase().beginTx()) {
-            timeTree.getInstant(dateToMillis(2012, 11, 10), tx);
-            tx.success();
-        }
-        try (Transaction tx = getDatabase().beginTx()) {
-            timeTree.getInstant(dateToMillis(2013, 1, 2), tx);
-            timeTree.getInstant(dateToMillis(2013, 1, 1), tx);
-            timeTree.getInstant(dateToMillis(2013, 1, 4), tx);
-            tx.success();
-        }
-        try (Transaction tx = getDatabase().beginTx()) {
-            timeTree.getInstant(dateToMillis(2013, 3, 10), tx);
-            timeTree.getInstant(dateToMillis(2013, 2, 1), tx);
+            timeTree.getInstant(new TimeInstant(dateToMillis(2013, 3, 10)), tx);
+            timeTree.getInstant(new TimeInstant(dateToMillis(2013, 2, 1)), tx);
             tx.success();
         }
 
@@ -266,27 +283,341 @@ public class SingleTimeTreeTest extends DatabaseIntegrationTest {
     public void fullTreeShouldBeCreatedWhenAFewDaysAreRequested2() {
         //Given
         try (Transaction tx = getDatabase().beginTx()) {
-            timeTree.getInstant(dateToMillis(2013, 1, 2), tx);
-            timeTree.getInstant(dateToMillis(2013, 1, 4), tx);
-            timeTree.getInstant(dateToMillis(2013, 1, 1), tx);
+            timeTree.getInstant(new TimeInstant(dateToMillis(2013, 1, 2)), tx);
+            timeTree.getInstant(new TimeInstant(dateToMillis(2013, 1, 4)), tx);
+            timeTree.getInstant(new TimeInstant(dateToMillis(2013, 1, 1)), tx);
             tx.success();
         }
         try (Transaction tx = getDatabase().beginTx()) {
-            timeTree.getInstant(dateToMillis(2013, 2, 1), tx);
+            timeTree.getInstant(new TimeInstant(dateToMillis(2013, 2, 1)), tx);
             tx.success();
         }
         try (Transaction tx = getDatabase().beginTx()) {
-            timeTree.getInstant(dateToMillis(2012, 11, 1), tx);
+            timeTree.getInstant(new TimeInstant(dateToMillis(2012, 11, 1)), tx);
             tx.success();
         }
         try (Transaction tx = getDatabase().beginTx()) {
-            timeTree.getInstant(dateToMillis(2013, 3, 10), tx);
-            timeTree.getInstant(dateToMillis(2012, 11, 10), tx);
+            timeTree.getInstant(new TimeInstant(dateToMillis(2013, 3, 10)), tx);
+            timeTree.getInstant(new TimeInstant(dateToMillis(2012, 11, 10)), tx);
             tx.success();
         }
 
         //Then
         verifyFullTree();
+    }
+
+    @Test
+    public void eventAndTimeInstantShouldBeCreatedWhenEventIsAttached() {
+        //Given
+        DateTime now = DateTime.now(UTC);
+        TimeInstant timeInstant = new TimeInstant();
+        timeInstant.setResolution(Resolution.DAY);
+        timeInstant.setTimezone(UTC);
+        Node event;
+
+        try (Transaction tx = getDatabase().beginTx()) {
+            event = getDatabase().createNode();
+            event.setProperty("name", "eventA");
+            tx.success();
+        }
+
+        //When
+        try (Transaction tx = getDatabase().beginTx()) {
+            timeTree.attachEventToInstant(event, DynamicRelationshipType.withName("HAS_EVENT"), Direction.INCOMING, timeInstant, tx);
+            tx.success();
+        }
+
+        //Then
+        assertSameGraph(getDatabase(), "CREATE" +
+                "(root:TimeTreeRoot)," +
+                "(root)-[:FIRST]->(year:Year {value:" + now.getYear() + "})," +
+                "(root)-[:CHILD]->(year)," +
+                "(root)-[:LAST]->(year)," +
+                "(year)-[:FIRST]->(month:Month {value:" + now.getMonthOfYear() + "})," +
+                "(year)-[:CHILD]->(month)," +
+                "(year)-[:LAST]->(month)," +
+                "(month)-[:FIRST]->(day:Day {value:" + now.getDayOfMonth() + "})," +
+                "(month)-[:CHILD]->(day)," +
+                "(month)-[:LAST]->(day)," +
+                "(day)-[:HAS_EVENT]->(event {name:'eventA'})");
+
+
+    }
+
+    @Test
+    public void multipleEventsAndTimeInstantShouldBeCreatedWhenEventIsAttached() {
+        //Given
+        DateTime now = DateTime.now(UTC);
+        TimeInstant timeInstant = new TimeInstant();
+        timeInstant.setResolution(Resolution.DAY);
+        timeInstant.setTimezone(UTC);
+        Node event1, event2;
+
+        try (Transaction tx = getDatabase().beginTx()) {
+            event1 = getDatabase().createNode();
+            event1.setProperty("name", "eventA");
+            event2 = getDatabase().createNode();
+            event2.setProperty("name", "eventB");
+            tx.success();
+        }
+
+        //When
+        try (Transaction tx = getDatabase().beginTx()) {
+            timeTree.attachEventToInstant(event1, DynamicRelationshipType.withName("HAS_EVENT"), Direction.INCOMING, timeInstant, tx);
+            timeTree.attachEventToInstant(event2, DynamicRelationshipType.withName("HAS_EVENT"), Direction.INCOMING, timeInstant, tx);
+            tx.success();
+        }
+
+        //Then
+        assertSameGraph(getDatabase(), "CREATE" +
+                "(root:TimeTreeRoot)," +
+                "(root)-[:FIRST]->(year:Year {value:" + now.getYear() + "})," +
+                "(root)-[:CHILD]->(year)," +
+                "(root)-[:LAST]->(year)," +
+                "(year)-[:FIRST]->(month:Month {value:" + now.getMonthOfYear() + "})," +
+                "(year)-[:CHILD]->(month)," +
+                "(year)-[:LAST]->(month)," +
+                "(month)-[:FIRST]->(day:Day {value:" + now.getDayOfMonth() + "})," +
+                "(month)-[:CHILD]->(day)," +
+                "(month)-[:LAST]->(day)," +
+                "(day)-[:HAS_EVENT]->(event1 {name:'eventA'})," +
+                "(day)-[:HAS_EVENT]->(event2 {name:'eventB'})");
+
+
+    }
+
+    @Test
+    public void multipleEventsAndTimeInstantsShouldBeCreatedWhenEventsAreAttached() {
+        //Given
+        TimeInstant timeInstant1 = new TimeInstant(dateToMillis(2012, 11, 1));
+        timeInstant1.setResolution(Resolution.DAY);
+        timeInstant1.setTimezone(UTC);
+
+        TimeInstant timeInstant2 = new TimeInstant(dateToMillis(2012, 11, 3));
+        timeInstant2.setResolution(Resolution.DAY);
+        timeInstant2.setTimezone(UTC);
+        Node event1, event2;
+
+        try (Transaction tx = getDatabase().beginTx()) {
+            event1 = getDatabase().createNode();
+            event1.setProperty("name", "eventA");
+            event2 = getDatabase().createNode();
+            event2.setProperty("name", "eventB");
+            tx.success();
+        }
+
+        //When
+        try (Transaction tx = getDatabase().beginTx()) {
+            timeTree.attachEventToInstant(event1, DynamicRelationshipType.withName("HAS_EVENT"), Direction.INCOMING, timeInstant1, tx);
+            timeTree.attachEventToInstant(event2, DynamicRelationshipType.withName("HAS_EVENT"), Direction.INCOMING, timeInstant2, tx);
+            tx.success();
+        }
+
+        //Then
+        assertSameGraph(getDatabase(), "CREATE" +
+                "(root:TimeTreeRoot)," +
+                "(root)-[:FIRST]->(year:Year {value:2012})," +
+                "(root)-[:CHILD]->(year)," +
+                "(root)-[:LAST]->(year)," +
+                "(year)-[:FIRST]->(month:Month {value:11})," +
+                "(year)-[:CHILD]->(month)," +
+                "(year)-[:LAST]->(month)," +
+                "(month)-[:FIRST]->(day:Day {value:1})," +
+                "(month)-[:CHILD]->(day)," +
+                "(month)-[:CHILD]->(day2:Day {value:3})," +
+                "(day)-[:NEXT]->(day2)," +
+                "(month)-[:LAST]->(day2)," +
+                "(day)-[:HAS_EVENT]->(event1 {name:'eventA'})," +
+                "(day2)-[:HAS_EVENT]->(event2 {name:'eventB'})");
+
+
+    }
+
+    @Test
+    public void eventShouldBeFetchedForATimeInstant() {
+        //Given
+        DateTime now = DateTime.now(UTC);
+        TimeInstant timeInstant = new TimeInstant();
+        timeInstant.setResolution(Resolution.DAY);
+        timeInstant.setTimezone(UTC);
+        Node event;
+
+        try (Transaction tx = getDatabase().beginTx()) {
+            event = getDatabase().createNode();
+            event.setProperty("name", "eventA");
+            tx.success();
+        }
+
+        //When
+        try (Transaction tx = getDatabase().beginTx()) {
+            timeTree.attachEventToInstant(event, DynamicRelationshipType.withName("HAS_EVENT"), Direction.INCOMING, timeInstant, tx);
+            tx.success();
+        }
+
+        //Then
+        try (Transaction tx = getDatabase().beginTx()) {
+            List<Event> events = timeTree.getEventsAtInstant(timeInstant, tx);
+            assertEquals(1, events.size());
+            assertEquals("eventA", events.get(0).getEventNode().getProperty("name"));
+            assertEquals("HAS_EVENT", events.get(0).getEventRelation().name());
+            assertEquals(timeInstant, events.get(0).getTimeInstant());
+            tx.success();
+        }
+
+    }
+
+    @Test
+    public void multipleEventsShouldBeFetchedForATimeInstant() {
+        //Given
+        DateTime now = DateTime.now(UTC);
+        TimeInstant timeInstant = new TimeInstant();
+        timeInstant.setResolution(Resolution.DAY);
+        timeInstant.setTimezone(UTC);
+        Node event1, event2;
+
+        try (Transaction tx = getDatabase().beginTx()) {
+            event1 = getDatabase().createNode();
+            event1.setProperty("name", "eventA");
+            event2 = getDatabase().createNode();
+            event2.setProperty("name", "eventB");
+            tx.success();
+        }
+
+        //When
+        try (Transaction tx = getDatabase().beginTx()) {
+            timeTree.attachEventToInstant(event1, DynamicRelationshipType.withName("HAS_EVENT"), Direction.INCOMING, timeInstant, tx);
+            timeTree.attachEventToInstant(event2, DynamicRelationshipType.withName("HAS_EVENT"), Direction.INCOMING, timeInstant, tx);
+            tx.success();
+        }
+
+        //Then
+        try (Transaction tx = getDatabase().beginTx()) {
+            List<String> eventNames = new ArrayList<>();
+            List<Event> events = timeTree.getEventsAtInstant(timeInstant, tx);
+            assertEquals(2, events.size());
+            eventNames.add((String) events.get(0).getEventNode().getProperty("name"));
+            eventNames.add((String) events.get(1).getEventNode().getProperty("name"));
+            assertTrue(eventNames.contains("eventA"));
+            assertTrue(eventNames.contains("eventB"));
+            tx.success();
+        }
+    }
+
+    @Test
+    public void eventShouldBeFetchedForARelationAndTimeInstant() {
+        //Given
+        DateTime now = DateTime.now(UTC);
+        TimeInstant timeInstant = new TimeInstant();
+        timeInstant.setResolution(Resolution.DAY);
+        timeInstant.setTimezone(UTC);
+        Node event;
+
+        try (Transaction tx = getDatabase().beginTx()) {
+            event = getDatabase().createNode();
+            event.setProperty("name", "eventA");
+            tx.success();
+        }
+
+        //When
+        try (Transaction tx = getDatabase().beginTx()) {
+            timeTree.attachEventToInstant(event, DynamicRelationshipType.withName("HAS_EVENT"), Direction.INCOMING, timeInstant, tx);
+            tx.success();
+        }
+
+        //Then
+        try (Transaction tx = getDatabase().beginTx()) {
+            List<Event> events = timeTree.getEventsAtInstant(timeInstant, DynamicRelationshipType.withName("NONEXISTENT_REL"), tx);
+            assertEquals(0, events.size());
+
+            events = timeTree.getEventsAtInstant(timeInstant, DynamicRelationshipType.withName("HAS_EVENT"), tx);
+            assertEquals(1, events.size());
+            assertEquals("eventA", events.get(0).getEventNode().getProperty("name"));
+            assertEquals("HAS_EVENT", events.get(0).getEventRelation().name());
+            assertEquals(timeInstant, events.get(0).getTimeInstant());
+            tx.success();
+        }
+
+    }
+
+
+    @Test
+    public void eventsShouldBeFetchedForTimeRange() {
+        //Given
+        TimeInstant timeInstant1 = new TimeInstant(dateToMillis(2012, 11, 1));
+        timeInstant1.setResolution(Resolution.DAY);
+        timeInstant1.setTimezone(UTC);
+
+        TimeInstant timeInstant2 = new TimeInstant(dateToMillis(2012, 11, 3));
+        timeInstant2.setResolution(Resolution.DAY);
+        timeInstant2.setTimezone(UTC);
+
+        Node event1, event2;
+
+        try (Transaction tx = getDatabase().beginTx()) {
+            event1 = getDatabase().createNode();
+            event1.setProperty("name", "eventA");
+            event2 = getDatabase().createNode();
+            event2.setProperty("name", "eventB");
+            tx.success();
+        }
+
+        //When
+        try (Transaction tx = getDatabase().beginTx()) {
+            timeTree.attachEventToInstant(event1, DynamicRelationshipType.withName("HAS_EVENT"), Direction.INCOMING, timeInstant1, tx);
+            timeTree.attachEventToInstant(event2, DynamicRelationshipType.withName("HAS_EVENT"), Direction.INCOMING, timeInstant2, tx);
+            tx.success();
+        }
+
+        //Then
+        try (Transaction tx = getDatabase().beginTx()) {
+            List<Event> events = timeTree.getEventsBetweenInstants(timeInstant1, timeInstant2, tx);
+            assertEquals(2, events.size());
+            assertEquals("eventA", events.get(0).getEventNode().getProperty("name"));
+            assertEquals("eventB", events.get(1).getEventNode().getProperty("name"));
+            tx.success();
+        }
+    }
+
+    @Test
+    public void eventsShouldBeFetchedForARelationAndTimeRange() {
+        //Given
+        TimeInstant timeInstant1 = new TimeInstant(dateToMillis(2012, 11, 1));
+        timeInstant1.setResolution(Resolution.DAY);
+        timeInstant1.setTimezone(UTC);
+
+        TimeInstant timeInstant2 = new TimeInstant(dateToMillis(2012, 11, 3));
+        timeInstant2.setResolution(Resolution.DAY);
+        timeInstant2.setTimezone(UTC);
+
+        Node event1, event2;
+
+        try (Transaction tx = getDatabase().beginTx()) {
+            event1 = getDatabase().createNode();
+            event1.setProperty("name", "eventA");
+            event2 = getDatabase().createNode();
+            event2.setProperty("name", "eventB");
+            tx.success();
+        }
+
+        //When
+        try (Transaction tx = getDatabase().beginTx()) {
+            timeTree.attachEventToInstant(event1, DynamicRelationshipType.withName("HAS_EVENT"), Direction.INCOMING, timeInstant1, tx);
+            timeTree.attachEventToInstant(event2, DynamicRelationshipType.withName("HAS_EVENT"), Direction.INCOMING, timeInstant2, tx);
+            tx.success();
+        }
+
+        //Then
+        try (Transaction tx = getDatabase().beginTx()) {
+            List<Event> events = timeTree.getEventsBetweenInstants(timeInstant1, timeInstant2, DynamicRelationshipType.withName("HAS_EVENT"), tx);
+            assertEquals(2, events.size());
+            assertEquals("eventA", events.get(0).getEventNode().getProperty("name"));
+            assertEquals("eventB", events.get(1).getEventNode().getProperty("name"));
+
+            events = timeTree.getEventsBetweenInstants(timeInstant1, timeInstant2, DynamicRelationshipType.withName("NONEXISTENT_RELATION"), tx);
+            assertEquals(0, events.size());
+
+            tx.success();
+        }
     }
 
     @Test(expected = IllegalArgumentException.class)
@@ -297,7 +628,7 @@ public class SingleTimeTreeTest extends DatabaseIntegrationTest {
 
         // When
         try (Transaction tx = getDatabase().beginTx()) {
-            timeTree.getInstants(startTime, endTime, tx);
+            timeTree.getInstants(new TimeInstant(startTime), new TimeInstant(endTime), tx);
             // Then throw
         }
     }

@@ -30,13 +30,13 @@ import static com.graphaware.test.util.TestUtils.get;
 import static org.junit.Assert.assertEquals;
 
 /**
- * {@link NeoServerIntegrationTest} for {@link TimeTree} module and {@link TimeTreeApi}.
+ * {@link NeoServerIntegrationTest} for {@link TimeTree} module and {@link com.graphaware.module.timetree.api.TimeTreeApi}.
  */
 public class TimeTreeIntegrationTest extends NeoServerIntegrationTest {
 
     @Test
     public void graphAwareApisAreMountedWhenPresentOnClasspath() throws InterruptedException, IOException {
-        get(baseUrl()+"/graphaware/timetree/now/", HttpStatus.OK_200);
+        get(baseUrl() + "/graphaware/timetree/now/", HttpStatus.OK_200);
     }
 
     @Test
@@ -49,7 +49,7 @@ public class TimeTreeIntegrationTest extends NeoServerIntegrationTest {
             executor.execute(new Runnable() {
                 @Override
                 public void run() {
-                    get(baseUrl()+"/graphaware/timetree/now?resolution=millisecond", HttpStatus.OK_200);
+                    get(baseUrl() + "/graphaware/timetree/now?resolution=millisecond", HttpStatus.OK_200);
                     successfulRequests.incrementAndGet();
                 }
             });

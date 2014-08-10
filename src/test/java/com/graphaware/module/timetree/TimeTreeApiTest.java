@@ -29,10 +29,12 @@ import org.neo4j.tooling.GlobalGraphOperations;
 
 import static com.graphaware.test.unit.GraphUnit.assertSameGraph;
 import static com.graphaware.test.util.TestUtils.get;
+import static com.graphaware.test.util.TestUtils.post;
 import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertTrue;
 
 /**
- * Integration test for {@link TimeTreeApi}.
+ * Integration test for {@link com.graphaware.module.timetree.api.TimeTreeApi}.
  */
 public class TimeTreeApiTest extends GraphAwareApiTest {
 
@@ -245,6 +247,255 @@ public class TimeTreeApiTest extends GraphAwareApiTest {
                 "(month)-[:LAST]->(day)");
 
         assertEquals("3", result);
+    }
+
+    @Test
+    public void eventAndTimeInstantShouldBeCreatedWhenEventIsAttached() {
+        //Given
+        DateTime now = DateTime.now(DateTimeZone.UTC);
+        TimeInstant timeInstant = new TimeInstant();
+        timeInstant.setResolution(Resolution.DAY);
+        timeInstant.setTimezone(DateTimeZone.UTC);
+
+        Node event;
+        long eventId;
+        try (Transaction tx = getDatabase().beginTx()) {
+            event = getDatabase().createNode();
+            event.setProperty("name", "eventA");
+            eventId = event.getId();
+            tx.success();
+        }
+
+
+        //When
+        String eventJson = "{" +
+                "        \"eventNodeId\": " + eventId + "," +
+                "        \"eventRelationshipType\": \"HAS_EVENT\"," +
+                "        \"eventRelationshipDirection\": \"INCOMING\"," +
+                "        \"timezone\": \"UTC\"," +
+                "        \"resolution\": \"DAY\"," +
+                "        \"time\": " + timeInstant.getTime() +
+                "    }";
+        System.out.println("eventJson = " + eventJson);
+        post(getUrl() + "single/event", eventJson, HttpStatus.SC_OK);
+
+        String getResult = get(getUrl() + "single/" + timeInstant.getTime() + "/events", HttpStatus.SC_OK);
+
+        System.out.println("getResult = " + getResult);
+        //Then
+        assertSameGraph(getDatabase(), "CREATE" +
+                "(root:TimeTreeRoot)," +
+                "(root)-[:FIRST]->(year:Year {value:" + now.getYear() + "})," +
+                "(root)-[:CHILD]->(year)," +
+                "(root)-[:LAST]->(year)," +
+                "(year)-[:FIRST]->(month:Month {value:" + now.getMonthOfYear() + "})," +
+                "(year)-[:CHILD]->(month)," +
+                "(year)-[:LAST]->(month)," +
+                "(month)-[:FIRST]->(day:Day {value:" + now.getDayOfMonth() + "})," +
+                "(month)-[:CHILD]->(day)," +
+                "(month)-[:LAST]->(day)," +
+                "(day)-[:HAS_EVENT]->(event {name:'eventA'})");
+
+        assertTrue(getResult.contains("{\"eventNodeId\":0,\"eventRelationshipType\":\"HAS_EVENT\",\"timezone\":\"UTC\",\"resolution\":\"DAY\",\"time\":" + timeInstant.getTime() + "}"));
+    }
+
+
+    @Test
+    public void eventAndTimeInstantAtCustomRootShouldBeCreatedWhenEventIsAttached() {
+        //Given
+        DateTime now = DateTime.now(DateTimeZone.UTC);
+        TimeInstant timeInstant = new TimeInstant();
+        timeInstant.setResolution(Resolution.DAY);
+        timeInstant.setTimezone(DateTimeZone.UTC);
+
+        Node event;
+        long eventId;
+        try (Transaction tx = getDatabase().beginTx()) {
+            getDatabase().createNode(DynamicLabel.label("CustomRoot"));
+            tx.success();
+        }
+
+        try (Transaction tx = getDatabase().beginTx()) {
+            event = getDatabase().createNode();
+            event.setProperty("name", "eventA");
+            eventId = event.getId();
+            tx.success();
+        }
+
+
+        //When
+        String eventJson = "{" +
+                "        \"eventNodeId\": " + eventId + "," +
+                "        \"eventRelationshipType\": \"HAS_EVENT\"," +
+                "        \"eventRelationshipDirection\": \"INCOMING\"," +
+                "        \"timezone\": \"UTC\"," +
+                "        \"resolution\": \"DAY\"," +
+                "        \"time\": " + timeInstant.getTime() +
+                "    }";
+        System.out.println("eventJson = " + eventJson);
+        post(getUrl() + "0/single/event", eventJson, HttpStatus.SC_OK);
+
+        String getResult = get(getUrl() + "0/single/" + timeInstant.getTime() + "/events", HttpStatus.SC_OK);
+
+        System.out.println("getResult = " + getResult);
+        //Then
+        assertSameGraph(getDatabase(), "CREATE" +
+                "(root:CustomRoot)," +
+                "(root)-[:FIRST]->(year:Year {value:" + now.getYear() + "})," +
+                "(root)-[:CHILD]->(year)," +
+                "(root)-[:LAST]->(year)," +
+                "(year)-[:FIRST]->(month:Month {value:" + now.getMonthOfYear() + "})," +
+                "(year)-[:CHILD]->(month)," +
+                "(year)-[:LAST]->(month)," +
+                "(month)-[:FIRST]->(day:Day {value:" + now.getDayOfMonth() + "})," +
+                "(month)-[:CHILD]->(day)," +
+                "(month)-[:LAST]->(day)," +
+                "(day)-[:HAS_EVENT]->(event {name:'eventA'})");
+
+        assertTrue(getResult.contains("{\"eventNodeId\":1,\"eventRelationshipType\":\"HAS_EVENT\",\"timezone\":\"UTC\",\"resolution\":\"DAY\",\"time\":" + timeInstant.getTime() + "}"));
+    }
+
+
+    @Test
+    public void multipleEventsAndTimeInstantsShouldBeCreatedWhenEventsAreAttached() {
+        //Given
+        TimeInstant timeInstant1 = new TimeInstant(dateToMillis(2012, 11, 1));
+        timeInstant1.setResolution(Resolution.DAY);
+        timeInstant1.setTimezone(DateTimeZone.UTC);
+
+        TimeInstant timeInstant2 = new TimeInstant(dateToMillis(2012, 11, 3));
+        timeInstant2.setResolution(Resolution.DAY);
+        timeInstant2.setTimezone(DateTimeZone.UTC);
+        Node event1, event2;
+
+        long eventId1, eventId2;
+        try (Transaction tx = getDatabase().beginTx()) {
+            event1 = getDatabase().createNode();
+            event1.setProperty("name", "eventA");
+            eventId1 = event1.getId();
+
+            event2 = getDatabase().createNode();
+            event2.setProperty("name", "eventB");
+            eventId2 = event2.getId();
+            tx.success();
+        }
+
+
+        //When
+        String eventJson1 = "{" +
+                "        \"eventNodeId\": " + eventId1 + "," +
+                "        \"eventRelationshipType\": \"HAS_EVENT\"," +
+                "        \"eventRelationshipDirection\": \"INCOMING\"," +
+                "        \"timezone\": \"UTC\"," +
+                "        \"resolution\": \"DAY\"," +
+                "        \"time\": " + timeInstant1.getTime() +
+                "    }";
+        String eventJson2 = "{" +
+                "        \"eventNodeId\": " + eventId2 + "," +
+                "        \"eventRelationshipType\": \"HAS_EVENT\"," +
+                "        \"eventRelationshipDirection\": \"INCOMING\"," +
+                "        \"timezone\": \"UTC\"," +
+                "        \"resolution\": \"DAY\"," +
+                "        \"time\": " + timeInstant2.getTime() +
+                "    }";
+
+        post(getUrl() + "single/event", eventJson1, HttpStatus.SC_OK);
+        post(getUrl() + "single/event", eventJson2, HttpStatus.SC_OK);
+
+
+        //Then
+        assertSameGraph(getDatabase(), "CREATE" +
+                "(root:TimeTreeRoot)," +
+                "(root)-[:FIRST]->(year:Year {value:2012})," +
+                "(root)-[:CHILD]->(year)," +
+                "(root)-[:LAST]->(year)," +
+                "(year)-[:FIRST]->(month:Month {value:11})," +
+                "(year)-[:CHILD]->(month)," +
+                "(year)-[:LAST]->(month)," +
+                "(month)-[:FIRST]->(day:Day {value:1})," +
+                "(month)-[:CHILD]->(day)," +
+                "(month)-[:CHILD]->(day2:Day {value:3})," +
+                "(day)-[:NEXT]->(day2)," +
+                "(month)-[:LAST]->(day2)," +
+                "(day)-[:HAS_EVENT]->(event1 {name:'eventA'})," +
+                "(day2)-[:HAS_EVENT]->(event2 {name:'eventB'})");
+
+        String getResult = get(getUrl() + "range/" + timeInstant1.getTime() + "/" + timeInstant2.getTime() + "/events", HttpStatus.SC_OK);
+        assertTrue(getResult.contains("{\"eventNodeId\":0,\"eventRelationshipType\":\"HAS_EVENT\",\"timezone\":\"UTC\",\"resolution\":\"DAY\",\"time\":" + timeInstant1.getTime() + "},{\"eventNodeId\":1,\"eventRelationshipType\":\"HAS_EVENT\",\"timezone\":\"UTC\",\"resolution\":\"DAY\",\"time\":" + timeInstant2.getTime() + "}"));
+    }
+
+
+    @Test
+    public void multipleEventsAndTimeInstantsForCustomRootShouldBeCreatedWhenEventsAreAttached() {
+        //Given
+        TimeInstant timeInstant1 = new TimeInstant(dateToMillis(2012, 11, 1));
+        timeInstant1.setResolution(Resolution.DAY);
+        timeInstant1.setTimezone(DateTimeZone.UTC);
+
+        TimeInstant timeInstant2 = new TimeInstant(dateToMillis(2012, 11, 3));
+        timeInstant2.setResolution(Resolution.DAY);
+        timeInstant2.setTimezone(DateTimeZone.UTC);
+        Node event1, event2;
+
+        long eventId1, eventId2;
+        try (Transaction tx = getDatabase().beginTx()) {
+            getDatabase().createNode(DynamicLabel.label("CustomRoot"));
+            tx.success();
+        }
+
+        try (Transaction tx = getDatabase().beginTx()) {
+            event1 = getDatabase().createNode();
+            event1.setProperty("name", "eventA");
+            eventId1 = event1.getId();
+
+            event2 = getDatabase().createNode();
+            event2.setProperty("name", "eventB");
+            eventId2 = event2.getId();
+            tx.success();
+        }
+
+
+        //When
+        String eventJson1 = "{" +
+                "        \"eventNodeId\": " + eventId1 + "," +
+                "        \"eventRelationshipType\": \"HAS_EVENT\"," +
+                "        \"eventRelationshipDirection\": \"INCOMING\"," +
+                "        \"timezone\": \"UTC\"," +
+                "        \"resolution\": \"DAY\"," +
+                "        \"time\": " + timeInstant1.getTime() +
+                "    }";
+        String eventJson2 = "{" +
+                "        \"eventNodeId\": " + eventId2 + "," +
+                "        \"eventRelationshipType\": \"HAS_EVENT\"," +
+                "        \"eventRelationshipDirection\": \"INCOMING\"," +
+                "        \"timezone\": \"UTC\"," +
+                "        \"resolution\": \"DAY\"," +
+                "        \"time\": " + timeInstant2.getTime() +
+                "    }";
+
+        post(getUrl() + "0/single/event", eventJson1, HttpStatus.SC_OK);
+        post(getUrl() + "0/single/event", eventJson2, HttpStatus.SC_OK);
+
+
+        //Then
+        assertSameGraph(getDatabase(), "CREATE" +
+                "(root:CustomRoot)," +
+                "(root)-[:FIRST]->(year:Year {value:2012})," +
+                "(root)-[:CHILD]->(year)," +
+                "(root)-[:LAST]->(year)," +
+                "(year)-[:FIRST]->(month:Month {value:11})," +
+                "(year)-[:CHILD]->(month)," +
+                "(year)-[:LAST]->(month)," +
+                "(month)-[:FIRST]->(day:Day {value:1})," +
+                "(month)-[:CHILD]->(day)," +
+                "(month)-[:CHILD]->(day2:Day {value:3})," +
+                "(day)-[:NEXT]->(day2)," +
+                "(month)-[:LAST]->(day2)," +
+                "(day)-[:HAS_EVENT]->(event1 {name:'eventA'})," +
+                "(day2)-[:HAS_EVENT]->(event2 {name:'eventB'})");
+
+        String getResult = get(getUrl() + "0/range/" + timeInstant1.getTime() + "/" + timeInstant2.getTime() + "/events", HttpStatus.SC_OK);
+        assertTrue(getResult.contains("{\"eventNodeId\":1,\"eventRelationshipType\":\"HAS_EVENT\",\"timezone\":\"UTC\",\"resolution\":\"DAY\",\"time\":" + timeInstant1.getTime() + "},{\"eventNodeId\":2,\"eventRelationshipType\":\"HAS_EVENT\",\"timezone\":\"UTC\",\"resolution\":\"DAY\",\"time\":" + timeInstant2.getTime() + "}"));
     }
 
 

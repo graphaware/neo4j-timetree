@@ -16,8 +16,9 @@
 
 package com.graphaware.module.timetree;
 
-import org.joda.time.DateTimeZone;
+import org.neo4j.graphdb.Direction;
 import org.neo4j.graphdb.Node;
+import org.neo4j.graphdb.RelationshipType;
 import org.neo4j.graphdb.Transaction;
 
 import java.util.List;
@@ -47,191 +48,85 @@ public interface TimeTree {
      */
     Node getNow(Transaction tx);
 
-    /**
-     * Get a node representing this time instant. If one doesn't exist, it will be created.
-     * <p/>
-     * The resolution of the time instant (i.e., whether it is a day, hour, minute, etc.) depends on the implementation,
-     * which can choose a sensible default, require to be configured with a default when instantiated, or both.
-     * <p>
-     * Note that this may throw an org.neo4j.graphdb.NotFoundException if the root of the single time tree has been deleted.
-     * If this occurs, call invalidateCaches() and retry this method.
-     * </p>
-     *
-     * @param timeZone specific time zone.
-     * @param tx       currently running transaction.
-     * @return node representing the time instant when this method was called.
-     */
-    Node getNow(DateTimeZone timeZone, Transaction tx);
-
-    /**
-     * Get a node representing this time instant. If one doesn't exist, it will be created.
-     * <p/>
-     * The time zone of the time instant depends on the implementation, which can choose a default, require to be
-     * configured with a default when instantiated, or both.
-     * <p>
-     * Note that this may throw an org.neo4j.graphdb.NotFoundException if the root of the single time tree has been deleted.
-     * If this occurs, call invalidateCaches() and retry this method.
-     * </p>
-     *
-     * @param resolution specific resolution.
-     * @param tx         currently running transaction.
-     * @return node representing the time instant when this method was called.
-     */
-    Node getNow(Resolution resolution, Transaction tx);
 
     /**
      * Get a node representing this time instant. If one doesn't exist, it will be created.
      *
-     * <p>
-     * Note that this may throw an org.neo4j.graphdb.NotFoundException if the root of the single time tree has been deleted.
-     * If this occurs, call invalidateCaches() and retry this method.
-     * </p>
-     *
-     * @param timeZone   specific time zone.
-     * @param resolution specific resolution.
-     * @param tx         currently running transaction.
-     * @return node representing the time instant when this method was called.
+     * @param timeInstant specific TimeInstant
+     * @param tx          currently running transaction.
+     * @return node representing the time instant
      */
-    Node getNow(DateTimeZone timeZone, Resolution resolution, Transaction tx);
-
-    /**
-     * Get a node representing a specific time instant. If one doesn't exist, it will be created.
-     * <p/>
-     * The resolution of the time instant (i.e., whether it is a day, hour, minute, etc.) depends on the implementation,
-     * which can choose a sensible default, require to be configured with a default when instantiated, or both.
-     * <p/>
-     * The time zone of the time instant depends on the implementation, which can choose a default, require to be
-     * configured with a default when instantiated, or both.
-     * <p>
-     * Note that this may throw an org.neo4j.graphdb.NotFoundException if the root of the single time tree has been deleted.
-     * If this occurs, call invalidateCaches() and retry this method.
-     * </p>
-     *
-     * @param time UTC time in ms from 1/1/1970.
-     * @param tx   currently running transaction.
-     * @return node representing a specific time instant.
-     */
-    Node getInstant(long time, Transaction tx);
-
-    /**
-     * Get a node representing a specific time instant. If one doesn't exist, it will be created.
-     * <p/>
-     * The resolution of the time instant (i.e., whether it is a day, hour, minute, etc.) depends on the implementation,
-     * which can choose a sensible default, require to be configured with a default when instantiated, or both.
-     * <p>
-     * Note that this may throw an org.neo4j.graphdb.NotFoundException if the root of the single time tree has been deleted.
-     * If this occurs, call invalidateCaches() and retry this method.
-     * </p>
-     * @param time     UTC time in ms from 1/1/1970.
-     * @param timeZone specific time zone.
-     * @param tx       currently running transaction.
-     * @return node representing a specific time instant.
-     */
-    Node getInstant(long time, DateTimeZone timeZone, Transaction tx);
-
-    /**
-     * Get a node representing a specific time instant. If one doesn't exist, it will be created.
-     * <p/>
-     * The time zone of the time instant depends on the implementation, which can choose a default, require to be
-     * configured with a default when instantiated, or both.
-     * <p>
-     * Note that this may throw an org.neo4j.graphdb.NotFoundException if the root of the single time tree has been deleted.
-     * If this occurs, call invalidateCaches() and retry this method.
-     * </p>
-     * @param time       UTC time in ms from 1/1/1970.
-     * @param resolution specific resolution.
-     * @param tx         currently running transaction.
-     * @return node representing a specific time instant.
-     */
-    Node getInstant(long time, Resolution resolution, Transaction tx);
+    Node getNow(TimeInstant timeInstant, Transaction tx);
 
     /**
      * Get a node representing a specific time instant. If one doesn't exist, it will be created.
      *
-     * <p>
-     * Note that this may throw an org.neo4j.graphdb.NotFoundException if the root of the single time tree has been deleted.
-     * If this occurs, call invalidateCaches() and retry this method.
-     * </p>
-     *
-     * @param time       UTC time in ms from 1/1/1970.
-     * @param timeZone   specific time zone.
-     * @param resolution specific resolution.
-     * @param tx         currently running transaction.
+     * @param timeInstant specific TimeInstant
+     * @param tx          currently running transaction.
      * @return node representing a specific time instant.
      */
-    Node getInstant(long time, DateTimeZone timeZone, Resolution resolution, Transaction tx);
+    Node getInstant(TimeInstant timeInstant, Transaction tx);
 
     /**
      * Get nodes representing all time instants in the specified range (inclusive). The ones that don't exist will be created.
-     * <p/>
-     * The resolution of the time instants (i.e., whether it is a day, hour, minute, etc.) depends on the implementation,
-     * which can choose a sensible default, require to be configured with a default when instantiated, or both.
-     * <p/>
-     * The time zone of the time instants depends on the implementation, which can choose a default, require to be
-     * configured with a default when instantiated, or both.
-     * <p>
-     * Note that this may throw an org.neo4j.graphdb.NotFoundException if the root of the single time tree has been deleted.
-     * If this occurs, call invalidateCaches() and retry this method.
-     * </p>
      *
-     * @param startTime UTC time in ms from 1/1/1970 of the start of the interval (inclusive).
-     * @param endTime   UTC time in ms from 1/1/1970 of the end of the interval (inclusive).
+     * @param startTime TimeInstant representing the start of the interval (inclusive)
+     * @param endTime   TimeInstant representing the end of the interval (inclusive)
      * @param tx        currently running transaction.
      * @return nodes representing all time instants in the interval, ordered chronologically.
      */
-    List<Node> getInstants(long startTime, long endTime, Transaction tx);
+    List<Node> getInstants(TimeInstant startTime, TimeInstant endTime, Transaction tx);
 
     /**
-     * Get nodes representing all time instants in the specified range (inclusive). The ones that don't exist will be created.
-     * <p/>
-     * The resolution of the time instants (i.e., whether it is a day, hour, minute, etc.) depends on the implementation,
-     * which can choose a sensible default, require to be configured with a default when instantiated, or both.
-     * <p>
-     * Note that this may throw an org.neo4j.graphdb.NotFoundException if the root of the single time tree has been deleted.
-     * If this occurs, call invalidateCaches() and retry this method.
-     * </p>
+     * Attach an event to a node representing a specific time instant. If the time instant doesn't exist, it will be created.
      *
-     * @param startTime UTC time in ms from 1/1/1970 of the start of the interval (inclusive).
-     * @param endTime   UTC time in ms from 1/1/1970 of the end of the interval (inclusive).
-     * @param timeZone  specific time zone.
+     * @param eventNode              event node to be associated with this instant of time
+     * @param eventRelation          RelationshipType between the event node and the time instant node
+     * @param eventRelationDirection Direction of the eventRelation from the event node to the time instant node
+     * @param timeInstant            specific TimeInstant to attach the event to
+     * @param tx                     currently running transaction.
+     */
+    void attachEventToInstant(Node eventNode, RelationshipType eventRelation, Direction eventRelationDirection, TimeInstant timeInstant, Transaction tx);
+
+    /**
+     * Get events attached to a specific time instant. If the time instant doesn't exist, it will be created.
+     *
+     * @param timeInstant specific TimeInstant
+     * @param tx          currently running transaction.
+     * @return events attached to the time instant
+     */
+    List<Event> getEventsAtInstant(TimeInstant timeInstant, Transaction tx);
+
+    /**
+     * Get events attached to all time instants in the specified range (inclusive). The time instants that don't exist will be created.
+     *
+     * @param startTime TimeInstant representing the start of the interval (inclusive)
+     * @param endTime   TimeInstant representing the end of the interval (inclusive)
      * @param tx        currently running transaction.
-     * @return nodes representing all time instants in the interval, ordered chronologically.
+     * @return events attached to all time instants in the interval, ordered chronologically
      */
-    List<Node> getInstants(long startTime, long endTime, DateTimeZone timeZone, Transaction tx);
+    List<Event> getEventsBetweenInstants(TimeInstant startTime, TimeInstant endTime, Transaction tx);
 
     /**
-     * Get nodes representing all time instants in the specified range (inclusive). The ones that don't exist will be created.
-     * <p/>
-     * The time zone of the time instants depends on the implementation, which can choose a default, require to be
-     * configured with a default when instantiated, or both.
-     * <p>
-     * Note that this may throw an org.neo4j.graphdb.NotFoundException if the root of the single time tree has been deleted.
-     * If this occurs, call invalidateCaches() and retry this method.
-     * </p>
+     * Get events attached to a specific time instant with a specific relation. If the time instant doesn't exist, it will be created.
      *
-     * @param startTime  UTC time in ms from 1/1/1970 of the start of the interval (inclusive).
-     * @param endTime    UTC time in ms from 1/1/1970 of the end of the interval (inclusive).
-     * @param resolution specific resolution.
-     * @param tx         currently running transaction.
-     * @return nodes representing all time instants in the interval, ordered chronologically.
+     * @param timeInstant   specific TimeInstant
+     * @param eventRelation relationship attaching the event to the timeInstant
+     * @param tx            currently running transaction.
+     * @return events attached to the time instant with the specified relation
      */
-    List<Node> getInstants(long startTime, long endTime, Resolution resolution, Transaction tx);
+    List<Event> getEventsAtInstant(TimeInstant timeInstant, RelationshipType eventRelation, Transaction tx);
 
     /**
-     * Get nodes representing all time instants in the specified range (inclusive). The ones that don't exist will be created.
-     * <p>
-     * Note that this may throw an org.neo4j.graphdb.NotFoundException if the root of the single time tree has been deleted.
-     * If this occurs, call invalidateCaches() and retry this method.
-     * </p>
+     * Get events attached to all time instants with the specified relation, in the specified range (inclusive). The time instants that don't exist will be created.
      *
-     * @param startTime  UTC time in ms from 1/1/1970 of the start of the interval (inclusive).
-     * @param endTime    UTC time in ms from 1/1/1970 of the end of the interval (inclusive).
-     * @param timeZone   specific time zone.
-     * @param resolution specific resolution.
-     * @param tx         currently running transaction.
-     * @return nodes representing all time instants in the interval, ordered chronologically.
+     * @param startTime     TimeInstant representing the start of the interval (inclusive)
+     * @param endTime       TimeInstant representing the end of the interval (inclusive)
+     * @param eventRelation relationship attaching the event to the timeInstant
+     * @param tx            currently running transaction.
+     * @return events attached to all time instants in the interval with the specified relation, ordered chronologically
      */
-    List<Node> getInstants(long startTime, long endTime, DateTimeZone timeZone, Resolution resolution, Transaction tx);
+    List<Event> getEventsBetweenInstants(TimeInstant startTime, TimeInstant endTime, RelationshipType eventRelation, Transaction tx);
 
     /**
      * Invalidate time tree root caching.

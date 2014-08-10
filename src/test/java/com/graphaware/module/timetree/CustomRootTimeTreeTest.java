@@ -23,6 +23,10 @@ import org.joda.time.DateTimeZone;
 import org.junit.Test;
 import org.neo4j.graphdb.*;
 import org.neo4j.tooling.GlobalGraphOperations;
+import org.neo4j.graphdb.DynamicLabel;
+import org.neo4j.graphdb.GraphDatabaseService;
+import org.neo4j.graphdb.Node;
+import org.neo4j.graphdb.Transaction;
 
 import java.util.TimeZone;
 
@@ -52,7 +56,7 @@ public class CustomRootTimeTreeTest extends DatabaseIntegrationTest {
         Node dayNode;
         try (Transaction tx = getDatabase().beginTx()) {
             TimeTree timeTree = new CustomRootTimeTree(getDatabase().getNodeById(0));
-            dayNode = timeTree.getInstant(dateInMillis, tx);
+            dayNode = timeTree.getInstant(new TimeInstant(dateInMillis), tx);
             tx.success();
         }
 

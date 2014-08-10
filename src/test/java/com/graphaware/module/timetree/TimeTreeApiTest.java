@@ -276,12 +276,10 @@ public class TimeTreeApiTest extends GraphAwareApiTest {
                 "        \"resolution\": \"DAY\"," +
                 "        \"time\": " + timeInstant.getTime() +
                 "    }";
-        System.out.println("eventJson = " + eventJson);
         post(getUrl() + "single/event", eventJson, HttpStatus.SC_OK);
 
         String getResult = get(getUrl() + "single/" + timeInstant.getTime() + "/events", HttpStatus.SC_OK);
 
-        System.out.println("getResult = " + getResult);
         //Then
         assertSameGraph(getDatabase(), "CREATE" +
                 "(root:TimeTreeRoot)," +
@@ -332,12 +330,10 @@ public class TimeTreeApiTest extends GraphAwareApiTest {
                 "        \"resolution\": \"DAY\"," +
                 "        \"time\": " + timeInstant.getTime() +
                 "    }";
-        System.out.println("eventJson = " + eventJson);
         post(getUrl() + "0/single/event", eventJson, HttpStatus.SC_OK);
 
         String getResult = get(getUrl() + "0/single/" + timeInstant.getTime() + "/events", HttpStatus.SC_OK);
 
-        System.out.println("getResult = " + getResult);
         //Then
         assertSameGraph(getDatabase(), "CREATE" +
                 "(root:CustomRoot)," +

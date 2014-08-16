@@ -129,6 +129,21 @@ The default is all relationships, which is useful if you have different kinds of
 
   ![GraphAware TimeTree generated time tree](https://github.com/graphaware/neo4j-timetree/raw/master/docs/image4.jpg)
 
+The response to calls returning events contain a list of events with relationship names attaching these to instants, e.g.:
+
+```json
+[
+      {
+             "nodeId": 99,
+             "relationshipType": "STARTED_ON_DAY",
+      },
+      {
+             "nodeId": 100,
+             "relationshipType": "ENDED_ON_DAY",
+      }
+]
+```
+
 Attaching an event to a time instant requires a POST request to:
 
 * `http://your-server-address:7474/graphaware/timetree/single/event` to attach an existing event node to a node representing a time instant.

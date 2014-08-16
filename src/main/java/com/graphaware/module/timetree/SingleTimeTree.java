@@ -16,6 +16,7 @@
 
 package com.graphaware.module.timetree;
 
+import com.graphaware.common.util.PropertyContainerUtils;
 import com.graphaware.module.timetree.domain.Resolution;
 import com.graphaware.module.timetree.domain.TimeInstant;
 import com.graphaware.module.timetree.domain.TimeTreeLabels;
@@ -63,7 +64,23 @@ public class SingleTimeTree implements TimeTree {
      */
     @Override
     public Node getInstant(TimeInstant timeInstant) {
-        return null;  //To change body of implemented methods use File | Settings | File Templates.
+        Node instant = null;
+
+        try (Transaction tx = database.beginTx()) {
+            DateTime dateTime = new DateTime(timeInstant.getTime(), timeInstant.getTimezone());
+
+            Node timeRoot = getTimeRoot();
+            tx.acquireWriteLock(timeRoot);
+            Node year = findChild(timeRoot, dateTime.get(YEAR.getDateTimeFieldType()));
+
+            if (year != null) {
+                instant = getInstant(year, dateTime, timeInstant.getResolution());
+            }
+
+            tx.success();
+        }
+
+        return instant;
     }
 
     /**
@@ -71,7 +88,16 @@ public class SingleTimeTree implements TimeTree {
      */
     @Override
     public List<Node> getInstants(TimeInstant startTime, TimeInstant endTime) {
-        return null;  //To change body of implemented methods use File | Settings | File Templates.
+        List<Node> result = new LinkedList<>();
+
+        for (TimeInstant instant : TimeInstant.getInstants(startTime, endTime)) {
+            Node toAdd = getInstant(instant);
+            if (toAdd != null) {
+                result.add(toAdd);
+            }
+        }
+
+        return result;
     }
 
     /**
@@ -117,10 +143,11 @@ public class SingleTimeTree implements TimeTree {
     protected Node getTimeRoot() {
         if (timeTreeRoot != null) {
             try {
-                database.getNodeById(timeTreeRoot.getId());
+                timeTreeRoot.getRelationships();
                 return timeTreeRoot;
             } catch (NotFoundException e) {
                 LOG.warn("The time tree seems to have been deleted!");
+                timeTreeRoot = null;
             }
         }
 
@@ -149,6 +176,31 @@ public class SingleTimeTree implements TimeTree {
     }
 
     /**
+     * Get a node representing a specific time instant. If one doesn't exist, return <code>null</code>.
+     *
+     * @param parent           parent node on path to desired instant node.
+     * @param dateTime         time instant.
+     * @param targetResolution target child resolution. Recursion stops when at this level.
+     * @return node representing the time instant at the desired resolution level.
+     */
+    private Node getInstant(Node parent, DateTime dateTime, Resolution targetResolution) {
+        Resolution currentResolution = findForNode(parent);
+
+        if (currentResolution.equals(targetResolution)) {
+            return parent;
+        }
+
+        Node child = findChild(parent, dateTime.get(currentResolution.getChild().getDateTimeFieldType()));
+
+        if (child == null) {
+            return null;
+        }
+
+        //recursion
+        return getInstant(child, dateTime, targetResolution);
+    }
+
+    /**
      * Get a node representing a specific time instant. If one doesn't exist, it will be created as well as any missing
      * nodes on the way down from parent (recursively).
      *
@@ -171,6 +223,37 @@ public class SingleTimeTree implements TimeTree {
     }
 
     /**
+     * Find a child node with value equal to the given value. If no such child exists, return <code>null</code>.
+     *
+     * @param parent parent of the node to be found.
+     * @param value  value of the node to be found.
+     * @return child node, <code>null</code> of none exists.
+     */
+    private Node findChild(Node parent, int value) {
+        Relationship firstRelationship = parent.getSingleRelationship(FIRST, OUTGOING);
+        if (firstRelationship == null) {
+            return null;
+        }
+
+        Node existingChild = firstRelationship.getEndNode();
+        while (PropertyContainerUtils.getInt(existingChild, VALUE_PROPERTY) < value && parent(existingChild).getId() == parent.getId()) {
+            Relationship nextRelationship = existingChild.getSingleRelationship(NEXT, OUTGOING);
+
+            if (nextRelationship == null || parent(nextRelationship.getEndNode()).getId() != parent.getId()) {
+                return null;
+            }
+
+            existingChild = nextRelationship.getEndNode();
+        }
+
+        if (PropertyContainerUtils.getInt(existingChild, VALUE_PROPERTY) == value) {
+            return existingChild;
+        }
+
+        return null;
+    }
+
+    /**
      * Find a child node with value equal to the given value. If no such child exists, create one.
      *
      * @param parent parent of the node to be found or created.
@@ -185,7 +268,7 @@ public class SingleTimeTree implements TimeTree {
 
         Node existingChild = firstRelationship.getEndNode();
         boolean isFirst = true;
-        while ((int) existingChild.getProperty(VALUE_PROPERTY) < value && parent(existingChild).getId() == parent.getId()) {
+        while (PropertyContainerUtils.getInt(existingChild, VALUE_PROPERTY) < value && parent(existingChild).getId() == parent.getId()) {
             isFirst = false;
             Relationship nextRelationship = existingChild.getSingleRelationship(NEXT, OUTGOING);
 
@@ -196,7 +279,7 @@ public class SingleTimeTree implements TimeTree {
             existingChild = nextRelationship.getEndNode();
         }
 
-        if (existingChild.getProperty(VALUE_PROPERTY).equals(value)) {
+        if (PropertyContainerUtils.getInt(existingChild, VALUE_PROPERTY) == value) {
             return existingChild;
         }
 

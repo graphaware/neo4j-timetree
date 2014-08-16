@@ -198,7 +198,6 @@ public class EventApi {
     @ExceptionHandler(NotFoundException.class)
     @ResponseStatus(HttpStatus.NOT_FOUND)
     public Map<String, String> handleNotFound(NotFoundException e) {
-        timeTree.invalidateCaches();
         return Collections.singletonMap("message", e.getMessage());
     }
 }

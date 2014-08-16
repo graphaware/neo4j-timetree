@@ -39,23 +39,28 @@ public class Event {
     }
 
     /**
-     * Get the node representing the event
+     * Get the node representing the event.
      *
-     * @return event node
+     * @return event node.
      */
     public Node getNode() {
         return node;
     }
 
     /**
-     * Get the relationship that between the event and the time instant
+     * Get the relationship that between the event and the time instant.
      *
-     * @return the relationship between the event and the time instant
+     * @return the relationship between the event and the time instant.
      */
     public RelationshipType getRelationshipType() {
         return relationshipType;
     }
 
+    /**
+     * Convert this event to its corresponding value object.
+     *
+     * @return value object.
+     */
     public EventVO toValueObject() {
         return new EventVO(node.getId(), getRelationshipType().name());
     }

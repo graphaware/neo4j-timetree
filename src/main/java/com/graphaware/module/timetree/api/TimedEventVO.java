@@ -3,7 +3,7 @@ package com.graphaware.module.timetree.api;
 import com.fasterxml.jackson.annotation.JsonUnwrapped;
 
 /**
- *
+ * Wrapper of {@link EventVO} and {@link TimeInstantVO} for attaching events to time instants.
  */
 public class TimedEventVO {
 
@@ -11,9 +11,6 @@ public class TimedEventVO {
     private EventVO event;
     @JsonUnwrapped
     private TimeInstantVO timeInstant;
-
-    public TimedEventVO() {
-    }
 
     public EventVO getEvent() {
         return event;
@@ -32,7 +29,7 @@ public class TimedEventVO {
     }
 
     public void validate() {
-         event.validate();
+        event.validate();
 
         if (timeInstant == null) {
             throw new IllegalArgumentException("Time instant must not be null");

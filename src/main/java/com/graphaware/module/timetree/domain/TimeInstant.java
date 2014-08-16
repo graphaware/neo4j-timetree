@@ -75,6 +75,11 @@ public class TimeInstant {
         return new TimeInstant(getTime(), getTimezone(), resolution);
     }
 
+    /**
+     * Create an instant immediately following the current one, i.e. with its resolution unit incremented by 1.
+     *
+     * @return next instant.
+     */
     public TimeInstant next() {
         MutableDateTime time = new MutableDateTime(getTime());
         time.add(getResolution().getDateTimeFieldType().getDurationType(), 1);
@@ -89,7 +94,7 @@ public class TimeInstant {
     }
 
     /**
-     * Get the UTC time in ms from 1/1/1970 for this TimeInstant
+     * Get the UTC time in ms from 1/1/1970 for this instant.
      *
      * @return the UTC time in ms from 1/1/1970.
      */
@@ -98,34 +103,54 @@ public class TimeInstant {
     }
 
     /**
-     * Get the timezone set for this TimeInstant
+     * Get the timezone set for this instant.
      *
-     * @return the timezone
+     * @return the timezone.
      */
     public DateTimeZone getTimezone() {
         return timezone;
     }
 
     /**
-     * Get the {@link Resolution} set for this TimeInstant
+     * Get the {@link Resolution} set for this instant.
      *
-     * @return the resolution
+     * @return the resolution.
      */
     public Resolution getResolution() {
         return resolution;
     }
 
+    /**
+     * Check if this instant is after another one.
+     *
+     * @param timeInstant to check for.
+     * @return true iff this instant is after the given one.
+     */
     public boolean isAfter(TimeInstant timeInstant) {
         DateTime thisTime = new DateTime(getTime());
         DateTime thatTime = new DateTime(timeInstant.getTime());
         return thisTime.isAfter(thatTime);
     }
 
+    /**
+     * Check if this instant is compatible with the given instant, i.e., that their resolutions are the same.
+     *
+     * @param timeInstant to check.
+     * @return true iff compatible.
+     */
     public boolean compatibleWith(TimeInstant timeInstant) {
         return getResolution().equals(timeInstant.getResolution())
                 && getTimezone().equals(timeInstant.getTimezone());
     }
 
+    /**
+     * Get instants between two instants (inclusive). Both instants provided to this method must have the same resolution
+     * and start instant must not have happened after end instant.
+     *
+     * @param startTime start.
+     * @param endTime   end.
+     * @return all instants in between with the same resolution as the start and end instant.
+     */
     public static List<TimeInstant> getInstants(TimeInstant startTime, TimeInstant endTime) {
         if (startTime.isAfter(endTime)) {
             throw new IllegalArgumentException("startTime must be less than endTime");
@@ -145,6 +170,12 @@ public class TimeInstant {
         return result;
     }
 
+    /**
+     * Create an instant from its corresponding value object.
+     *
+     * @param vo to create the instant from.
+     * @return instant.
+     */
     public static TimeInstant fromValueObject(TimeInstantVO vo) {
         TimeInstant instant = TimeInstant.instant(vo.getTime());
 

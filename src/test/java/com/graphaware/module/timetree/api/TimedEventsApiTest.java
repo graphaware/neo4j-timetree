@@ -41,7 +41,7 @@ import static org.junit.Assert.assertTrue;
 /**
  * Integration test for {@link TimeTreeApi}.
  */
-public class EventApiTest extends GraphAwareApiTest {
+public class TimedEventsApiTest extends GraphAwareApiTest {
 
     @Test
     public void shouldComplainWhenInputIllegal() throws IOException {

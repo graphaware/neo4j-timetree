@@ -15,10 +15,8 @@
  */
 package com.graphaware.module.timetree.api;
 
-import com.fasterxml.jackson.annotation.JsonUnwrapped;
-
 /**
- * Representation of an event that occurs at a time instant
+ * Representation of an event.
  */
 public class EventVO {
 
@@ -55,7 +53,7 @@ public class EventVO {
         }
 
         if (relationshipType == null) {
-            throw new IllegalArgumentException("Relationship type for Event must not be null");
+            throw new IllegalArgumentException("Relationship type for event must not be null");
         }
     }
 }

@@ -30,19 +30,19 @@ import org.springframework.web.bind.annotation.*;
 import java.util.*;
 
 /**
- * REST API for {@link com.graphaware.module.timetree.TimeTree}.
+ * REST API for {@link TimedEvents}.
  */
 @Controller
 @RequestMapping("/timetree")
-public class EventApi {
+public class TimedEventsApi {
 
-    private static final Logger LOG = LoggerFactory.getLogger(EventApi.class);
+    private static final Logger LOG = LoggerFactory.getLogger(TimedEventsApi.class);
 
     private final GraphDatabaseService database;
     private final TimedEvents timedEvents;
 
     @Autowired
-    public EventApi(GraphDatabaseService database, TimedEvents timedEvents) {
+    public TimedEventsApi(GraphDatabaseService database, TimedEvents timedEvents) {
         this.database = database;
         this.timedEvents = timedEvents;
     }

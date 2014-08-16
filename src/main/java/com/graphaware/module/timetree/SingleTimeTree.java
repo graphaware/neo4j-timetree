@@ -16,6 +16,9 @@
 
 package com.graphaware.module.timetree;
 
+import com.graphaware.module.timetree.domain.Resolution;
+import com.graphaware.module.timetree.domain.TimeInstant;
+import com.graphaware.module.timetree.domain.TimeTreeLabels;
 import org.joda.time.DateTime;
 import org.neo4j.graphdb.*;
 import org.neo4j.tooling.GlobalGraphOperations;
@@ -26,10 +29,10 @@ import java.util.Iterator;
 import java.util.LinkedList;
 import java.util.List;
 
-import static com.graphaware.module.timetree.Resolution.YEAR;
-import static com.graphaware.module.timetree.Resolution.findForNode;
-import static com.graphaware.module.timetree.TimeTreeLabels.TimeTreeRoot;
-import static com.graphaware.module.timetree.TimeTreeRelationshipTypes.*;
+import static com.graphaware.module.timetree.domain.Resolution.YEAR;
+import static com.graphaware.module.timetree.domain.Resolution.findForNode;
+import static com.graphaware.module.timetree.domain.TimeTreeLabels.TimeTreeRoot;
+import static com.graphaware.module.timetree.domain.TimeTreeRelationshipTypes.*;
 import static org.neo4j.graphdb.Direction.INCOMING;
 import static org.neo4j.graphdb.Direction.OUTGOING;
 

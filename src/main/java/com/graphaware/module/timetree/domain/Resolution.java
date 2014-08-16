@@ -14,7 +14,7 @@
  * <http://www.gnu.org/licenses/>.
  */
 
-package com.graphaware.module.timetree;
+package com.graphaware.module.timetree.domain;
 
 import org.joda.time.DateTimeFieldType;
 import org.neo4j.graphdb.Label;
@@ -23,7 +23,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 /**
- * Resolution of a {@link TimeTree}.
+ * Resolution of a {@link com.graphaware.module.timetree.TimeTree}.
  */
 public enum Resolution {
 

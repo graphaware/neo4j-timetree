@@ -17,8 +17,8 @@
 package com.graphaware.module.timetree.api;
 
 import com.graphaware.common.util.PropertyContainerUtils;
-import com.graphaware.module.timetree.Resolution;
-import com.graphaware.module.timetree.TimeInstant;
+import com.graphaware.module.timetree.domain.Resolution;
+import com.graphaware.module.timetree.domain.TimeInstant;
 import com.graphaware.test.integration.GraphAwareApiTest;
 import org.apache.http.HttpStatus;
 import org.joda.time.DateTime;

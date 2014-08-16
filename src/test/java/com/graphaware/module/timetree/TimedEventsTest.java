@@ -16,6 +16,8 @@
 
 package com.graphaware.module.timetree;
 
+import com.graphaware.module.timetree.domain.Event;
+import com.graphaware.module.timetree.domain.TimeInstant;
 import com.graphaware.test.integration.DatabaseIntegrationTest;
 import org.joda.time.DateTime;
 import org.joda.time.DateTimeZone;
@@ -47,7 +49,7 @@ public class TimedEventsTest extends DatabaseIntegrationTest {
     @Before
     public void setUp() throws Exception {
         super.setUp();
-        timedEvents = new TimeTreeTimedEvents(new SingleTimeTree(getDatabase()));
+        timedEvents = new TimeTreeBackedEvents(new SingleTimeTree(getDatabase()));
     }
 
     @Test

@@ -18,8 +18,8 @@ package com.graphaware.module.timetree.api;
 
 import com.fasterxml.jackson.core.JsonParseException;
 import com.fasterxml.jackson.databind.ObjectMapper;
-import com.graphaware.module.timetree.Resolution;
-import com.graphaware.module.timetree.TimeInstant;
+import com.graphaware.module.timetree.domain.Resolution;
+import com.graphaware.module.timetree.domain.TimeInstant;
 import com.graphaware.test.integration.GraphAwareApiTest;
 import org.apache.http.HttpStatus;
 import org.joda.time.DateTime;

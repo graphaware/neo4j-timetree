@@ -17,6 +17,8 @@
 package com.graphaware.module.timetree;
 
 import com.graphaware.common.util.PropertyContainerUtils;
+import com.graphaware.module.timetree.domain.TimeInstant;
+import com.graphaware.module.timetree.domain.TimeTreeLabels;
 import com.graphaware.test.integration.DatabaseIntegrationTest;
 import org.joda.time.DateTime;
 import org.joda.time.DateTimeZone;
@@ -30,8 +32,8 @@ import org.neo4j.tooling.GlobalGraphOperations;
 import java.util.List;
 import java.util.TimeZone;
 
-import static com.graphaware.module.timetree.Resolution.DAY;
-import static com.graphaware.module.timetree.Resolution.MILLISECOND;
+import static com.graphaware.module.timetree.domain.Resolution.DAY;
+import static com.graphaware.module.timetree.domain.Resolution.MILLISECOND;
 import static com.graphaware.module.timetree.SingleTimeTree.VALUE_PROPERTY;
 import static com.graphaware.test.unit.GraphUnit.assertSameGraph;
 import static org.junit.Assert.assertEquals;

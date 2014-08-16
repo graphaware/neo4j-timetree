@@ -16,6 +16,7 @@
 
 package com.graphaware.module.timetree;
 
+import com.graphaware.module.timetree.domain.TimeInstant;
 import org.neo4j.graphdb.Node;
 
 import java.util.List;

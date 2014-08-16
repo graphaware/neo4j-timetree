@@ -17,6 +17,8 @@
 package com.graphaware.module.timetree.api;
 
 import com.graphaware.module.timetree.*;
+import com.graphaware.module.timetree.domain.Event;
+import com.graphaware.module.timetree.domain.TimeInstant;
 import org.neo4j.graphdb.*;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
@@ -40,7 +42,7 @@ public class EventApi {
     public EventApi(GraphDatabaseService database) {
         this.database = database;
         this.timeTree = new SingleTimeTree(database);
-        this.timedEvents = new TimeTreeTimedEvents(timeTree);
+        this.timedEvents = new TimeTreeBackedEvents(timeTree);
     }
 
     @RequestMapping(value = "/single/{time}/events", method = RequestMethod.GET)
@@ -118,7 +120,7 @@ public class EventApi {
 
         try (Transaction tx = database.beginTx()) {
             CustomRootTimeTree timeTree = new CustomRootTimeTree(database.getNodeById(rootNodeId));
-            events = convertEvents(new TimeTreeTimedEvents(timeTree).getEvents(timeInstant, getRelationshipType(relationshipType)));
+            events = convertEvents(new TimeTreeBackedEvents(timeTree).getEvents(timeInstant, getRelationshipType(relationshipType)));
             tx.success();
         }
 
@@ -142,7 +144,7 @@ public class EventApi {
 
         try (Transaction tx = database.beginTx()) {
             CustomRootTimeTree timeTree = new CustomRootTimeTree(database.getNodeById(rootNodeId));
-            events = convertEvents(new TimeTreeTimedEvents(timeTree).getEvents(startTimeInstant, endTimeInstant, getRelationshipType(relationshipType)));
+            events = convertEvents(new TimeTreeBackedEvents(timeTree).getEvents(startTimeInstant, endTimeInstant, getRelationshipType(relationshipType)));
             tx.success();
         }
 
@@ -159,7 +161,7 @@ public class EventApi {
             Node eventNode = database.getNodeById(event.getNodeId());
             CustomRootTimeTree timeTree = new CustomRootTimeTree(database.getNodeById(rootNodeId));
 
-            new TimeTreeTimedEvents(timeTree).attachEvent(
+            new TimeTreeBackedEvents(timeTree).attachEvent(
                     eventNode,
                     DynamicRelationshipType.withName(event.getRelationshipType()),
                     TimeInstant.fromValueObject(event.getTimeInstant()));

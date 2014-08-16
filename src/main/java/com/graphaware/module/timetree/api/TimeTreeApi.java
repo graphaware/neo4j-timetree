@@ -17,6 +17,7 @@
 package com.graphaware.module.timetree.api;
 
 import com.graphaware.module.timetree.*;
+import com.graphaware.module.timetree.domain.TimeInstant;
 import org.neo4j.graphdb.*;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;

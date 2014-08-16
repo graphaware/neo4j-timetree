@@ -13,7 +13,7 @@
  * the GNU General Public License along with this program.  If not, see
  * <http://www.gnu.org/licenses/>.
  */
-package com.graphaware.module.timetree;
+package com.graphaware.module.timetree.domain;
 
 import com.graphaware.module.timetree.api.TimeInstantVO;
 import org.joda.time.DateTime;
@@ -25,7 +25,7 @@ import java.util.LinkedList;
 import java.util.List;
 import java.util.TimeZone;
 
-import static com.graphaware.module.timetree.Resolution.DAY;
+import static com.graphaware.module.timetree.domain.Resolution.DAY;
 
 /**
  * An instant of time.
@@ -107,7 +107,7 @@ public class TimeInstant {
     }
 
     /**
-     * Get the {@link com.graphaware.module.timetree.Resolution} set for this TimeInstant
+     * Get the {@link Resolution} set for this TimeInstant
      *
      * @return the resolution
      */

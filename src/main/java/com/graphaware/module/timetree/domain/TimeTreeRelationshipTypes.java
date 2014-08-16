@@ -14,7 +14,7 @@
  * <http://www.gnu.org/licenses/>.
  */
 
-package com.graphaware.module.timetree;
+package com.graphaware.module.timetree.domain;
 
 import org.neo4j.graphdb.RelationshipType;
 
@@ -24,8 +24,21 @@ import java.util.List;
 /**
  * {@link org.neo4j.graphdb.RelationshipType}s for {@link com.graphaware.module.timetree.TimeTree}.
  */
-public enum EventRelationshipTypes implements RelationshipType {
+public enum TimeTreeRelationshipTypes implements RelationshipType {
 
-    AT_TIME;
+    FIRST, LAST, NEXT, CHILD;
+
+    /**
+     * Get all TimeTree relationship names
+     *
+     * @return List of TimeTree relationship names
+     */
+    public static List<String> getTimeTreeRelationshipNames() {
+        List<String> relationNames = new ArrayList<>();
+        for (TimeTreeRelationshipTypes type : values()) {
+            relationNames.add(type.name());
+        }
+        return relationNames;
+    }
 }
 

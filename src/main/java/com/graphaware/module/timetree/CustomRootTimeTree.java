@@ -21,8 +21,8 @@ import org.neo4j.graphdb.Node;
 
 /**
  * An implementation of {@link TimeTree} which can have a custom time tree root provided to it. Thus, it allows for many
- * different time trees within a single graph. The default {@link Resolution}, if one is not explicitly provided using the constructor or one of the public methods,
- * is {@link Resolution#DAY}. The default {@link DateTimeZone}, if one is not explicitly provided, is UTC.
+ * different time trees within a single graph. The default {@link com.graphaware.module.timetree.domain.Resolution}, if one is not explicitly provided using the constructor or one of the public methods,
+ * is {@link com.graphaware.module.timetree.domain.Resolution#DAY}. The default {@link DateTimeZone}, if one is not explicitly provided, is UTC.
  */
 public class CustomRootTimeTree extends SingleTimeTree {
 

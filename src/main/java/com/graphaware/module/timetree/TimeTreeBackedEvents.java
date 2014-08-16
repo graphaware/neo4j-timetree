@@ -1,5 +1,8 @@
 package com.graphaware.module.timetree;
 
+import com.graphaware.module.timetree.domain.Event;
+import com.graphaware.module.timetree.domain.TimeInstant;
+import com.graphaware.module.timetree.domain.TimeTreeRelationshipTypes;
 import org.neo4j.graphdb.Node;
 import org.neo4j.graphdb.Relationship;
 import org.neo4j.graphdb.RelationshipType;
@@ -10,11 +13,11 @@ import java.util.List;
 /**
  *
  */
-public class TimeTreeTimedEvents implements TimedEvents {
+public class TimeTreeBackedEvents implements TimedEvents {
 
     private final TimeTree timeTree;
 
-    public TimeTreeTimedEvents(TimeTree timeTree) {
+    public TimeTreeBackedEvents(TimeTree timeTree) {
         this.timeTree = timeTree;
     }
 

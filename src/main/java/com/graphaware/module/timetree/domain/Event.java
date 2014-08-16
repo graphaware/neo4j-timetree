@@ -13,14 +13,14 @@
  * the GNU General Public License along with this program.  If not, see
  * <http://www.gnu.org/licenses/>.
  */
-package com.graphaware.module.timetree;
+package com.graphaware.module.timetree.domain;
 
 import com.graphaware.module.timetree.api.EventVO;
 import org.neo4j.graphdb.Node;
 import org.neo4j.graphdb.RelationshipType;
 
 /**
- * An event intended to be attached to the {@link TimeTree}.
+ * An event intended to be attached to the {@link com.graphaware.module.timetree.TimeTree}.
  */
 public class Event {
 

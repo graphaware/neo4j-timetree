@@ -16,6 +16,8 @@
 
 package com.graphaware.module.timetree;
 
+import com.graphaware.module.timetree.domain.Event;
+import com.graphaware.module.timetree.domain.TimeInstant;
 import org.neo4j.graphdb.Node;
 import org.neo4j.graphdb.RelationshipType;
 

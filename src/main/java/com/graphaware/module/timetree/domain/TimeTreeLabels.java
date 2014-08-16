@@ -14,7 +14,7 @@
  * <http://www.gnu.org/licenses/>.
  */
 
-package com.graphaware.module.timetree;
+package com.graphaware.module.timetree.domain;
 
 import org.neo4j.graphdb.Label;
 import org.neo4j.graphdb.Node;
@@ -22,7 +22,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 /**
- * {@link org.neo4j.graphdb.Label}s for {@link TimeTree}.
+ * {@link org.neo4j.graphdb.Label}s for {@link com.graphaware.module.timetree.TimeTree}.
  */
 public enum TimeTreeLabels implements Label {
 

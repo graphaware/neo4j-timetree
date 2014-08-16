@@ -17,6 +17,8 @@
 package com.graphaware.module.timetree;
 
 import com.graphaware.common.util.PropertyContainerUtils;
+import com.graphaware.module.timetree.domain.TimeInstant;
+import com.graphaware.module.timetree.domain.TimeTreeLabels;
 import com.graphaware.test.integration.DatabaseIntegrationTest;
 import org.joda.time.DateTime;
 import org.joda.time.DateTimeZone;

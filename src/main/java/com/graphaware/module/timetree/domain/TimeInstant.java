@@ -145,10 +145,6 @@ public class TimeInstant {
         return result;
     }
 
-    public TimeInstantVO toValueObject() {
-        return new TimeInstantVO(getTime(), getResolution().name(), getTimezone().getID());
-    }
-
     public static TimeInstant fromValueObject(TimeInstantVO vo) {
         TimeInstant instant = TimeInstant.instant(vo.getTime());
 

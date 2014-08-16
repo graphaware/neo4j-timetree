@@ -73,7 +73,7 @@ public class EventApiTest extends GraphAwareApiTest {
 
         post(getUrl() + "single/event", eventJson, HttpStatus.SC_CREATED);
 
-        String getResult = get(getUrl() + "single/" + timeInstant.getTime() + "/events", HttpStatus.SC_OK);
+        String getResult = get(getUrl() + "single/" + timeInstant.getTime() + "/events?relationshipType=AT_TIME", HttpStatus.SC_OK);
 
         //Then
         assertSameGraph(getDatabase(), "CREATE" +

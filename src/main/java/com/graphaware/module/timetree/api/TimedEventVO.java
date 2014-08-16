@@ -15,11 +15,6 @@ public class TimedEventVO {
     public TimedEventVO() {
     }
 
-    public TimedEventVO(EventVO event, TimeInstantVO timeInstant) {
-        this.event = event;
-        this.timeInstant = timeInstant;
-    }
-
     public EventVO getEvent() {
         return event;
     }

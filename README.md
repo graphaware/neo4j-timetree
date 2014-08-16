@@ -1,11 +1,10 @@
 GraphAware Neo4j TimeTree
 =========================
 
-[![Build Status](https://travis-ci.org/graphaware/neo4j-timetree.png)](https://travis-ci.org/graphaware/neo4j-timetree) | <a href="http://graphaware.com/downloads/" target="_blank">Downloads</a> | <a href="http://graphaware.com/site/timetree/latest/apidocs/" target="_blank">Javadoc</a> | Latest Release: 2.1.3.10.11
+[![Build Status](https://travis-ci.org/graphaware/neo4j-timetree.png)](https://travis-ci.org/graphaware/neo4j-timetree) | <a href="http://graphaware.com/downloads/" target="_blank">Downloads</a> | <a href="http://graphaware.com/site/timetree/latest/apidocs/" target="_blank">Javadoc</a> | Latest Release: 2.1.3.11.12
 
 GraphAware TimeTree is a simple library for representing time in Neo4j as a tree of time instants. The tree is built on-demand,
-supports resolutions of one year down to one millisecond and has time zone support. It also supports attaching event nodes to a time instant(created on demand).
-
+supports resolutions of one year down to one millisecond and has time zone support. It also supports attaching event nodes to time instants (created on demand).
 
 Getting the Software
 --------------------
@@ -32,7 +31,7 @@ Releases are synced to <a href="http://search.maven.org/#search%7Cga%7C1%7Ca%3A%
         <dependency>
             <groupId>com.graphaware.neo4j</groupId>
             <artifactId>timetree</artifactId>
-            <version>2.1.3.10.11</version>
+            <version>2.1.3.11.12</version>
         </dependency>
         ...
     </dependencies>
@@ -40,7 +39,7 @@ Releases are synced to <a href="http://search.maven.org/#search%7Cga%7C1%7Ca%3A%
 #### Snapshots
 
 To use the latest development version, just clone this repository, run `mvn clean install` and change the version in the
-dependency above to 2.1.3.10.12-SNAPSHOT.
+dependency above to 2.1.3.11.13-SNAPSHOT.
 
 #### Note on Versioning Scheme
 
@@ -87,7 +86,9 @@ nodes representing concrete millisecond instants, if you so desire.
 You may also provide a time-zone to the TimeTree APIs in order to create correctly labelled nodes for specific time instants.
 
 Finally, the GraphAware TimeTree supports both attaching event nodes to time instants, and fetching events attached
-to a time instant or between two time instants.
+to a time instant and all its children or between two time instants and all their children. For instance, you can ask
+for all events that happened in April, which will return events attached to the April node as well as all its children
+and their children, etc.
 
 ### REST API
 
@@ -118,6 +119,16 @@ You have three query parameters:
 The default is all relationships, which is useful if you have different kinds of events occurring at the same time instant,
   and related to the time instant with different relationship types. Here the default will give you all events that occurred at that time instant.
 
+  For instance, issuing the following request, asking for the hour node representing 5th April 2014 1pm (UTC time) in the
+  GMT+1 time zone
+
+      GET http://your-server-address:7474/graphaware/timetree/single/1396706182123?resolution=Hour&timezone=GMT%2B1
+
+  on an empty database will result in the following graph being generated. The response body will contain the Neo4j node ID
+  of the node representing the hour. You can then use it in order to link to it.
+
+  ![GraphAware TimeTree generated time tree](https://github.com/graphaware/neo4j-timetree/raw/master/docs/image4.jpg)
+
 Attaching an event to a time instant requires a POST request to:
 
 * `http://your-server-address:7474/graphaware/timetree/single/event` to attach an existing event node to a node representing a time instant.
@@ -129,7 +140,6 @@ The POST body resembles:
      {
             "nodeId": 99,
             "relationshipType": "HAS_EVENT",
-            "eventRelationshipDirection": "INCOMING",
             "timezone": "UTC",
             "resolution": "DAY",
             "time": 1403506278000
@@ -139,27 +149,14 @@ The POST body resembles:
 where
 
 * `nodeId` is the node ID of an existing event node
-* `relationshipType` is the name of the relationship type that should be used to attach the event to the time instant
-* `eventRelationshipDirection` specifies the direction of the relation from the event node to the time instant
-* `timezone` is a String representation of any `java.util.TimeZone`
-* `resolution` as described above
-* `time` is a number representing the number of milliseconds since 1/1/1970 
- 
- 
-
-For instance, issuing the following request, asking for the hour node representing 5th April 2014 1pm (UTC time) in the
-GMT+1 time zone
-
-    GET http://your-server-address:7474/graphaware/timetree/single/1396706182123?resolution=Hour&timezone=GMT%2B1
-
-on an empty database will result in the following graph being generated. The response body will contain the Neo4j node ID
-of the node representing the hour. You can then use it in order to link to it.
-
-![GraphAware TimeTree generated time tree](https://github.com/graphaware/neo4j-timetree/raw/master/docs/image4.jpg)
+* `relationshipType` is the name of the relationship type that should be used to attach the event to the time instant. The relationship is directed from the event to the time instant.
+* `timezone` is a String representation of any `java.util.TimeZone` (optional)
+* `resolution` as described above (optional)
+* `time` is a number representing the number of milliseconds since 1/1/1970
 
 ### Java API
 
-Java API has the same functionality as the rest API. Please refer to <a href="http://graphaware.com/site/timetree/latest/apidocs/" target="_blank">its Javadoc</a> (look at the `TimeTree` interface).
+Java API has the same functionality as the rest API. Please refer to <a href="http://graphaware.com/site/timetree/latest/apidocs/" target="_blank">its Javadoc</a> (look at the `TimeTree` and `TimedEvents` interfaces).
 
 License
 -------

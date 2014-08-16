@@ -20,7 +20,7 @@ package com.graphaware.module.timetree.api;
  */
 public class TimeInstantVO {
 
-    private long time;
+    private long time = -1;
     private String resolution;
     private String timezone;
 
@@ -55,5 +55,11 @@ public class TimeInstantVO {
 
     public void setResolution(String resolution) {
         this.resolution = resolution;
+    }
+
+    public void validate() {
+        if (time < 0) {
+            throw new IllegalArgumentException("Time must be specified");
+        }
     }
 }

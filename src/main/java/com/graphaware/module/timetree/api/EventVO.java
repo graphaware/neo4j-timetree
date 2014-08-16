@@ -22,7 +22,7 @@ import com.fasterxml.jackson.annotation.JsonUnwrapped;
  */
 public class EventVO {
 
-    private long nodeId;
+    private long nodeId = -1;
     private String relationshipType;
 
     public EventVO() {
@@ -50,6 +50,10 @@ public class EventVO {
     }
 
     public void validate() {
+        if (nodeId < 0) {
+            throw new IllegalArgumentException("Event node must be specified");
+        }
+
         if (relationshipType == null) {
             throw new IllegalArgumentException("Relationship type for Event must not be null");
         }

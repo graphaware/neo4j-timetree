@@ -37,5 +37,7 @@ public class TimedEventVO {
         if (timeInstant == null) {
             throw new IllegalArgumentException("Time instant must not be null");
         }
+
+        timeInstant.validate();
     }
 }

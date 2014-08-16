@@ -44,6 +44,80 @@ import static org.junit.Assert.assertTrue;
 public class EventApiTest extends GraphAwareApiTest {
 
     @Test
+    public void shouldComplainWhenInputIllegal() throws IOException {
+
+        try (Transaction tx = getDatabase().beginTx()) {
+            getDatabase().createNode();
+            tx.success();
+        }
+
+        String eventJson = "{" +
+                "        \"relationshipType\": \"AT_TIME\"," +
+                "        \"timezone\": \"UTC\"," +
+                "        \"resolution\": \"DAY\"," +
+                "        \"time\": " + System.currentTimeMillis() +
+                "    }";
+
+        post(getUrl() + "single/event", eventJson, HttpStatus.SC_BAD_REQUEST);
+
+        eventJson = "{" +
+                "        \"nodeId\":0," +
+                "        \"relationshipType\": \"AT_TIME\"," +
+                "        \"time\": " + System.currentTimeMillis() +
+                "    }";
+
+        post(getUrl() + "single/event", eventJson, HttpStatus.SC_CREATED);
+
+        eventJson = "{" +
+                "        \"nodeId\":100," +
+                "        \"relationshipType\": \"AT_TIME\"," +
+                "        \"time\": " + System.currentTimeMillis() +
+                "    }";
+
+        post(getUrl() + "single/event", eventJson, HttpStatus.SC_NOT_FOUND);
+
+        eventJson = "{" +
+                "        \"nodeId\":0," +
+                "        \"relationshipType\": \"AT_TIME\"," +
+                "        \"timezone\": \"UTC\"," +
+                "        \"resolution\": \"DAY\"" +
+                "    }";
+
+        post(getUrl() + "single/event", eventJson, HttpStatus.SC_BAD_REQUEST);
+
+        eventJson = "{" +
+                "        \"nodeId\":0," +
+                "        \"timezone\": \"UTC\"," +
+                "        \"resolution\": \"DAY\"," +
+                "        \"time\": " + System.currentTimeMillis() +
+                "    }";
+
+        post(getUrl() + "single/event", eventJson, HttpStatus.SC_BAD_REQUEST);
+
+        eventJson = "{" +
+                "        \"nodeId\":0," +
+                "        \"timezone\": \"UTC\"," +
+                "        \"resolution\": \"ILLEGAL\"," +
+                "        \"relationshipType\": \"AT_TIME\"," +
+                "        \"time\": " + System.currentTimeMillis() +
+                "    }";
+
+        post(getUrl() + "single/event", eventJson, HttpStatus.SC_BAD_REQUEST);
+
+        eventJson = "{" +
+                "        \"nodeId\":0," +
+                "        \"timezone\": \"ILLEGAL\"," +
+                "        \"resolution\": \"DAY\"," +
+                "        \"relationshipType\": \"AT_TIME\"," +
+                "        \"time\": " + System.currentTimeMillis() +
+                "    }";
+
+        post(getUrl() + "single/event", eventJson, HttpStatus.SC_CREATED); //with default timezone
+
+        get(getUrl() + "range/2/1/events", HttpStatus.SC_BAD_REQUEST);
+    }
+
+    @Test
     public void eventAndTimeInstantShouldBeCreatedWhenEventIsAttached() throws IOException {
         //Given
         DateTime now = DateTime.now(DateTimeZone.UTC);

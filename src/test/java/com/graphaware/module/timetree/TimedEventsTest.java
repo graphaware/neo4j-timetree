@@ -17,6 +17,7 @@
 package com.graphaware.module.timetree;
 
 import com.graphaware.module.timetree.domain.Event;
+import com.graphaware.module.timetree.domain.Resolution;
 import com.graphaware.module.timetree.domain.TimeInstant;
 import com.graphaware.test.integration.DatabaseIntegrationTest;
 import org.joda.time.DateTime;
@@ -31,6 +32,7 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.TimeZone;
 
+import static com.graphaware.module.timetree.domain.Resolution.*;
 import static com.graphaware.test.unit.GraphUnit.assertSameGraph;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertTrue;
@@ -84,8 +86,6 @@ public class TimedEventsTest extends DatabaseIntegrationTest {
                 "(month)-[:CHILD]->(day)," +
                 "(month)-[:LAST]->(day)," +
                 "(day)<-[:AT_TIME]-(event {name:'eventA'})");
-
-
     }
 
     @Test
@@ -195,7 +195,61 @@ public class TimedEventsTest extends DatabaseIntegrationTest {
             assertEquals("AT_TIME", events.get(0).getRelationshipType().name());
             tx.success();
         }
+    }
 
+    @Test
+    public void allEventsShouldBeFetchedForATimeInstant() {
+        //Given
+        TimeInstant timeInstant1 = TimeInstant.instant(dateToMillis(2012, 11, 1));
+        TimeInstant timeInstant2 = TimeInstant.instant(dateToMillis(2012, 11, 3));
+        TimeInstant timeInstant3 = TimeInstant.instant(dateToMillis(2012, 11, 5));
+        TimeInstant timeInstant4 = TimeInstant.instant(dateToMillis(2012, 11, 5)).with(MONTH);
+        TimeInstant timeInstant5 = TimeInstant.instant(dateToMillis(2012, 12, 1));
+
+        //When
+        try (Transaction tx = getDatabase().beginTx()) {
+            timedEvents.attachEvent(createEvent("eventA"), AT_TIME, timeInstant1);
+            timedEvents.attachEvent(createEvent("eventB"), AT_TIME, timeInstant2);
+            timedEvents.attachEvent(createEvent("eventC"), AT_TIME, timeInstant2);
+            timedEvents.attachEvent(createEvent("eventD"), AT_TIME, timeInstant3);
+            timedEvents.attachEvent(createEvent("eventE"), AT_TIME, timeInstant4);
+            timedEvents.attachEvent(createEvent("eventF"), AT_TIME, timeInstant4);
+            timedEvents.attachEvent(createEvent("eventG"), AT_TIME, timeInstant5);
+            tx.success();
+        }
+
+        //Then
+        try (Transaction tx = getDatabase().beginTx()) {
+            List<Event> events = timedEvents.getEvents(timeInstant4);
+            assertEquals(6, events.size());
+            assertEquals("eventA", events.get(0).getNode().getProperty("name"));
+            assertEquals("eventB", events.get(2).getNode().getProperty("name"));
+            assertEquals("eventC", events.get(1).getNode().getProperty("name"));
+            assertEquals("eventD", events.get(3).getNode().getProperty("name"));
+            assertEquals("eventE", events.get(5).getNode().getProperty("name"));
+            assertEquals("eventF", events.get(4).getNode().getProperty("name"));
+            tx.success();
+        }
+
+        //Then
+        try (Transaction tx = getDatabase().beginTx()) {
+            List<Event> events = timedEvents.getEvents(timeInstant4.with(YEAR));
+            assertEquals(7, events.size());
+            assertEquals("eventA", events.get(0).getNode().getProperty("name"));
+            assertEquals("eventB", events.get(2).getNode().getProperty("name"));
+            assertEquals("eventC", events.get(1).getNode().getProperty("name"));
+            assertEquals("eventD", events.get(3).getNode().getProperty("name"));
+            assertEquals("eventE", events.get(5).getNode().getProperty("name"));
+            assertEquals("eventF", events.get(4).getNode().getProperty("name"));
+            assertEquals("eventG", events.get(6).getNode().getProperty("name"));
+            tx.success();
+        }
+    }
+
+    private Node createEvent(String name) {
+        Node node = getDatabase().createNode();
+        node.setProperty("name", name);
+        return node;
     }
 
     @Test

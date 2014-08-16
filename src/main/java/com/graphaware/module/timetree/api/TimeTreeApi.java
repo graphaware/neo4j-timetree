@@ -19,6 +19,8 @@ package com.graphaware.module.timetree.api;
 import com.graphaware.module.timetree.*;
 import com.graphaware.module.timetree.domain.TimeInstant;
 import org.neo4j.graphdb.*;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Controller;
@@ -35,6 +37,7 @@ import static com.graphaware.common.util.PropertyContainerUtils.ids;
 @Controller
 @RequestMapping("/timetree")
 public class TimeTreeApi {
+    private static final Logger LOG = LoggerFactory.getLogger(TimeTreeApi.class);
 
     private final GraphDatabaseService database;
     private final TimeTree timeTree;
@@ -150,13 +153,17 @@ public class TimeTreeApi {
 
     @ExceptionHandler(IllegalArgumentException.class)
     @ResponseStatus(HttpStatus.BAD_REQUEST)
+    @ResponseBody
     public Map<String, String> handleIllegalArgument(IllegalArgumentException e) {
+        LOG.warn("Bad Request: "+e.getMessage(), e);
         return Collections.singletonMap("message", e.getMessage());
     }
 
     @ExceptionHandler(NotFoundException.class)
     @ResponseStatus(HttpStatus.NOT_FOUND)
+    @ResponseBody
     public Map<String, String> handleNotFound(NotFoundException e) {
+        LOG.warn("Not Found: "+e.getMessage(), e);
         return Collections.singletonMap("message", e.getMessage());
     }
 }

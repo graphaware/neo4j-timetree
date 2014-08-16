@@ -90,18 +90,26 @@ public class TimeTreeBackedEvents implements TimedEvents {
             return getEventsAttachedToNode(parent, type);
         }
 
-        Node existingChild = firstRelationship.getEndNode();
-        while (true) {
-            Relationship nextRelationship = existingChild.getSingleRelationship(NEXT, OUTGOING);
+        Node child = null;
 
-            if (nextRelationship == null || parent(nextRelationship.getEndNode()).getId() != parent.getId()) {
-                break;
+        while (true) {
+            if (child == null) {
+                child = firstRelationship.getEndNode();
+            }
+            else {
+                Relationship nextRelationship = child.getSingleRelationship(NEXT, OUTGOING);
+
+                if (nextRelationship == null || parent(nextRelationship.getEndNode()).getId() != parent.getId()) {
+                    break;
+                }
+
+                child = nextRelationship.getEndNode();
             }
 
-            result.addAll(getEventsAttachedToNodeAndChildren(nextRelationship.getEndNode(), type));
-            result.addAll(getEventsAttachedToNode(nextRelationship.getEndNode(), type));
-            existingChild = nextRelationship.getEndNode();
+            result.addAll(getEventsAttachedToNodeAndChildren(child, type));
         }
+
+        result.addAll(getEventsAttachedToNode(parent, type));
 
         return result;
     }

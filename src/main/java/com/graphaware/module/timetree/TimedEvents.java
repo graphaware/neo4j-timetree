@@ -38,54 +38,46 @@ public interface TimedEvents {
     void attachEvent(Node event, RelationshipType relationshipType, TimeInstant timeInstant);
 
     /**
-     * Get events attached to a specific time instant. If the time instant doesn't exist, it will <b>not</b> be created
-     * and an empty list will be returned.
+     * Get events attached (using any incoming relationship) to a specific time instant and all its children.
+     * If the time instant doesn't exist, it will <b>not</b> be created and an empty list will be returned.
      *
      * @param timeInstant specific time instant.
-     * @return events attached to the time instant.
+     * @return events attached to the time instant and all children. Ordered by increasing resolution (i.e. YEAR, MONTH, DAY,...),
+     *         then chronologically.
      */
     List<Event> getEvents(TimeInstant timeInstant);
 
     /**
-     * Get events attached to all time instants in the specified range (inclusive). The time instants that don't exist will be created.
-     * <p/>
-     * <p>
-     * Note that this may throw an org.neo4j.graphdb.NotFoundException if the root of the single time tree has been deleted.
-     * If this occurs, call invalidateCaches() and retry this method.
-     * </p>
+     * Get events attached (using any incoming relationship) to all time instants in the specified range (inclusive) and
+     * all their children. The time instants that don't exist will <b>not</b> be created.
      *
-     * @param startTime TimeInstant representing the start of the interval (inclusive)
-     * @param endTime   TimeInstant representing the end of the interval (inclusive)
-     * @return events attached to all time instants in the interval, ordered chronologically
+     * @param startTime Time instant representing the start of the interval (inclusive).
+     * @param endTime   Time instant representing the end of the interval (inclusive).
+     * @return events attached to all time instants in the interval and their children. Ordered by increasing resolution
+     *         (i.e. YEAR, MONTH, DAY,...), then chronologically.
      */
     List<Event> getEvents(TimeInstant startTime, TimeInstant endTime);
 
     /**
-     * Get events attached to a specific time instant with a specific relation. If the time instant doesn't exist, it will be created.
-     * <p/>
-     * <p>
-     * Note that this may throw an org.neo4j.graphdb.NotFoundException if the root of the single time tree has been deleted.
-     * If this occurs, call invalidateCaches() and retry this method.
-     * </p>
+     * Get events attached (using the specified incoming relationship) to a specific time instant and all its children.
+     * If the time instant doesn't exist, it will <b>not</b> be created and an empty list will be returned.
      *
-     * @param timeInstant      specific TimeInstant
-     * @param relationshipType relationship attaching the event to the timeInstant
-     * @return events attached to the time instant with the specified relation
+     * @param timeInstant      specific time instant.
+     * @param relationshipType of the relationship between the event and the time instant.
+     * @return events attached to the time instant and all children. Ordered by increasing resolution (i.e. YEAR, MONTH, DAY,...),
+     *         then chronologically.
      */
     List<Event> getEvents(TimeInstant timeInstant, RelationshipType relationshipType);
 
     /**
-     * Get events attached to all time instants with the specified relation, in the specified range (inclusive). The time instants that don't exist will be created.
-     * <p/>
-     * <p>
-     * Note that this may throw an org.neo4j.graphdb.NotFoundException if the root of the single time tree has been deleted.
-     * If this occurs, call invalidateCaches() and retry this method.
-     * </p>
+     * Get events attached (using the specified incoming relationship) to all time instants in the specified range (inclusive) and
+     * all their children. The time instants that don't exist will <b>not</b> be created.
      *
-     * @param startTime        TimeInstant representing the start of the interval (inclusive)
-     * @param endTime          TimeInstant representing the end of the interval (inclusive)
-     * @param relationshipType relationship attaching the event to the timeInstant
-     * @return events attached to all time instants in the interval with the specified relation, ordered chronologically
+     * @param startTime        Time instant representing the start of the interval (inclusive).
+     * @param endTime          Time instant representing the end of the interval (inclusive).
+     * @param relationshipType of the relationship between the event and the time instant.
+     * @return events attached to all time instants in the interval and their children. Ordered by increasing resolution
+     *         (i.e. YEAR, MONTH, DAY,...), then chronologically.
      */
     List<Event> getEvents(TimeInstant startTime, TimeInstant endTime, RelationshipType relationshipType);
 }

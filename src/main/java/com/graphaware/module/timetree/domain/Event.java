@@ -25,29 +25,17 @@ import org.neo4j.graphdb.RelationshipType;
 public class Event {
 
     private final Node node;
-    private final TimeInstant instant;
     private final RelationshipType relationshipType;
 
     /**
      * Create a new event.
      *
      * @param node             representing the event.
-     * @param instant          when the event happened.
      * @param relationshipType to use when attaching the event to the time tree.
      */
-    public Event(Node node, TimeInstant instant, RelationshipType relationshipType) {
+    public Event(Node node, RelationshipType relationshipType) {
         this.node = node;
-        this.instant = instant;
         this.relationshipType = relationshipType;
-    }
-
-    /**
-     * Get the time instant to which this event is attached
-     *
-     * @return the TimeInstant
-     */
-    public TimeInstant getInstant() {
-        return instant;
     }
 
     /**
@@ -69,6 +57,6 @@ public class Event {
     }
 
     public EventVO toValueObject() {
-        return new EventVO(node.getId(), getInstant().toValueObject(), getRelationshipType().name());
+        return new EventVO(node.getId(), getRelationshipType().name());
     }
 }

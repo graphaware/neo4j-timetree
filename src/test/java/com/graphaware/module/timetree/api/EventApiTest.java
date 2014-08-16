@@ -89,7 +89,7 @@ public class EventApiTest extends GraphAwareApiTest {
                 "(month)-[:LAST]->(day)," +
                 "(day)<-[:AT_TIME]-(event {name:'eventA'})");
 
-        assertEquals("[{\"nodeId\":0,\"time\":" + timeInstant.getTime() + ",\"resolution\":\"DAY\",\"timezone\":\"UTC\",\"relationshipType\":\"AT_TIME\"}]", getResult);
+        assertEquals("[{\"nodeId\":0,\"relationshipType\":\"AT_TIME\"}]", getResult);
     }
 
 
@@ -143,7 +143,7 @@ public class EventApiTest extends GraphAwareApiTest {
                 "(month)-[:LAST]->(day)," +
                 "(day)<-[:AT_TIME]-(event {name:'eventA'})");
 
-        assertEquals("[{\"nodeId\":1,\"time\":" + timeInstant.getTime() + ",\"resolution\":\"DAY\",\"timezone\":\"UTC\",\"relationshipType\":\"AT_TIME\"}]", getResult);
+        assertEquals("[{\"nodeId\":1,\"relationshipType\":\"AT_TIME\"}]", getResult);
     }
 
 
@@ -207,8 +207,8 @@ public class EventApiTest extends GraphAwareApiTest {
 
         String getResult = get(getUrl() + "range/" + timeInstant1.getTime() + "/" + timeInstant2.getTime() + "/events", HttpStatus.SC_OK);
 
-        assertEquals("[{\"nodeId\":0,\"time\":" + timeInstant1.getTime() + ",\"resolution\":\"DAY\",\"timezone\":\"UTC\",\"relationshipType\":\"AT_TIME\"}," +
-                "{\"nodeId\":1,\"time\":" + timeInstant2.getTime() + ",\"resolution\":\"DAY\",\"timezone\":\"UTC\",\"relationshipType\":\"AT_TIME\"}]", getResult);
+        assertEquals("[{\"nodeId\":0,\"relationshipType\":\"AT_TIME\"}," +
+                "{\"nodeId\":1,\"relationshipType\":\"AT_TIME\"}]", getResult);
     }
 
 
@@ -277,8 +277,8 @@ public class EventApiTest extends GraphAwareApiTest {
 
         String getResult = get(getUrl() + "0/range/" + timeInstant1.getTime() + "/" + timeInstant2.getTime() + "/events", HttpStatus.SC_OK);
 
-        assertEquals("[{\"nodeId\":1,\"time\":" + timeInstant1.getTime() + ",\"resolution\":\"DAY\",\"timezone\":\"UTC\",\"relationshipType\":\"AT_TIME\"}," +
-                "{\"nodeId\":2,\"time\":" + timeInstant2.getTime() + ",\"resolution\":\"DAY\",\"timezone\":\"UTC\",\"relationshipType\":\"AT_TIME\"}]", getResult);
+        assertEquals("[{\"nodeId\":1,\"relationshipType\":\"AT_TIME\"}," +
+                "{\"nodeId\":2,\"relationshipType\":\"AT_TIME\"}]", getResult);
     }
 
 

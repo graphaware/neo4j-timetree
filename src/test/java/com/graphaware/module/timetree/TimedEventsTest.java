@@ -125,8 +125,6 @@ public class TimedEventsTest extends DatabaseIntegrationTest {
                 "(month)-[:LAST]->(day)," +
                 "(day)<-[:AT_TIME]-(event1 {name:'eventA'})," +
                 "(day)<-[:AT_TIME]-(event2 {name:'eventB'})");
-
-
     }
 
     @Test
@@ -167,8 +165,6 @@ public class TimedEventsTest extends DatabaseIntegrationTest {
                 "(month)-[:LAST]->(day2)," +
                 "(day)<-[:AT_TIME]-(event1 {name:'eventA'})," +
                 "(day2)<-[:AT_TIME]-(event2 {name:'eventB'})");
-
-
     }
 
     @Test
@@ -197,7 +193,6 @@ public class TimedEventsTest extends DatabaseIntegrationTest {
             assertEquals(1, events.size());
             assertEquals("eventA", events.get(0).getNode().getProperty("name"));
             assertEquals("AT_TIME", events.get(0).getRelationshipType().name());
-            assertEquals(timeInstant, events.get(0).getInstant());
             tx.success();
         }
 
@@ -265,12 +260,10 @@ public class TimedEventsTest extends DatabaseIntegrationTest {
             assertEquals(1, events.size());
             assertEquals("eventA", events.get(0).getNode().getProperty("name"));
             assertEquals("AT_TIME", events.get(0).getRelationshipType().name());
-            assertEquals(timeInstant, events.get(0).getInstant());
             tx.success();
         }
 
     }
-
 
     @Test
     public void eventsShouldBeFetchedForTimeRange() {

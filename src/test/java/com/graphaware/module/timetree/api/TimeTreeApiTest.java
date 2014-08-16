@@ -252,7 +252,7 @@ public class TimeTreeApiTest extends GraphAwareApiTest {
     }
 
     @Test
-    public void whenTheRootIsDeletedSubsequentRestApiCallsShouldThrowNotFoundException() {
+    public void whenTheRootIsDeletedSubsequentRestApiCallsShouldBeOK() {
         //Given
         long dateInMillis = dateToMillis(2013, 5, 4);
         String result = get(getUrl() + "single/" + dateInMillis, HttpStatus.SC_OK);
@@ -267,9 +267,6 @@ public class TimeTreeApiTest extends GraphAwareApiTest {
         }
 
         //Then
-        get(getUrl() + "single/" + dateInMillis, HttpStatus.SC_NOT_FOUND);
-
-        //Caches invalidated, try again
         result = get(getUrl() + "single/" + dateInMillis, HttpStatus.SC_OK);
 
         assertSameGraph(getDatabase(), "CREATE" +

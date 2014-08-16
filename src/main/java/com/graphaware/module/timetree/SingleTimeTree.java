@@ -25,6 +25,8 @@ import org.neo4j.graphdb.*;
 import org.neo4j.tooling.GlobalGraphOperations;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.stereotype.Service;
 
 import java.util.Iterator;
 import java.util.LinkedList;
@@ -40,6 +42,7 @@ import static org.neo4j.graphdb.Direction.OUTGOING;
 /**
  * Default implementation of {@link TimeTree}, which builds a single tree and maintains its own root.
  */
+@Service
 public class SingleTimeTree implements TimeTree {
 
     private static final Logger LOG = LoggerFactory.getLogger(SingleTimeTree.class);
@@ -55,6 +58,7 @@ public class SingleTimeTree implements TimeTree {
      *
      * @param database to talk to.
      */
+    @Autowired
     public SingleTimeTree(GraphDatabaseService database) {
         this.database = database;
     }
@@ -427,7 +431,7 @@ public class SingleTimeTree implements TimeTree {
      * @return parent.
      * @throws IllegalStateException in case the node has no parent.
      */
-    private Node parent(Node node) {
+    static Node parent(Node node) {
         Relationship parentRelationship = node.getSingleRelationship(CHILD, INCOMING);
 
         if (parentRelationship == null) {

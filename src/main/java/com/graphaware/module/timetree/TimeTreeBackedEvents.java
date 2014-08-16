@@ -2,21 +2,30 @@ package com.graphaware.module.timetree;
 
 import com.graphaware.module.timetree.domain.Event;
 import com.graphaware.module.timetree.domain.TimeInstant;
-import com.graphaware.module.timetree.domain.TimeTreeRelationshipTypes;
 import org.neo4j.graphdb.Node;
 import org.neo4j.graphdb.Relationship;
 import org.neo4j.graphdb.RelationshipType;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.stereotype.Service;
 
-import java.util.ArrayList;
-import java.util.List;
+import java.util.*;
+
+import static com.graphaware.module.timetree.SingleTimeTree.*;
+import static com.graphaware.module.timetree.domain.TimeTreeRelationshipTypes.*;
+import static org.neo4j.graphdb.Direction.INCOMING;
+import static org.neo4j.graphdb.Direction.OUTGOING;
 
 /**
- *
+ * {@link TimedEvents} backed by a {@link TimeTree}.
  */
+@Service
 public class TimeTreeBackedEvents implements TimedEvents {
 
     private final TimeTree timeTree;
 
+    private static final List<String> timeTreeRelationships = getTimeTreeRelationshipNames();
+
+    @Autowired
     public TimeTreeBackedEvents(TimeTree timeTree) {
         this.timeTree = timeTree;
     }
@@ -49,40 +58,65 @@ public class TimeTreeBackedEvents implements TimedEvents {
      * {@inheritDoc}
      */
     @Override
-    public List<Event> getEvents(TimeInstant timeInstant, RelationshipType relationshipType) {
-        List<Event> events = new ArrayList<>();
-        List<String> timeTreeRelationships = TimeTreeRelationshipTypes.getTimeTreeRelationshipNames();
-        Node timeInstantNode = timeTree.getOrCreateInstant(timeInstant);
-        for (Relationship rel : timeInstantNode.getRelationships()) {
-            if (!timeTreeRelationships.contains(rel.getType().name())) {
-                if (relationshipType == null || (rel.isType(relationshipType))) {
-                    events.add(new Event(rel.getOtherNode(timeInstantNode), timeInstant, rel.getType()));
-                }
-            }
+    public List<Event> getEvents(TimeInstant timeInstant, RelationshipType type) {
+        Node instantNode = timeTree.getInstant(timeInstant);
+
+        if (instantNode == null) {
+            return Collections.emptyList();
         }
 
-        return events;
+        return getEventsAttachedToNodeAndChildren(instantNode, type);
     }
 
     /**
      * {@inheritDoc}
      */
     @Override
-    public List<Event> getEvents(TimeInstant startTime, TimeInstant endTime, RelationshipType eventRelation) {
+    public List<Event> getEvents(TimeInstant startTime, TimeInstant endTime, RelationshipType type) {
         List<Event> events = new ArrayList<>();
-        List<String> timeTreeRelationships = TimeTreeRelationshipTypes.getTimeTreeRelationshipNames();
 
         for (TimeInstant instant : TimeInstant.getInstants(startTime, endTime)) {
-            Node instantNode = timeTree.getOrCreateInstant(instant);
-            for (Relationship rel : instantNode.getRelationships()) {
-                if (!timeTreeRelationships.contains(rel.getType().name())) {
-                    if (eventRelation == null || (eventRelation.name().equals(rel.getType().name()))) {
-                        events.add(new Event(rel.getOtherNode(instantNode), instant, rel.getType()));
-                    }
+            events.addAll(getEvents(instant, type));
+        }
+
+        return events;
+    }
+
+    private List<Event> getEventsAttachedToNodeAndChildren(Node parent, RelationshipType type) {
+        List<Event> result = new ArrayList<>();
+
+        Relationship firstRelationship = parent.getSingleRelationship(FIRST, OUTGOING);
+        if (firstRelationship == null) {
+            return getEventsAttachedToNode(parent, type);
+        }
+
+        Node existingChild = firstRelationship.getEndNode();
+        while (true) {
+            Relationship nextRelationship = existingChild.getSingleRelationship(NEXT, OUTGOING);
+
+            if (nextRelationship == null || parent(nextRelationship.getEndNode()).getId() != parent.getId()) {
+                break;
+            }
+
+            result.addAll(getEventsAttachedToNodeAndChildren(nextRelationship.getEndNode(), type));
+            result.addAll(getEventsAttachedToNode(nextRelationship.getEndNode(), type));
+            existingChild = nextRelationship.getEndNode();
+        }
+
+        return result;
+    }
+
+    private List<Event> getEventsAttachedToNode(Node node, RelationshipType type) {
+        List<Event> result = new LinkedList<>();
+
+        for (Relationship rel : node.getRelationships(INCOMING)) {
+            if (!timeTreeRelationships.contains(rel.getType().name())) {
+                if (type == null || (type.name().equals(rel.getType().name()))) {
+                    result.add(new Event(rel.getOtherNode(node), rel.getType()));
                 }
             }
         }
 
-        return events;
+        return result;
     }
 }

@@ -23,16 +23,13 @@ import com.fasterxml.jackson.annotation.JsonUnwrapped;
 public class EventVO {
 
     private long nodeId;
-    @JsonUnwrapped
-    private TimeInstantVO timeInstant;
     private String relationshipType;
 
     public EventVO() {
     }
 
-    public EventVO(long nodeId, TimeInstantVO timeInstant, String relationshipType) {
+    public EventVO(long nodeId, String relationshipType) {
         this.nodeId = nodeId;
-        this.timeInstant = timeInstant;
         this.relationshipType = relationshipType;
     }
 
@@ -44,14 +41,6 @@ public class EventVO {
         this.nodeId = nodeId;
     }
 
-    public TimeInstantVO getTimeInstant() {
-        return timeInstant;
-    }
-
-    public void setTimeInstant(TimeInstantVO timeInstant) {
-        this.timeInstant = timeInstant;
-    }
-
     public String getRelationshipType() {
         return relationshipType;
     }
@@ -61,10 +50,6 @@ public class EventVO {
     }
 
     public void validate() {
-        if (timeInstant == null) {
-            throw new IllegalArgumentException("Time instant for Event must not be null");
-        }
-
         if (relationshipType == null) {
             throw new IllegalArgumentException("Relationship type for Event must not be null");
         }

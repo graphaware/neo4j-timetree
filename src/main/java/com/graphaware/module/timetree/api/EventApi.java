@@ -35,19 +35,17 @@ import java.util.*;
 public class EventApi {
 
     private final GraphDatabaseService database;
-    private final TimeTree timeTree;
     private final TimedEvents timedEvents;
 
     @Autowired
-    public EventApi(GraphDatabaseService database) {
+    public EventApi(GraphDatabaseService database, TimedEvents timedEvents) {
         this.database = database;
-        this.timeTree = new SingleTimeTree(database);
-        this.timedEvents = new TimeTreeBackedEvents(timeTree);
+        this.timedEvents = timedEvents;
     }
 
     @RequestMapping(value = "/single/{time}/events", method = RequestMethod.GET)
     @ResponseBody
-    public List<EventVO> getEventsAtInstant(
+    public List<EventVO> getEvents(
             @PathVariable long time,
             @RequestParam(required = false) String resolution,
             @RequestParam(required = false) String timezone,
@@ -67,15 +65,15 @@ public class EventApi {
 
     @RequestMapping(value = "/single/event", method = RequestMethod.POST)
     @ResponseStatus(HttpStatus.CREATED)
-    public void attachEventToInstant(@RequestBody EventVO event) {
+    public void attachEvent(@RequestBody TimedEventVO event) {
         event.validate();
 
         try (Transaction tx = database.beginTx()) {
-            Node eventNode = database.getNodeById(event.getNodeId());
+            Node eventNode = database.getNodeById(event.getEvent().getNodeId());
 
             timedEvents.attachEvent(
                     eventNode,
-                    DynamicRelationshipType.withName(event.getRelationshipType()),
+                    DynamicRelationshipType.withName(event.getEvent().getRelationshipType()),
                     TimeInstant.fromValueObject(event.getTimeInstant()));
 
             tx.success();
@@ -85,7 +83,7 @@ public class EventApi {
 
     @RequestMapping(value = "/range/{startTime}/{endTime}/events", method = RequestMethod.GET)
     @ResponseBody
-    public List<EventVO> getEventsInRange(
+    public List<EventVO> getEvents(
             @PathVariable long startTime,
             @PathVariable long endTime,
             @RequestParam(required = false) String resolution,
@@ -107,7 +105,7 @@ public class EventApi {
 
     @RequestMapping(value = "/{rootNodeId}/single/{time}/events", method = RequestMethod.GET)
     @ResponseBody
-    public List<EventVO> getEventsAtInstantWithCustomRoot(
+    public List<EventVO> getEventsCustomRoot(
             @PathVariable long rootNodeId,
             @PathVariable long time,
             @RequestParam(required = false) String resolution,
@@ -129,7 +127,7 @@ public class EventApi {
 
     @RequestMapping(value = "/{rootNodeId}/range/{startTime}/{endTime}/events", method = RequestMethod.GET)
     @ResponseBody
-    public List<EventVO> getEventsInRangeWithCustomRoot(
+    public List<EventVO> getEventsCustomRoot(
             @PathVariable long rootNodeId,
             @PathVariable long startTime,
             @PathVariable long endTime,
@@ -154,16 +152,16 @@ public class EventApi {
 
     @RequestMapping(value = "{rootNodeId}/single/event", method = RequestMethod.POST)
     @ResponseStatus(HttpStatus.CREATED)
-    public void attachEventToInstantWithCustomRoot(@RequestBody EventVO event, @PathVariable long rootNodeId) {
+    public void attachEvent(@RequestBody TimedEventVO event, @PathVariable long rootNodeId) {
         event.validate();
 
         try (Transaction tx = database.beginTx()) {
-            Node eventNode = database.getNodeById(event.getNodeId());
+            Node eventNode = database.getNodeById(event.getEvent().getNodeId());
             CustomRootTimeTree timeTree = new CustomRootTimeTree(database.getNodeById(rootNodeId));
 
             new TimeTreeBackedEvents(timeTree).attachEvent(
                     eventNode,
-                    DynamicRelationshipType.withName(event.getRelationshipType()),
+                    DynamicRelationshipType.withName(event.getEvent().getRelationshipType()),
                     TimeInstant.fromValueObject(event.getTimeInstant()));
 
             tx.success();

@@ -16,10 +16,7 @@
 
 package com.graphaware.module.timetree;
 
-import org.neo4j.graphdb.Direction;
 import org.neo4j.graphdb.Node;
-import org.neo4j.graphdb.RelationshipType;
-import org.neo4j.graphdb.Transaction;
 
 import java.util.List;
 
@@ -31,146 +28,36 @@ import java.util.List;
 public interface TimeTree {
 
     /**
-     * Get a node representing this time instant. If one doesn't exist, it will be created.
-     * <p/>
-     * The resolution of the time instant (i.e., whether it is a day, hour, minute, etc.) depends on the implementation,
-     * which can choose a sensible default, require to be configured with a default when instantiated, or both.
-     * <p/>
-     * The time zone of the time instant depends on the implementation, which can choose a default, require to be
-     * configured with a default when instantiated, or both.
-     * <p>
-     * Note that this may throw an org.neo4j.graphdb.NotFoundException if the root of the single time tree has been deleted.
-     * If this occurs, call invalidateCaches() and retry this method.
-     * </p>
+     * Get a node representing a specific time instant. Return <code>null</code> if it does not exist.
      *
-     * @param tx currently running transaction.
-     * @return node representing the time instant when this method was called.
+     * @param timeInstant specific time instant.
+     * @return node representing a specific time instant, <code>null</code> if no such node exists.
      */
-    Node getNow(Transaction tx);
-
+    Node getInstant(TimeInstant timeInstant);
 
     /**
-     * Get a node representing this time instant. If one doesn't exist, it will be created.
-     * <p/>
-     * <p>
-     * Note that this may throw an org.neo4j.graphdb.NotFoundException if the root of the single time tree has been deleted.
-     * If this occurs, call invalidateCaches() and retry this method.
-     * </p>
+     * Get nodes representing all time instants in the specified range (inclusive).
      *
-     * @param timeInstant specific TimeInstant
-     * @param tx          currently running transaction.
-     * @return node representing the time instant
+     * @param startTime Time instant representing the start of the interval (inclusive).
+     * @param endTime   Time instant representing the end of the interval (inclusive).
+     * @return nodes representing all time instants in the interval, ordered chronologically.
      */
-    Node getNow(TimeInstant timeInstant, Transaction tx);
+    List<Node> getInstants(TimeInstant startTime, TimeInstant endTime);
 
     /**
      * Get a node representing a specific time instant. If one doesn't exist, it will be created.
-     * <p/>
-     * <p>
-     * Note that this may throw an org.neo4j.graphdb.NotFoundException if the root of the single time tree has been deleted.
-     * If this occurs, call invalidateCaches() and retry this method.
-     * </p>
      *
      * @param timeInstant specific TimeInstant
-     * @param tx          currently running transaction.
      * @return node representing a specific time instant.
      */
-    Node getInstant(TimeInstant timeInstant, Transaction tx);
+    Node getOrCreateInstant(TimeInstant timeInstant);
 
     /**
      * Get nodes representing all time instants in the specified range (inclusive). The ones that don't exist will be created.
-     * <p/>
-     * <p>
-     * Note that this may throw an org.neo4j.graphdb.NotFoundException if the root of the single time tree has been deleted.
-     * If this occurs, call invalidateCaches() and retry this method.
-     * </p>
      *
      * @param startTime TimeInstant representing the start of the interval (inclusive)
      * @param endTime   TimeInstant representing the end of the interval (inclusive)
-     * @param tx        currently running transaction.
      * @return nodes representing all time instants in the interval, ordered chronologically.
      */
-    List<Node> getInstants(TimeInstant startTime, TimeInstant endTime, Transaction tx);
-
-    /**
-     * Attach an event to a node representing a specific time instant. If the time instant doesn't exist, it will be created.
-     * <p/>
-     * <p>
-     * Note that this may throw an org.neo4j.graphdb.NotFoundException if the root of the single time tree has been deleted.
-     * If this occurs, call invalidateCaches() and retry this method.
-     * </p>
-     *
-     * @param eventNode              event node to be associated with this instant of time
-     * @param eventRelation          RelationshipType between the event node and the time instant node
-     * @param eventRelationDirection Direction of the eventRelation from the event node to the time instant node
-     * @param timeInstant            specific TimeInstant to attach the event to
-     * @param tx                     currently running transaction.
-     */
-    void attachEventToInstant(Node eventNode, RelationshipType eventRelation, Direction eventRelationDirection, TimeInstant timeInstant, Transaction tx);
-
-    /**
-     * Get events attached to a specific time instant. If the time instant doesn't exist, it will be created.
-     * <p/>
-     * <p>
-     * Note that this may throw an org.neo4j.graphdb.NotFoundException if the root of the single time tree has been deleted.
-     * If this occurs, call invalidateCaches() and retry this method.
-     * </p>
-     *
-     * @param timeInstant specific TimeInstant
-     * @param tx          currently running transaction.
-     * @return events attached to the time instant
-     */
-    List<Event> getEventsAtInstant(TimeInstant timeInstant, Transaction tx);
-
-    /**
-     * Get events attached to all time instants in the specified range (inclusive). The time instants that don't exist will be created.
-     * <p/>
-     * <p>
-     * Note that this may throw an org.neo4j.graphdb.NotFoundException if the root of the single time tree has been deleted.
-     * If this occurs, call invalidateCaches() and retry this method.
-     * </p>
-     *
-     * @param startTime TimeInstant representing the start of the interval (inclusive)
-     * @param endTime   TimeInstant representing the end of the interval (inclusive)
-     * @param tx        currently running transaction.
-     * @return events attached to all time instants in the interval, ordered chronologically
-     */
-    List<Event> getEventsBetweenInstants(TimeInstant startTime, TimeInstant endTime, Transaction tx);
-
-    /**
-     * Get events attached to a specific time instant with a specific relation. If the time instant doesn't exist, it will be created.
-     * <p/>
-     * <p>
-     * Note that this may throw an org.neo4j.graphdb.NotFoundException if the root of the single time tree has been deleted.
-     * If this occurs, call invalidateCaches() and retry this method.
-     * </p>
-     *
-     * @param timeInstant   specific TimeInstant
-     * @param eventRelation relationship attaching the event to the timeInstant
-     * @param tx            currently running transaction.
-     * @return events attached to the time instant with the specified relation
-     */
-    List<Event> getEventsAtInstant(TimeInstant timeInstant, RelationshipType eventRelation, Transaction tx);
-
-    /**
-     * Get events attached to all time instants with the specified relation, in the specified range (inclusive). The time instants that don't exist will be created.
-     * <p/>
-     * <p>
-     * Note that this may throw an org.neo4j.graphdb.NotFoundException if the root of the single time tree has been deleted.
-     * If this occurs, call invalidateCaches() and retry this method.
-     * </p>
-     *
-     * @param startTime     TimeInstant representing the start of the interval (inclusive)
-     * @param endTime       TimeInstant representing the end of the interval (inclusive)
-     * @param eventRelation relationship attaching the event to the timeInstant
-     * @param tx            currently running transaction.
-     * @return events attached to all time instants in the interval with the specified relation, ordered chronologically
-     */
-    List<Event> getEventsBetweenInstants(TimeInstant startTime, TimeInstant endTime, RelationshipType eventRelation, Transaction tx);
-
-    /**
-     * Invalidate time tree root caching.
-     * Use when the root node of the time tree has been deleted and a NotFoundException is thrown to reset the time tree.
-     */
-    void invalidateCaches();
+    List<Node> getOrCreateInstants(TimeInstant startTime, TimeInstant endTime);
 }

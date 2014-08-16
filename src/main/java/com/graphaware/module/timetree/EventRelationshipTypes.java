@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2013 GraphAware
+ * Copyright (c) 2014 GraphAware
  *
  * This file is part of GraphAware.
  *
@@ -13,20 +13,19 @@
  * the GNU General Public License along with this program.  If not, see
  * <http://www.gnu.org/licenses/>.
  */
-package com.graphaware.module.timetree.api;
+
+package com.graphaware.module.timetree;
+
+import org.neo4j.graphdb.RelationshipType;
+
+import java.util.ArrayList;
+import java.util.List;
 
 /**
- * Representation of an event related to a time instant (with the relationship direction)
+ * {@link org.neo4j.graphdb.RelationshipType}s for {@link com.graphaware.module.timetree.TimeTree}.
  */
-public class DirectedEventTimeInstant extends EventTimeInstant {
+public enum EventRelationshipTypes implements RelationshipType {
 
-    private String eventRelationshipDirection;
-
-    public String getEventRelationshipDirection() {
-        return eventRelationshipDirection;
-    }
-
-    public void setEventRelationshipDirection(String eventRelationshipDirection) {
-        this.eventRelationshipDirection = eventRelationshipDirection;
-    }
+    AT_TIME;
 }
+

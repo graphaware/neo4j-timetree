@@ -33,21 +33,6 @@ public class CustomRootTimeTree extends SingleTimeTree {
         this.root = root;
     }
 
-    public CustomRootTimeTree(Node root, Resolution resolution) {
-        super(root.getGraphDatabase(), resolution);
-        this.root = root;
-    }
-
-    public CustomRootTimeTree(Node root, DateTimeZone timeZone) {
-        super(root.getGraphDatabase(), timeZone);
-        this.root = root;
-    }
-
-    public CustomRootTimeTree(Node root, DateTimeZone timeZone, Resolution resolution) {
-        super(root.getGraphDatabase(), timeZone, resolution);
-        this.root = root;
-    }
-
     /**
      * {@inheritDoc}
      */

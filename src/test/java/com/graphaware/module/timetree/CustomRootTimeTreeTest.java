@@ -52,7 +52,7 @@ public class CustomRootTimeTreeTest extends DatabaseIntegrationTest {
         Node dayNode;
         try (Transaction tx = getDatabase().beginTx()) {
             TimeTree timeTree = new CustomRootTimeTree(getDatabase().getNodeById(0));
-            dayNode = timeTree.getInstant(new TimeInstant(dateInMillis), tx);
+            dayNode = timeTree.getOrCreateInstant(TimeInstant.instant(dateInMillis));
             tx.success();
         }
 
@@ -82,7 +82,7 @@ public class CustomRootTimeTreeTest extends DatabaseIntegrationTest {
         TimeTree timeTree;
         try (Transaction tx = getDatabase().beginTx()) {
             timeTree = new CustomRootTimeTree(getDatabase().getNodeById(0));
-            timeTree.getInstant(new TimeInstant(dateInMillis), tx);
+            timeTree.getOrCreateInstant(TimeInstant.instant(dateInMillis));
             tx.success();
         }
 
@@ -97,7 +97,7 @@ public class CustomRootTimeTreeTest extends DatabaseIntegrationTest {
 
         //Then
         try (Transaction tx = getDatabase().beginTx()) {
-            timeTree.getInstant(new TimeInstant(dateInMillis), tx);
+            timeTree.getOrCreateInstant(TimeInstant.instant(dateInMillis));
             tx.success();
         }
         //NotFoundException should be thrown

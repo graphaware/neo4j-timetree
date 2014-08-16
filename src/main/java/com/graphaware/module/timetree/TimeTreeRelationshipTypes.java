@@ -25,6 +25,7 @@ import java.util.List;
  * {@link org.neo4j.graphdb.RelationshipType}s for {@link TimeTree}.
  */
 public enum TimeTreeRelationshipTypes implements RelationshipType {
+
     FIRST, LAST, NEXT, CHILD;
 
     /**

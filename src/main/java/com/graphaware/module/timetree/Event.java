@@ -15,34 +15,39 @@
  */
 package com.graphaware.module.timetree;
 
+import com.graphaware.module.timetree.api.EventVO;
 import org.neo4j.graphdb.Node;
 import org.neo4j.graphdb.RelationshipType;
 
 /**
- * An Event
+ * An event intended to be attached to the {@link TimeTree}.
  */
 public class Event {
 
-    private TimeInstant timeInstant;
-    private Node eventNode;
-    private RelationshipType eventRelation;
+    private final Node node;
+    private final TimeInstant instant;
+    private final RelationshipType relationshipType;
+
+    /**
+     * Create a new event.
+     *
+     * @param node             representing the event.
+     * @param instant          when the event happened.
+     * @param relationshipType to use when attaching the event to the time tree.
+     */
+    public Event(Node node, TimeInstant instant, RelationshipType relationshipType) {
+        this.node = node;
+        this.instant = instant;
+        this.relationshipType = relationshipType;
+    }
 
     /**
      * Get the time instant to which this event is attached
      *
      * @return the TimeInstant
      */
-    public TimeInstant getTimeInstant() {
-        return timeInstant;
-    }
-
-    /**
-     * Sets the TimeInstant to which this event is attached
-     *
-     * @param timeInstant specific TimeInstant
-     */
-    public void setTimeInstant(TimeInstant timeInstant) {
-        this.timeInstant = timeInstant;
+    public TimeInstant getInstant() {
+        return instant;
     }
 
     /**
@@ -50,17 +55,8 @@ public class Event {
      *
      * @return event node
      */
-    public Node getEventNode() {
-        return eventNode;
-    }
-
-    /**
-     * Set the node representing the event
-     *
-     * @param eventNode the event node
-     */
-    public void setEventNode(Node eventNode) {
-        this.eventNode = eventNode;
+    public Node getNode() {
+        return node;
     }
 
     /**
@@ -68,18 +64,11 @@ public class Event {
      *
      * @return the relationship between the event and the time instant
      */
-    public RelationshipType getEventRelation() {
-        return eventRelation;
+    public RelationshipType getRelationshipType() {
+        return relationshipType;
     }
 
-    /**
-     * Set the relationship between the event and time instant
-     *
-     * @param eventRelation
-     */
-    public void setEventRelation(RelationshipType eventRelation) {
-        this.eventRelation = eventRelation;
+    public EventVO toValueObject() {
+        return new EventVO(node.getId(), getInstant().toValueObject(), getRelationshipType().name());
     }
-
-
 }

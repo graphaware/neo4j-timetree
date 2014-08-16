@@ -114,7 +114,7 @@ You have three query parameters:
     * `Second`
     * `Millisecond`
 * `timezone`, which can be a String representation of any `java.util.TimeZone`
-* `eventRelation`, which is a String representation of the RelationshipType that relates the event to a time instant. 
+* `relationshipType`, which is a String representation of the RelationshipType that relates the event to a time instant.
 The default is all relationships, which is useful if you have different kinds of events occurring at the same time instant,
   and related to the time instant with different relationship types. Here the default will give you all events that occurred at that time instant.
 
@@ -127,8 +127,8 @@ The POST body resembles:
 
 ```json
      {
-            "eventNodeId": 99,
-            "eventRelationshipType": "HAS_EVENT",
+            "nodeId": 99,
+            "relationshipType": "HAS_EVENT",
             "eventRelationshipDirection": "INCOMING",
             "timezone": "UTC",
             "resolution": "DAY",
@@ -138,8 +138,8 @@ The POST body resembles:
 
 where
 
-* `eventNodeId` is the node ID of an existing event node
-* `eventRelationshipType` is the name of the relationship type that should be used to attach the event to the time instant
+* `nodeId` is the node ID of an existing event node
+* `relationshipType` is the name of the relationship type that should be used to attach the event to the time instant
 * `eventRelationshipDirection` specifies the direction of the relation from the event node to the time instant
 * `timezone` is a String representation of any `java.util.TimeZone`
 * `resolution` as described above

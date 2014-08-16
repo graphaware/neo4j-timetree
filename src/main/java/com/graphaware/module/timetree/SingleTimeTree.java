@@ -17,16 +17,17 @@
 package com.graphaware.module.timetree;
 
 import org.joda.time.DateTime;
-import org.joda.time.DateTimeZone;
-import org.joda.time.MutableDateTime;
 import org.neo4j.graphdb.*;
 import org.neo4j.tooling.GlobalGraphOperations;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import java.util.*;
+import java.util.Iterator;
+import java.util.LinkedList;
+import java.util.List;
 
-import static com.graphaware.module.timetree.Resolution.*;
+import static com.graphaware.module.timetree.Resolution.YEAR;
+import static com.graphaware.module.timetree.Resolution.findForNode;
 import static com.graphaware.module.timetree.TimeTreeLabels.TimeTreeRoot;
 import static com.graphaware.module.timetree.TimeTreeRelationshipTypes.*;
 import static org.neo4j.graphdb.Direction.INCOMING;
@@ -34,245 +35,75 @@ import static org.neo4j.graphdb.Direction.OUTGOING;
 
 /**
  * Default implementation of {@link TimeTree}, which builds a single tree and maintains its own root.
- * The default {@link Resolution}, if one is not explicitly provided using the constructor or one of the public methods,
- * is {@link Resolution#DAY}. The default {@link DateTimeZone}, if one is not explicitly provided, is UTC.
  */
 public class SingleTimeTree implements TimeTree {
+
     private static final Logger LOG = LoggerFactory.getLogger(SingleTimeTree.class);
 
-    private static final Resolution DEFAULT_RESOLUTION = DAY;
-    private static final DateTimeZone DEFAULT_TIME_ZONE = DateTimeZone.forTimeZone(TimeZone.getTimeZone("UTC"));
     protected static final String VALUE_PROPERTY = "value";
 
     private final GraphDatabaseService database;
-    private final DateTimeZone timeZone;
-    private final Resolution resolution;
 
     private volatile Node timeTreeRoot;
 
     /**
-     * Constructor for time tree with default {@link Resolution#DAY} resolution and default UTC timezone.
+     * Constructor for time tree.
      *
      * @param database to talk to.
      */
     public SingleTimeTree(GraphDatabaseService database) {
-        this(database, DEFAULT_RESOLUTION);
-    }
-
-    /**
-     * Constructor for time tree with default UTC timezone.
-     *
-     * @param database   to talk to.
-     * @param resolution default resolution.
-     */
-    public SingleTimeTree(GraphDatabaseService database, Resolution resolution) {
-        this(database, DEFAULT_TIME_ZONE, resolution);
-    }
-
-    /**
-     * Constructor for time tree with default {@link Resolution#DAY} resolution.
-     *
-     * @param database to talk to.
-     * @param timeZone default time zone.
-     */
-    public SingleTimeTree(GraphDatabaseService database, DateTimeZone timeZone) {
-        this(database, timeZone, DAY);
-    }
-
-    /**
-     * Constructor for time tree.
-     *
-     * @param database   to talk to.
-     * @param timeZone   default time zone.
-     * @param resolution default resolution.
-     */
-    public SingleTimeTree(GraphDatabaseService database, DateTimeZone timeZone, Resolution resolution) {
         this.database = database;
-        this.timeZone = timeZone;
-        this.resolution = resolution;
     }
 
     /**
      * {@inheritDoc}
      */
     @Override
-    public Node getNow(Transaction tx) {
-        TimeInstant timeInstant = new TimeInstant();
-        return getNow(timeInstant, tx);
+    public Node getInstant(TimeInstant timeInstant) {
+        return null;  //To change body of implemented methods use File | Settings | File Templates.
     }
 
     /**
      * {@inheritDoc}
      */
     @Override
-    public Node getNow(TimeInstant timeInstant, Transaction tx) {
-        return getInstant(timeInstant, tx);
-    }
-
-
-    /**
-     * {@inheritDoc}
-     */
-    @Override
-    public Node getInstant(TimeInstant timeInstant, Transaction tx) {
-        if (timeInstant.getTimezone() == null) {
-            timeInstant.setTimezone(timeZone);
-        }
-
-        if (timeInstant.getResolution() == null) {
-            timeInstant.setResolution(resolution);
-        }
-
-        DateTime dateTime = new DateTime(timeInstant.getTime(), timeInstant.getTimezone());
-
-        Node timeRoot = getTimeRoot();
-        tx.acquireWriteLock(timeRoot);
-        Node year = findOrCreateChild(timeRoot, dateTime.get(YEAR.getDateTimeFieldType()));
-        return getInstant(year, dateTime, timeInstant.getResolution());
+    public List<Node> getInstants(TimeInstant startTime, TimeInstant endTime) {
+        return null;  //To change body of implemented methods use File | Settings | File Templates.
     }
 
     /**
      * {@inheritDoc}
      */
     @Override
-    public List<Node> getInstants(TimeInstant startTime, TimeInstant endTime, Transaction tx) {
+    public Node getOrCreateInstant(TimeInstant timeInstant) {
+        Node instant;
 
-        if (startTime.getTime() > endTime.getTime()) {
-            throw new IllegalArgumentException("Start time must be less than End time");
-        }
-        if (startTime.getTimezone() == null) {
-            startTime.setTimezone(timeZone);
-            if (endTime.getTimezone() != null && (!startTime.getTimezone().equals(endTime.getTimezone()))) {
-                throw new IllegalArgumentException("The timezone of startTime and endTime must match");
-            }
-        }
+        try (Transaction tx = database.beginTx()) {
+            DateTime dateTime = new DateTime(timeInstant.getTime(), timeInstant.getTimezone());
 
-        if (startTime.getResolution() == null) {
-            startTime.setResolution(resolution);
-            if (endTime.getResolution() != null && (!startTime.getResolution().equals(endTime.getResolution()))) {
-                throw new IllegalArgumentException("The resolution of startTime and endTime must match");
-            }
+            Node timeRoot = getTimeRoot();
+            tx.acquireWriteLock(timeRoot);
+            Node year = findOrCreateChild(timeRoot, dateTime.get(YEAR.getDateTimeFieldType()));
+            instant = getOrCreateInstant(year, dateTime, timeInstant.getResolution());
+
+            tx.success();
         }
 
+        return instant;
+    }
 
+    /**
+     * {@inheritDoc}
+     */
+    @Override
+    public List<Node> getOrCreateInstants(TimeInstant startTime, TimeInstant endTime) {
         List<Node> result = new LinkedList<>();
 
-        MutableDateTime time = new MutableDateTime(startTime.getTime());
-        while (!time.isAfter(endTime.getTime())) {
-            result.add(getInstant(time.getMillis(), startTime.getTimezone(), startTime.getResolution(), tx));
-            time.add(startTime.getResolution().getDateTimeFieldType().getDurationType(), 1);
+        for (TimeInstant instant : TimeInstant.getInstants(startTime, endTime)) {
+            result.add(getOrCreateInstant(instant));
         }
 
         return result;
-    }
-
-    /**
-     * {@inheritDoc}
-     */
-    @Override
-    public void attachEventToInstant(Node eventNode, RelationshipType eventRelation, Direction eventRelationDirection, TimeInstant timeInstant, Transaction tx) {
-        Node timeInstantNode = getInstant(timeInstant, tx);
-        if (eventRelationDirection.equals(Direction.OUTGOING)) {
-            eventNode.createRelationshipTo(timeInstantNode, eventRelation);
-        } else {
-            timeInstantNode.createRelationshipTo(eventNode, eventRelation);
-        }
-    }
-
-    /**
-     * {@inheritDoc}
-     */
-    @Override
-    public List<Event> getEventsAtInstant(TimeInstant timeInstant, Transaction tx) {
-        return getEventsAtInstant(timeInstant, null, tx);
-    }
-
-    /**
-     * {@inheritDoc}
-     */
-    @Override
-    public List<Event> getEventsBetweenInstants(TimeInstant startTime, TimeInstant endTime, Transaction tx) {
-        return getEventsBetweenInstants(startTime, endTime, null, tx);
-    }
-
-    /**
-     * {@inheritDoc}
-     */
-    @Override
-    public List<Event> getEventsAtInstant(TimeInstant timeInstant, RelationshipType eventRelation, Transaction tx) {
-        List<Event> events = new ArrayList<>();
-        List<String> timeTreeRelationships = TimeTreeRelationshipTypes.getTimeTreeRelationshipNames();
-        Node timeInstantNode = getInstant(timeInstant, tx);
-        for (Relationship rel : timeInstantNode.getRelationships()) {
-            if (!timeTreeRelationships.contains(rel.getType().name())) {
-                if (eventRelation == null || (eventRelation.name().equals(rel.getType().name()))) {
-                    Event event = new Event();
-                    event.setEventNode(rel.getOtherNode(timeInstantNode));
-                    event.setEventRelation(rel.getType());
-                    event.setTimeInstant(timeInstant);
-                    events.add(event);
-                }
-            }
-        }
-
-        return events;
-    }
-
-    /**
-     * {@inheritDoc}
-     */
-    @Override
-    public List<Event> getEventsBetweenInstants(TimeInstant startTime, TimeInstant endTime, RelationshipType eventRelation, Transaction tx) {
-        List<Event> events = new ArrayList<>();
-        List<String> timeTreeRelationships = TimeTreeRelationshipTypes.getTimeTreeRelationshipNames();
-
-
-        if (startTime.getTime() > endTime.getTime()) {
-            throw new IllegalArgumentException("Start time must be less than End time");
-        }
-        if (startTime.getTimezone() == null) {
-            startTime.setTimezone(timeZone);
-            if (endTime.getTimezone() != null && (!startTime.getTimezone().equals(endTime.getTimezone()))) {
-                throw new IllegalArgumentException("The timezone of startTime and endTime must match");
-            }
-        }
-
-        if (startTime.getResolution() == null) {
-            startTime.setResolution(resolution);
-            if (endTime.getResolution() != null && (!startTime.getResolution().equals(endTime.getResolution()))) {
-                throw new IllegalArgumentException("The resolution of startTime and endTime must match");
-            }
-        }
-
-
-        MutableDateTime time = new MutableDateTime(startTime.getTime());
-        while (!time.isAfter(endTime.getTime())) {
-            TimeInstant timeInstant = resolveTimeInstant(time.getMillis(), startTime.getTimezone(), startTime.getResolution());
-            Node timeInstantNode = getInstant(time.getMillis(), startTime.getTimezone(), startTime.getResolution(), tx);
-            for (Relationship rel : timeInstantNode.getRelationships()) {
-                if (!timeTreeRelationships.contains(rel.getType().name())) {
-                    if (eventRelation == null || (eventRelation.name().equals(rel.getType().name()))) {
-                        Event event = new Event();
-                        event.setEventNode(rel.getOtherNode(timeInstantNode));
-                        event.setEventRelation(rel.getType());
-                        event.setTimeInstant(timeInstant);
-                        events.add(event);
-                    }
-                }
-            }
-
-            time.add(startTime.getResolution().getDateTimeFieldType().getDurationType(), 1);
-        }
-
-        return events;
-    }
-
-    /**
-     * {@inheritDoc}
-     */
-    @Override
-    public void invalidateCaches() {
-        timeTreeRoot = null;
     }
 
     /**
@@ -282,7 +113,12 @@ public class SingleTimeTree implements TimeTree {
      */
     protected Node getTimeRoot() {
         if (timeTreeRoot != null) {
-            return timeTreeRoot;
+            try {
+                database.getNodeById(timeTreeRoot.getId());
+                return timeTreeRoot;
+            } catch (NotFoundException e) {
+                LOG.warn("The time tree seems to have been deleted!");
+            }
         }
 
         synchronized (this) {
@@ -309,14 +145,6 @@ public class SingleTimeTree implements TimeTree {
         }
     }
 
-    private TimeInstant resolveTimeInstant(long millis, DateTimeZone timeZone, Resolution resolution) {
-        TimeInstant timeInstant = new TimeInstant(millis);
-        timeInstant.setResolution(resolution);
-        timeInstant.setTimezone(timeZone);
-        return timeInstant;
-    }
-
-
     /**
      * Get a node representing a specific time instant. If one doesn't exist, it will be created as well as any missing
      * nodes on the way down from parent (recursively).
@@ -326,7 +154,7 @@ public class SingleTimeTree implements TimeTree {
      * @param targetResolution target child resolution. Recursion stops when at this level.
      * @return node representing the time instant at the desired resolution level.
      */
-    private Node getInstant(Node parent, DateTime dateTime, Resolution targetResolution) {
+    private Node getOrCreateInstant(Node parent, DateTime dateTime, Resolution targetResolution) {
         Resolution currentResolution = findForNode(parent);
 
         if (currentResolution.equals(targetResolution)) {
@@ -336,34 +164,7 @@ public class SingleTimeTree implements TimeTree {
         Node child = findOrCreateChild(parent, dateTime.get(currentResolution.getChild().getDateTimeFieldType()));
 
         //recursion
-        return getInstant(child, dateTime, targetResolution);
-    }
-
-
-    /**
-     * Get a node representing a specific time instant. If one doesn't exist, it will be created as well as any missing
-     * nodes on the way down from parent (recursively).
-     *
-     * @param time       time in ms from 1/1/1970
-     * @param timeZone   timezone
-     * @param resolution {@link com.graphaware.module.timetree.Resolution} to be used for this time instant
-     * @return node representing the time instant at the desired resolution level.
-     */
-    private Node getInstant(long time, DateTimeZone timeZone, Resolution resolution, Transaction tx) {
-        if (timeZone == null) {
-            timeZone = this.timeZone;
-        }
-
-        if (resolution == null) {
-            resolution = this.resolution;
-        }
-
-        DateTime dateTime = new DateTime(time, timeZone);
-
-        Node timeRoot = getTimeRoot();
-        tx.acquireWriteLock(timeRoot);
-        Node year = findOrCreateChild(timeRoot, dateTime.get(YEAR.getDateTimeFieldType()));
-        return getInstant(year, dateTime, resolution);
+        return getOrCreateInstant(child, dateTime, targetResolution);
     }
 
     /**

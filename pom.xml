@@ -19,7 +19,7 @@
 
     <groupId>com.graphaware.neo4j</groupId>
     <artifactId>timetree</artifactId>
-    <version>2.1.4.19.15-SNAPSHOT</version>
+    <version>2.1.4.19.15</version>
 
     <parent>
         <groupId>org.sonatype.oss</groupId>

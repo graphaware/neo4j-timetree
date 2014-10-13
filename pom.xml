@@ -18,8 +18,8 @@
     <modelVersion>4.0.0</modelVersion>
 
     <groupId>com.graphaware.neo4j</groupId>
-    <artifactId>timetree</artifactId>
-    <version>2.1.4.19.16-SNAPSHOT</version>
+    <artifactId>cam</artifactId>
+    <version>2.1.5.21.16-SNAPSHOT</version>
 
     <parent>
         <groupId>org.sonatype.oss</groupId>
@@ -78,9 +78,9 @@
     <properties>
         <java.version>1.7</java.version>
         <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
-        <neo4j.version>2.1.4</neo4j.version>
-        <spring.version>4.0.0.RELEASE</spring.version>
-        <graphaware.version>2.1.4.19</graphaware.version>
+        <neo4j.version>2.1.5</neo4j.version>
+        <spring.version>4.1.1.RELEASE</spring.version>
+        <graphaware.version>2.1.5.21-SNAPSHOT</graphaware.version>
     </properties>
 
     <dependencies>

@@ -73,11 +73,28 @@ public class TimeTreeBackedEvents implements TimedEvents {
      */
     @Override
     public List<Event> getEvents(TimeInstant startTime, TimeInstant endTime, RelationshipType type) {
+
+        if (startTime.isAfter(endTime)) {
+            throw new IllegalArgumentException("startTime must be less than endTime");
+        }
+
+        if (!startTime.compatibleWith(endTime)) {
+            throw new IllegalArgumentException("The timezone and resolution of startTime and endTime must match");
+        }
+
         List<Event> events = new ArrayList<>();
 
-        for (TimeInstant instant : TimeInstant.getInstants(startTime, endTime)) {
-            events.addAll(getEvents(instant, type));
+        Node startTimeNode = timeTree.getOrCreateInstant(startTime);
+        Node endTimeNode = timeTree.getOrCreateInstant(endTime);
+
+        events.addAll(getEventsAttachedToNodeAndChildren(startTimeNode,type));
+        Relationship next = startTimeNode.getSingleRelationship(NEXT,OUTGOING);
+        while(next!=null && !(next.getEndNode().equals(endTimeNode))) {
+            Node timeInstant = next.getEndNode();
+            events.addAll(getEventsAttachedToNodeAndChildren(timeInstant,type));
+            next = timeInstant.getSingleRelationship(NEXT,OUTGOING);
         }
+        events.addAll(getEventsAttachedToNodeAndChildren(endTimeNode,type));
 
         return events;
     }

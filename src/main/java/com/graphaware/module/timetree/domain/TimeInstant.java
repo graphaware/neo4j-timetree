@@ -19,13 +19,13 @@ import com.graphaware.module.timetree.api.TimeInstantVO;
 import org.joda.time.DateTime;
 import org.joda.time.DateTimeZone;
 import org.joda.time.MutableDateTime;
-import org.neo4j.graphdb.Node;
 
 import java.util.LinkedList;
 import java.util.List;
 import java.util.TimeZone;
 
 import static com.graphaware.module.timetree.domain.Resolution.DAY;
+import static com.graphaware.module.timetree.domain.ValidationUtils.validateRange;
 
 /**
  * An instant of time.
@@ -152,13 +152,7 @@ public class TimeInstant {
      * @return all instants in between with the same resolution as the start and end instant.
      */
     public static List<TimeInstant> getInstants(TimeInstant startTime, TimeInstant endTime) {
-        if (startTime.isAfter(endTime)) {
-            throw new IllegalArgumentException("startTime must be less than endTime");
-        }
-
-        if (!startTime.compatibleWith(endTime)) {
-            throw new IllegalArgumentException("The timezone and resolution of startTime and endTime must match");
-        }
+        validateRange(startTime, endTime);
 
         List<TimeInstant> result = new LinkedList<>();
 

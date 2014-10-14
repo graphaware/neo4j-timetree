@@ -37,6 +37,24 @@ public interface TimeTree {
     Node getInstant(TimeInstant timeInstant);
 
     /**
+     * Get a node representing a specific time instant or the first instance thereafter, if the specific time instant
+     * does not exits. Return <code>null</code> if no such node exists.
+     *
+     * @param timeInstant specific time instant.
+     * @return node representing a specific time instant or the first instant thereafter, <code>null</code> if no such node exists.
+     */
+    Node getInstantAtOrAfter(TimeInstant timeInstant);
+
+    /**
+     * Get a node representing a specific time instant or the first instance before that, if the specific time instant
+     * does not exits. Return <code>null</code> if no such ndoe exists.
+     *
+     * @param timeInstant specific time instant.
+     * @return node representing a specific time instant or the first instant before that, <code>null</code> if no such node exists.
+     */
+    Node getInstantAtOrBefore(TimeInstant timeInstant);
+
+    /**
      * Get nodes representing all time instants in the specified range (inclusive).
      *
      * @param startTime Time instant representing the start of the interval (inclusive).

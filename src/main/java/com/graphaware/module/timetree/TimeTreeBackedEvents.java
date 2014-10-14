@@ -2,6 +2,7 @@ package com.graphaware.module.timetree;
 
 import com.graphaware.module.timetree.domain.Event;
 import com.graphaware.module.timetree.domain.TimeInstant;
+import com.graphaware.module.timetree.domain.ValidationUtils;
 import org.neo4j.graphdb.Node;
 import org.neo4j.graphdb.Relationship;
 import org.neo4j.graphdb.RelationshipType;
@@ -12,6 +13,7 @@ import java.util.*;
 
 import static com.graphaware.module.timetree.SingleTimeTree.*;
 import static com.graphaware.module.timetree.domain.TimeTreeRelationshipTypes.*;
+import static com.graphaware.module.timetree.domain.ValidationUtils.*;
 import static org.neo4j.graphdb.Direction.INCOMING;
 import static org.neo4j.graphdb.Direction.OUTGOING;
 
@@ -73,28 +75,21 @@ public class TimeTreeBackedEvents implements TimedEvents {
      */
     @Override
     public List<Event> getEvents(TimeInstant startTime, TimeInstant endTime, RelationshipType type) {
+        validateRange(startTime, endTime);
 
-        if (startTime.isAfter(endTime)) {
-            throw new IllegalArgumentException("startTime must be less than endTime");
-        }
-
-        if (!startTime.compatibleWith(endTime)) {
-            throw new IllegalArgumentException("The timezone and resolution of startTime and endTime must match");
-        }
-
-        List<Event> events = new ArrayList<>();
+        List<Event> events = new LinkedList<>();
 
         Node startTimeNode = timeTree.getOrCreateInstant(startTime);
         Node endTimeNode = timeTree.getOrCreateInstant(endTime);
 
-        events.addAll(getEventsAttachedToNodeAndChildren(startTimeNode,type));
-        Relationship next = startTimeNode.getSingleRelationship(NEXT,OUTGOING);
-        while(next!=null && !(next.getEndNode().equals(endTimeNode))) {
+        events.addAll(getEventsAttachedToNodeAndChildren(startTimeNode, type));
+        Relationship next = startTimeNode.getSingleRelationship(NEXT, OUTGOING);
+        while (next != null && !(next.getEndNode().equals(endTimeNode))) {
             Node timeInstant = next.getEndNode();
-            events.addAll(getEventsAttachedToNodeAndChildren(timeInstant,type));
-            next = timeInstant.getSingleRelationship(NEXT,OUTGOING);
+            events.addAll(getEventsAttachedToNodeAndChildren(timeInstant, type));
+            next = timeInstant.getSingleRelationship(NEXT, OUTGOING);
         }
-        events.addAll(getEventsAttachedToNodeAndChildren(endTimeNode,type));
+        events.addAll(getEventsAttachedToNodeAndChildren(endTimeNode, type));
 
         return events;
     }
@@ -112,8 +107,7 @@ public class TimeTreeBackedEvents implements TimedEvents {
         while (true) {
             if (child == null) {
                 child = firstRelationship.getEndNode();
-            }
-            else {
+            } else {
                 Relationship nextRelationship = child.getSingleRelationship(NEXT, OUTGOING);
 
                 if (nextRelationship == null || parent(nextRelationship.getEndNode()).getId() != parent.getId()) {

@@ -16,7 +16,6 @@
 
 package com.graphaware.module.timetree;
 
-import com.graphaware.common.util.PropertyContainerUtils;
 import com.graphaware.module.timetree.domain.Resolution;
 import com.graphaware.module.timetree.domain.TimeInstant;
 import com.graphaware.module.timetree.domain.TimeTreeLabels;
@@ -32,6 +31,8 @@ import java.util.Iterator;
 import java.util.LinkedList;
 import java.util.List;
 
+import static com.graphaware.common.util.PropertyContainerUtils.getInt;
+import static com.graphaware.module.timetree.SingleTimeTree.ChildNotFoundResolution.RETURN_NULL;
 import static com.graphaware.module.timetree.domain.Resolution.YEAR;
 import static com.graphaware.module.timetree.domain.Resolution.findForNode;
 import static com.graphaware.module.timetree.domain.TimeTreeLabels.TimeTreeRoot;
@@ -75,7 +76,7 @@ public class SingleTimeTree implements TimeTree {
 
             Node timeRoot = getTimeRoot();
             tx.acquireWriteLock(timeRoot);
-            Node year = findChild(timeRoot, dateTime.get(YEAR.getDateTimeFieldType()));
+            Node year = findChild(timeRoot, dateTime.get(YEAR.getDateTimeFieldType()), RETURN_NULL);
 
             if (year != null) {
                 instant = getInstant(year, dateTime, timeInstant.getResolution());
@@ -85,6 +86,22 @@ public class SingleTimeTree implements TimeTree {
         }
 
         return instant;
+    }
+
+    /**
+     * {@inheritDoc}
+     */
+    @Override
+    public Node getInstantAtOrAfter(TimeInstant timeInstant) {
+        return null;  //To change body of implemented methods use File | Settings | File Templates.
+    }
+
+    /**
+     * {@inheritDoc}
+     */
+    @Override
+    public Node getInstantAtOrBefore(TimeInstant timeInstant) {
+        return null;  //To change body of implemented methods use File | Settings | File Templates.
     }
 
     /**
@@ -194,7 +211,7 @@ public class SingleTimeTree implements TimeTree {
             return parent;
         }
 
-        Node child = findChild(parent, dateTime.get(currentResolution.getChild().getDateTimeFieldType()));
+        Node child = findChild(parent, dateTime.get(currentResolution.getChild().getDateTimeFieldType()), RETURN_NULL);
 
         if (child == null) {
             return null;
@@ -226,6 +243,10 @@ public class SingleTimeTree implements TimeTree {
         return getOrCreateInstant(child, dateTime, targetResolution);
     }
 
+    enum ChildNotFoundResolution {
+        RETURN_NULL, RETURN_PREVIOUS, RETURN_NEXT
+    }
+
     /**
      * Find a child node with value equal to the given value. If no such child exists, return <code>null</code>.
      *
@@ -233,28 +254,56 @@ public class SingleTimeTree implements TimeTree {
      * @param value  value of the node to be found.
      * @return child node, <code>null</code> of none exists.
      */
-    private Node findChild(Node parent, int value) {
+    private Node findChild(Node parent, int value, ChildNotFoundResolution childNotFound) {
         Relationship firstRelationship = parent.getSingleRelationship(FIRST, OUTGOING);
         if (firstRelationship == null) {
             return null;
         }
 
         Node existingChild = firstRelationship.getEndNode();
-        while (PropertyContainerUtils.getInt(existingChild, VALUE_PROPERTY) < value && parent(existingChild).getId() == parent.getId()) {
+        while (getInt(existingChild, VALUE_PROPERTY) < value && parent(existingChild).getId() == parent.getId()) {
             Relationship nextRelationship = existingChild.getSingleRelationship(NEXT, OUTGOING);
 
-            if (nextRelationship == null || parent(nextRelationship.getEndNode()).getId() != parent.getId()) {
-                return null;
+            if (nextRelationship == null) {
+                switch (childNotFound) {
+                    case RETURN_NULL:
+                        return null;
+                    case RETURN_NEXT:
+                        return null;
+                    case RETURN_PREVIOUS:
+                        return existingChild;
+                }
+            }
+
+            if (parent(nextRelationship.getEndNode()).getId() != parent.getId()) {
+                switch (childNotFound) {
+                    case RETURN_NULL:
+                        return null;
+                    case RETURN_NEXT:
+                        return nextRelationship.getEndNode();
+                    case RETURN_PREVIOUS:
+                        return existingChild;
+                }
             }
 
             existingChild = nextRelationship.getEndNode();
         }
 
-        if (PropertyContainerUtils.getInt(existingChild, VALUE_PROPERTY) == value) {
+        if (getInt(existingChild, VALUE_PROPERTY) == value) {
             return existingChild;
         }
 
-        return null;
+        //means getInt(existingChild, VALUE_PROPERTY) > value || parent(existingChild).getId() != parent.getId()
+        switch (childNotFound) {
+            case RETURN_NULL:
+                return null;
+            case RETURN_NEXT:
+                return existingChild;
+            case RETURN_PREVIOUS:
+                return existingChild.getSingleRelationship(NEXT, INCOMING).getStartNode();
+            default:
+                throw new IllegalStateException("Unknown child not found resolution: " + childNotFound);
+        }
     }
 
     /**
@@ -272,7 +321,7 @@ public class SingleTimeTree implements TimeTree {
 
         Node existingChild = firstRelationship.getEndNode();
         boolean isFirst = true;
-        while (PropertyContainerUtils.getInt(existingChild, VALUE_PROPERTY) < value && parent(existingChild).getId() == parent.getId()) {
+        while (getInt(existingChild, VALUE_PROPERTY) < value && parent(existingChild).getId() == parent.getId()) {
             isFirst = false;
             Relationship nextRelationship = existingChild.getSingleRelationship(NEXT, OUTGOING);
 
@@ -283,7 +332,7 @@ public class SingleTimeTree implements TimeTree {
             existingChild = nextRelationship.getEndNode();
         }
 
-        if (PropertyContainerUtils.getInt(existingChild, VALUE_PROPERTY) == value) {
+        if (getInt(existingChild, VALUE_PROPERTY) == value) {
             return existingChild;
         }
 

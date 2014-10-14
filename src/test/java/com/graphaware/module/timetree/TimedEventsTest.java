@@ -28,9 +28,7 @@ import org.neo4j.graphdb.DynamicRelationshipType;
 import org.neo4j.graphdb.Node;
 import org.neo4j.graphdb.Transaction;
 
-import java.util.ArrayList;
-import java.util.List;
-import java.util.TimeZone;
+import java.util.*;
 
 import static com.graphaware.module.timetree.domain.Resolution.*;
 import static com.graphaware.test.unit.GraphUnit.assertSameGraph;
@@ -389,6 +387,81 @@ public class TimedEventsTest extends DatabaseIntegrationTest {
         }
     }
 
+    @Test
+    public void eventsShouldBeFetchedForMillisecondResolutionTree() { //Test for Issue #2
+        //Given
+        TimeInstant timeInstant1 = TimeInstant.instant(dateToMillis(2012, 11, 1)).with(Resolution.MILLISECOND);
+        TimeInstant timeInstant2 = TimeInstant.instant(dateToMillis(2012, 11, 2)).with(Resolution.MILLISECOND);
+
+        Node event1, event2;
+
+        try (Transaction tx = getDatabase().beginTx()) {
+            event1 = getDatabase().createNode();
+            event1.setProperty("name", "eventA");
+            event2 = getDatabase().createNode();
+            event2.setProperty("name", "eventB");
+            tx.success();
+        }
+
+        //When
+        try (Transaction tx = getDatabase().beginTx()) {
+            timedEvents.attachEvent(event1, AT_TIME, timeInstant1);
+            timedEvents.attachEvent(event2, AT_TIME, timeInstant2);
+            tx.success();
+        }
+
+        //Then
+        try (Transaction tx = getDatabase().beginTx()) {
+            List<Event> events = timedEvents.getEvents(timeInstant1, timeInstant2, AT_TIME);
+            assertEquals(2, events.size());
+            assertEquals("eventA", events.get(0).getNode().getProperty("name"));
+            assertEquals("eventB", events.get(1).getNode().getProperty("name"));
+
+            events = timedEvents.getEvents(timeInstant1, timeInstant2, DynamicRelationshipType.withName("NONEXISTENT_RELATION"));
+            assertEquals(0, events.size());
+
+            tx.success();
+        }
+    }
+
+    @Test
+    public void perSecondEventsShouldBeFetched() { //Test for Issue #2
+        //Given an event every second for 6 hours
+        Calendar runningCal = new GregorianCalendar(2014,Calendar.OCTOBER,11,0,0,0);
+        Calendar endCal = new GregorianCalendar(2014,Calendar.OCTOBER,11,5,59,59);
+
+        Calendar beforeStartCal = new GregorianCalendar(2014,Calendar.OCTOBER,10,0,0,0);
+        Calendar afterEndCal = new GregorianCalendar(2014,Calendar.OCTOBER,13,0,59,59);
+
+
+        TimeInstant beforeStartTime = TimeInstant.instant(beforeStartCal.getTime().getTime()).with(Resolution.MILLISECOND);
+        TimeInstant afterEndTime = TimeInstant.instant(afterEndCal.getTime().getTime()).with(Resolution.MILLISECOND);
+
+        //When
+        int count=0;
+        try (Transaction tx = getDatabase().beginTx()) {
+            while (runningCal.before(endCal)) {
+                System.out.println("Creating event " + count);
+                Node event = getDatabase().createNode();
+                event.setProperty("name","event" + count++);
+                TimeInstant runningTime = TimeInstant.instant(runningCal.getTime().getTime()).with(Resolution.MILLISECOND);
+                timedEvents.attachEvent(event,AT_TIME,runningTime);
+                runningCal.add(Calendar.SECOND,1);
+            }
+            tx.success();
+        }
+
+        //Then
+        System.out.println("Fetching events");
+
+        try (Transaction tx = getDatabase().beginTx()) {
+            List<Event> events = timedEvents.getEvents(beforeStartTime, afterEndTime, AT_TIME); //Make sure that events are still returned within this range
+            assertEquals(count, events.size());
+            assertEquals("event0", events.get(0).getNode().getProperty("name"));
+            assertEquals("event" + (count-1), events.get(count-1).getNode().getProperty("name"));
+            tx.success();
+        }
+    }
     private long dateToMillis(int year, int month, int day) {
         return dateToDateTime(year, month, day).getMillis();
     }

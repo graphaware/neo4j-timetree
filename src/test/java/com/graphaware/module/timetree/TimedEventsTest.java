@@ -23,6 +23,7 @@ import com.graphaware.test.integration.DatabaseIntegrationTest;
 import org.joda.time.DateTime;
 import org.joda.time.DateTimeZone;
 import org.junit.Before;
+import org.junit.Ignore;
 import org.junit.Test;
 import org.neo4j.graphdb.DynamicRelationshipType;
 import org.neo4j.graphdb.Node;
@@ -476,6 +477,7 @@ public class TimedEventsTest extends DatabaseIntegrationTest {
     }
 
     @Test
+    @Ignore //save my CPU from frying
     public void perSecondEventsShouldBeFetched() { //Test for Issue #2
         //Given an event every second for 6 hours
         Calendar runningCal = new GregorianCalendar(2014,Calendar.OCTOBER,11,0,0,0);

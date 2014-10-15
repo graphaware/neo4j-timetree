@@ -36,9 +36,8 @@ import java.util.TimeZone;
 import static com.graphaware.module.timetree.SingleTimeTree.VALUE_PROPERTY;
 import static com.graphaware.module.timetree.domain.Resolution.*;
 import static com.graphaware.test.unit.GraphUnit.assertSameGraph;
+import static org.junit.Assert.*;
 import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertNull;
-import static org.junit.Assert.assertTrue;
 
 /**
  * Unit test for {@link SingleTimeTree}.
@@ -71,6 +70,26 @@ public class SingleTimeTreeTest extends DatabaseIntegrationTest {
         //Then
         assertNull(yearNode);
         assertSameGraph(getDatabase(), "CREATE (root:TimeTreeRoot)");
+
+        //When
+        try (Transaction tx = getDatabase().beginTx()) {
+            yearNode = timeTree.getInstantAtOrAfter(timeInstant);
+            tx.success();
+        }
+
+        //Then
+        assertNull(yearNode);
+        assertSameGraph(getDatabase(), "CREATE (root:TimeTreeRoot)");
+
+        //When
+        try (Transaction tx = getDatabase().beginTx()) {
+            yearNode = timeTree.getInstantAtOrBefore(timeInstant);
+            tx.success();
+        }
+
+        //Then
+        assertNull(yearNode);
+        assertSameGraph(getDatabase(), "CREATE (root:TimeTreeRoot)");
     }
 
     @Test
@@ -83,6 +102,26 @@ public class SingleTimeTreeTest extends DatabaseIntegrationTest {
         Node dayNode;
         try (Transaction tx = getDatabase().beginTx()) {
             dayNode = timeTree.getInstant(timeInstant);
+            tx.success();
+        }
+
+        //Then
+        assertNull(dayNode);
+        assertSameGraph(getDatabase(), "CREATE (root:TimeTreeRoot)");
+
+        //When
+        try (Transaction tx = getDatabase().beginTx()) {
+            dayNode = timeTree.getInstantAtOrAfter(timeInstant);
+            tx.success();
+        }
+
+        //Then
+        assertNull(dayNode);
+        assertSameGraph(getDatabase(), "CREATE (root:TimeTreeRoot)");
+
+        //When
+        try (Transaction tx = getDatabase().beginTx()) {
+            dayNode = timeTree.getInstantAtOrBefore(timeInstant);
             tx.success();
         }
 
@@ -120,6 +159,24 @@ public class SingleTimeTreeTest extends DatabaseIntegrationTest {
                 "(year)-[:FIRST]->(month:Month {value:5})," +
                 "(year)-[:CHILD]->(month)," +
                 "(year)-[:LAST]->(month)");
+
+        //when
+        try (Transaction tx = getDatabase().beginTx()) {
+            dayNode = timeTree.getInstantAtOrAfter(timeInstant);
+            tx.success();
+        }
+
+        //Then
+        assertNull(dayNode);
+
+        //when
+        try (Transaction tx = getDatabase().beginTx()) {
+            dayNode = timeTree.getInstantAtOrBefore(timeInstant);
+            tx.success();
+        }
+
+        //Then
+        assertNull(dayNode);
     }
 
     @Test
@@ -143,6 +200,182 @@ public class SingleTimeTreeTest extends DatabaseIntegrationTest {
 
         //Then
         assertNull(dayNode);
+    }
+
+    @Test
+    public void previousDayShouldBeReturnedWhenNonExistingDayIsRequested() {
+        //Given
+        TimeInstant timeInstant;
+
+        Node previous;
+        //When
+        try (Transaction tx = getDatabase().beginTx()) {
+            previous = timeTree.getOrCreateInstant(TimeInstant.instant(dateToMillis(2013, 5, 4)));
+            timeTree.getOrCreateInstant(TimeInstant.instant(dateToMillis(2013, 6, 1)));
+            tx.success();
+        }
+
+        timeInstant = TimeInstant.instant(dateToMillis(2013, 5, 5));
+        Node dayNode;
+        try (Transaction tx = getDatabase().beginTx()) {
+            dayNode = timeTree.getInstantAtOrBefore(timeInstant);
+            tx.success();
+        }
+
+        //Then
+        assertEquals(previous, dayNode);
+    }
+
+    @Test
+    public void previousDayShouldBeReturnedWhenNonExistingDayIsRequested2() {
+        //Given
+        TimeInstant timeInstant;
+
+        Node previous;
+        //When
+        try (Transaction tx = getDatabase().beginTx()) {
+            previous = timeTree.getOrCreateInstant(TimeInstant.instant(dateToMillis(2013, 4, 20)));
+            timeTree.getOrCreateInstant(TimeInstant.instant(dateToMillis(2013, 6, 1)));
+            tx.success();
+        }
+
+        timeInstant = TimeInstant.instant(dateToMillis(2013, 5, 5));
+        Node dayNode;
+        try (Transaction tx = getDatabase().beginTx()) {
+            dayNode = timeTree.getInstantAtOrBefore(timeInstant);
+
+            System.out.println("expected:"+PropertyContainerUtils.nodeToString(previous));
+            System.out.println("actual:"+PropertyContainerUtils.nodeToString(dayNode));
+
+            tx.success();
+        }
+
+        //Then
+        assertEquals(previous, dayNode);
+    }
+
+    @Test
+    public void previousDayShouldBeReturnedWhenNonExistingDayIsRequested3() {
+        //Given
+        TimeInstant timeInstant;
+
+        Node previous;
+        //When
+        try (Transaction tx = getDatabase().beginTx()) {
+            previous = timeTree.getOrCreateInstant(TimeInstant.instant(dateToMillis(2012, 12, 1)));
+            timeTree.getOrCreateInstant(TimeInstant.instant(dateToMillis(2013, 6, 1)));
+            tx.success();
+        }
+
+        timeInstant = TimeInstant.instant(dateToMillis(2013, 5, 5));
+        Node dayNode;
+        try (Transaction tx = getDatabase().beginTx()) {
+            dayNode = timeTree.getInstantAtOrBefore(timeInstant);
+
+            System.out.println("expected:"+PropertyContainerUtils.nodeToString(previous));
+            System.out.println("actual:"+PropertyContainerUtils.nodeToString(dayNode));
+
+            tx.success();
+        }
+
+        //Then
+        assertEquals(previous, dayNode);
+    }
+
+    @Test
+    public void nextDayShouldBeReturnedWhenNonExistingDayIsRequested() {
+        //Given
+        TimeInstant timeInstant;
+
+        Node next;
+        //When
+        try (Transaction tx = getDatabase().beginTx()) {
+            timeTree.getOrCreateInstant(TimeInstant.instant(dateToMillis(2013, 5, 4)));
+            next = timeTree.getOrCreateInstant(TimeInstant.instant(dateToMillis(2013, 6, 1)));
+            tx.success();
+        }
+
+        timeInstant = TimeInstant.instant(dateToMillis(2013, 5, 5));
+        Node dayNode;
+        try (Transaction tx = getDatabase().beginTx()) {
+            dayNode = timeTree.getInstantAtOrAfter(timeInstant);
+            tx.success();
+        }
+
+        //Then
+        assertEquals(next, dayNode);
+    }
+
+    @Test
+    public void nextDayShouldBeReturnedWhenNonExistingDayIsRequested2() {
+        //Given
+        TimeInstant timeInstant;
+
+        Node next;
+        //When
+        try (Transaction tx = getDatabase().beginTx()) {
+            timeTree.getOrCreateInstant(TimeInstant.instant(dateToMillis(2013, 5, 4)));
+            next = timeTree.getOrCreateInstant(TimeInstant.instant(dateToMillis(2013, 5, 6)));
+            tx.success();
+        }
+
+        timeInstant = TimeInstant.instant(dateToMillis(2013, 5, 5));
+        Node dayNode;
+        try (Transaction tx = getDatabase().beginTx()) {
+            dayNode = timeTree.getInstantAtOrAfter(timeInstant);
+            tx.success();
+        }
+
+        //Then
+        assertEquals(next, dayNode);
+    }
+
+    @Test
+    public void nextDayShouldBeReturnedWhenNonExistingDayIsRequested3() {
+        //Given
+        TimeInstant timeInstant;
+
+        Node next;
+        //When
+        try (Transaction tx = getDatabase().beginTx()) {
+            timeTree.getOrCreateInstant(TimeInstant.instant(dateToMillis(2013, 5, 4)));
+            next = timeTree.getOrCreateInstant(TimeInstant.instant(dateToMillis(2014, 1, 12)));
+            tx.success();
+        }
+
+        timeInstant = TimeInstant.instant(dateToMillis(2013, 5, 5));
+        Node dayNode;
+        try (Transaction tx = getDatabase().beginTx()) {
+            dayNode = timeTree.getInstantAtOrAfter(timeInstant);
+            tx.success();
+        }
+
+        //Then
+        assertEquals(next, dayNode);
+    }
+
+    @Test
+    public void nextDayShouldBeReturnedWhenNonExistingDayIsRequested4() {
+        //Given
+        TimeInstant timeInstant;
+
+        Node next;
+        //When
+        try (Transaction tx = getDatabase().beginTx()) {
+            timeTree.getOrCreateInstant(TimeInstant.instant(dateToMillis(2013, 5, 4)));
+            next = timeTree.getOrCreateInstant(TimeInstant.instant(dateToMillis(2014, 12, 12)));
+            tx.success();
+        }
+
+        timeInstant = TimeInstant.instant(dateToMillis(2013, 5, 5));
+        Node dayNode;
+        try (Transaction tx = getDatabase().beginTx()) {
+            dayNode = timeTree.getInstantAtOrAfter(timeInstant);
+            tx.success();
+        }
+
+        //Then
+        assertEquals(next, dayNode);
     }
 
     @Test

@@ -32,7 +32,9 @@ import java.util.LinkedList;
 import java.util.List;
 
 import static com.graphaware.common.util.PropertyContainerUtils.getInt;
-import static com.graphaware.module.timetree.SingleTimeTree.ChildNotFoundResolution.RETURN_NULL;
+import static com.graphaware.module.timetree.SingleTimeTree.ChildNotFoundPolicy.RETURN_NEXT;
+import static com.graphaware.module.timetree.SingleTimeTree.ChildNotFoundPolicy.RETURN_NULL;
+import static com.graphaware.module.timetree.SingleTimeTree.ChildNotFoundPolicy.RETURN_PREVIOUS;
 import static com.graphaware.module.timetree.domain.Resolution.YEAR;
 import static com.graphaware.module.timetree.domain.Resolution.findForNode;
 import static com.graphaware.module.timetree.domain.TimeTreeLabels.TimeTreeRoot;
@@ -69,23 +71,7 @@ public class SingleTimeTree implements TimeTree {
      */
     @Override
     public Node getInstant(TimeInstant timeInstant) {
-        Node instant = null;
-
-        try (Transaction tx = database.beginTx()) {
-            DateTime dateTime = new DateTime(timeInstant.getTime(), timeInstant.getTimezone());
-
-            Node timeRoot = getTimeRoot();
-            tx.acquireWriteLock(timeRoot);
-            Node year = findChild(timeRoot, dateTime.get(YEAR.getDateTimeFieldType()), RETURN_NULL);
-
-            if (year != null) {
-                instant = getInstant(year, dateTime, timeInstant.getResolution());
-            }
-
-            tx.success();
-        }
-
-        return instant;
+        return getInstant(timeInstant, RETURN_NULL);
     }
 
     /**
@@ -93,7 +79,7 @@ public class SingleTimeTree implements TimeTree {
      */
     @Override
     public Node getInstantAtOrAfter(TimeInstant timeInstant) {
-        return null;  //To change body of implemented methods use File | Settings | File Templates.
+        return getInstant(timeInstant, RETURN_NEXT);
     }
 
     /**
@@ -101,7 +87,7 @@ public class SingleTimeTree implements TimeTree {
      */
     @Override
     public Node getInstantAtOrBefore(TimeInstant timeInstant) {
-        return null;  //To change body of implemented methods use File | Settings | File Templates.
+        return getInstant(timeInstant, RETURN_PREVIOUS);
     }
 
     /**
@@ -133,8 +119,7 @@ public class SingleTimeTree implements TimeTree {
 
             Node timeRoot = getTimeRoot();
             tx.acquireWriteLock(timeRoot);
-            Node year = findOrCreateChild(timeRoot, dateTime.get(YEAR.getDateTimeFieldType()));
-            instant = getOrCreateInstant(year, dateTime, timeInstant.getResolution());
+            instant = getOrCreateInstant(timeRoot, dateTime, timeInstant.getResolution());
 
             tx.success();
         }
@@ -196,29 +181,95 @@ public class SingleTimeTree implements TimeTree {
         }
     }
 
-    /**
-     * Get a node representing a specific time instant. If one doesn't exist, return <code>null</code>.
-     *
-     * @param parent           parent node on path to desired instant node.
-     * @param dateTime         time instant.
-     * @param targetResolution target child resolution. Recursion stops when at this level.
-     * @return node representing the time instant at the desired resolution level.
-     */
-    private Node getInstant(Node parent, DateTime dateTime, Resolution targetResolution) {
-        Resolution currentResolution = findForNode(parent);
+    private Node getInstant(TimeInstant timeInstant, ChildNotFoundPolicy childNotFoundPolicy) {
+        Node instant;
 
-        if (currentResolution.equals(targetResolution)) {
+        try (Transaction tx = database.beginTx()) {
+            DateTime dateTime = new DateTime(timeInstant.getTime(), timeInstant.getTimezone());
+
+            Node timeRoot = getTimeRoot();
+            tx.acquireWriteLock(timeRoot);
+
+            instant = getInstant(timeRoot, dateTime, timeInstant.getResolution(), childNotFoundPolicy);
+
+            tx.success();
+        }
+
+        return instant;
+    }
+
+    private Node getInstant(Node parent, DateTime dateTime, Resolution targetResolution, ChildNotFoundPolicy childNotFoundPolicy) {
+        Resolution currentResolution = currentResolution(parent);
+
+        if (targetResolution.equals(currentResolution)) {
             return parent;
         }
 
-        Node child = findChild(parent, dateTime.get(currentResolution.getChild().getDateTimeFieldType()), RETURN_NULL);
+        Resolution newCurrentResolution = childResolution(parent);
+
+        Node child = findChild(parent, dateTime.get(newCurrentResolution.getDateTimeFieldType()), RETURN_NULL);
 
         if (child == null) {
-            return null;
+            if (currentResolution == null) {
+                return null;
+            }
+            switch (childNotFoundPolicy) {
+                case RETURN_NULL:
+                    return null;
+                case RETURN_NEXT:
+                    return getInstantViaClosestChild(parent, dateTime, targetResolution, childNotFoundPolicy, newCurrentResolution, FIRST);
+                case RETURN_PREVIOUS:
+                    return getInstantViaClosestChild(parent, dateTime, targetResolution, childNotFoundPolicy, newCurrentResolution, LAST);
+            }
         }
 
         //recursion
-        return getInstant(child, dateTime, targetResolution);
+        return getInstant(child, dateTime, targetResolution, childNotFoundPolicy);
+    }
+
+    private Node getInstantViaClosestChild(Node parent, DateTime dateTime, Resolution targetResolution, ChildNotFoundPolicy childNotFoundPolicy, Resolution newCurrentResolution, RelationshipType relationshipType) {
+        Node closestChild = findChild(parent, dateTime.get(newCurrentResolution.getDateTimeFieldType()), childNotFoundPolicy);
+        if (closestChild == null) {
+            return null;
+        }
+        return findChild(closestChild, relationshipType, targetResolution);
+    }
+
+    private Node findChild(Node parent, RelationshipType relationshipType, Resolution targetResolution) {
+        if (parent.getId() != getTimeRoot().getId()) {
+            Resolution currentResolution = findForNode(parent);
+
+            if (currentResolution.equals(targetResolution)) {
+                return parent;
+            }
+        }
+
+        Relationship r = parent.getSingleRelationship(relationshipType, OUTGOING);
+        if (r == null) {
+            return null;
+        }
+
+        return findChild(r.getEndNode(), relationshipType, targetResolution);
+    }
+
+    private Resolution currentResolution(Node parent) {
+        if (parent.getId() == getTimeRoot().getId()) {
+            return null;
+        }
+
+        return findForNode(parent);
+    }
+
+    private Resolution childResolution(Node parent) {
+        if (parent.getId() == getTimeRoot().getId()) {
+            return YEAR;
+        }
+
+        return currentResolution(parent).getChild();
+    }
+
+    enum ChildNotFoundPolicy {
+        RETURN_NULL, RETURN_PREVIOUS, RETURN_NEXT
     }
 
     /**
@@ -231,20 +282,18 @@ public class SingleTimeTree implements TimeTree {
      * @return node representing the time instant at the desired resolution level.
      */
     private Node getOrCreateInstant(Node parent, DateTime dateTime, Resolution targetResolution) {
-        Resolution currentResolution = findForNode(parent);
+        Resolution currentResolution = currentResolution(parent);
 
-        if (currentResolution.equals(targetResolution)) {
+        if (targetResolution.equals(currentResolution)) {
             return parent;
         }
 
-        Node child = findOrCreateChild(parent, dateTime.get(currentResolution.getChild().getDateTimeFieldType()));
+        Resolution newCurrentResolution = childResolution(parent);
+
+        Node child = findOrCreateChild(parent, dateTime.get(newCurrentResolution.getDateTimeFieldType()));
 
         //recursion
         return getOrCreateInstant(child, dateTime, targetResolution);
-    }
-
-    enum ChildNotFoundResolution {
-        RETURN_NULL, RETURN_PREVIOUS, RETURN_NEXT
     }
 
     /**
@@ -254,7 +303,7 @@ public class SingleTimeTree implements TimeTree {
      * @param value  value of the node to be found.
      * @return child node, <code>null</code> of none exists.
      */
-    private Node findChild(Node parent, int value, ChildNotFoundResolution childNotFound) {
+    private Node findChild(Node parent, int value, ChildNotFoundPolicy childNotFoundPolicy) {
         Relationship firstRelationship = parent.getSingleRelationship(FIRST, OUTGOING);
         if (firstRelationship == null) {
             return null;
@@ -265,7 +314,7 @@ public class SingleTimeTree implements TimeTree {
             Relationship nextRelationship = existingChild.getSingleRelationship(NEXT, OUTGOING);
 
             if (nextRelationship == null) {
-                switch (childNotFound) {
+                switch (childNotFoundPolicy) {
                     case RETURN_NULL:
                         return null;
                     case RETURN_NEXT:
@@ -276,7 +325,7 @@ public class SingleTimeTree implements TimeTree {
             }
 
             if (parent(nextRelationship.getEndNode()).getId() != parent.getId()) {
-                switch (childNotFound) {
+                switch (childNotFoundPolicy) {
                     case RETURN_NULL:
                         return null;
                     case RETURN_NEXT:
@@ -293,8 +342,8 @@ public class SingleTimeTree implements TimeTree {
             return existingChild;
         }
 
-        //means getInt(existingChild, VALUE_PROPERTY) > value || parent(existingChild).getId() != parent.getId()
-        switch (childNotFound) {
+        //here we claim that getInt(existingChild, VALUE_PROPERTY) > value || parent(existingChild).getId() != parent.getId()
+        switch (childNotFoundPolicy) {
             case RETURN_NULL:
                 return null;
             case RETURN_NEXT:
@@ -302,7 +351,7 @@ public class SingleTimeTree implements TimeTree {
             case RETURN_PREVIOUS:
                 return existingChild.getSingleRelationship(NEXT, INCOMING).getStartNode();
             default:
-                throw new IllegalStateException("Unknown child not found resolution: " + childNotFound);
+                throw new IllegalStateException("Unknown child not found resolution: " + childNotFoundPolicy);
         }
     }
 

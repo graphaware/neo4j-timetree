@@ -425,6 +425,57 @@ public class TimedEventsTest extends DatabaseIntegrationTest {
     }
 
     @Test
+    public void noEventsShouldBeFetchedFromEmptyTree() {
+        //Given
+        TimeInstant timeInstant1 = TimeInstant.instant(dateToMillis(2012, 11, 1)).with(Resolution.MILLISECOND);
+        TimeInstant timeInstant2 = TimeInstant.instant(dateToMillis(2012, 11, 2)).with(Resolution.MILLISECOND);
+
+        try (Transaction tx = getDatabase().beginTx()) {
+            List<Event> events = timedEvents.getEvents(timeInstant1, timeInstant2, AT_TIME);
+            assertEquals(0, events.size());
+
+            tx.success();
+        }
+    }
+
+    @Test
+    public void eventsShouldBeFetchedWhenThereIsOnlyOneInstant() {
+        //Given
+        TimeInstant timeInstant1 = TimeInstant.instant(dateToMillis(2012, 11, 1)).with(Resolution.MILLISECOND);
+        TimeInstant timeInstant2 = TimeInstant.instant(dateToMillis(2012, 11, 2)).with(Resolution.MILLISECOND);
+
+        Node event1, event2;
+
+        try (Transaction tx = getDatabase().beginTx()) {
+            event1 = getDatabase().createNode();
+            event1.setProperty("name", "eventA");
+            event2 = getDatabase().createNode();
+            event2.setProperty("name", "eventB");
+            tx.success();
+        }
+
+        //When
+        try (Transaction tx = getDatabase().beginTx()) {
+            timedEvents.attachEvent(event1, AT_TIME, timeInstant1);
+            timedEvents.attachEvent(event2, AT_TIME, timeInstant1);
+            tx.success();
+        }
+
+        //Then
+        try (Transaction tx = getDatabase().beginTx()) {
+            List<Event> events = timedEvents.getEvents(timeInstant1, timeInstant2, AT_TIME);
+            assertEquals(2, events.size());
+            assertEquals("eventA", events.get(0).getNode().getProperty("name"));
+            assertEquals("eventB", events.get(1).getNode().getProperty("name"));
+
+            events = timedEvents.getEvents(timeInstant1, timeInstant2, DynamicRelationshipType.withName("NONEXISTENT_RELATION"));
+            assertEquals(0, events.size());
+
+            tx.success();
+        }
+    }
+
+    @Test
     public void perSecondEventsShouldBeFetched() { //Test for Issue #2
         //Given an event every second for 6 hours
         Calendar runningCal = new GregorianCalendar(2014,Calendar.OCTOBER,11,0,0,0);

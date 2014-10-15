@@ -79,10 +79,19 @@ public class TimeTreeBackedEvents implements TimedEvents {
 
         List<Event> events = new LinkedList<>();
 
-        Node startTimeNode = timeTree.getOrCreateInstant(startTime);
-        Node endTimeNode = timeTree.getOrCreateInstant(endTime);
+        Node startTimeNode = timeTree.getInstantAtOrAfter(startTime);
+        Node endTimeNode = timeTree.getInstantAtOrBefore(endTime);
+
+        if (startTimeNode == null || endTimeNode == null) {
+            return events;
+        }
 
         events.addAll(getEventsAttachedToNodeAndChildren(startTimeNode, type));
+
+        if (startTimeNode.equals(endTimeNode)) {
+            return events;
+        }
+
         Relationship next = startTimeNode.getSingleRelationship(NEXT, OUTGOING);
         while (next != null && !(next.getEndNode().equals(endTimeNode))) {
             Node timeInstant = next.getEndNode();

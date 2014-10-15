@@ -22,18 +22,20 @@ import org.neo4j.graphdb.Node;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import static com.graphaware.module.timetree.domain.TimeTreeLabels.*;
+
 /**
  * Resolution of a {@link com.graphaware.module.timetree.TimeTree}.
  */
 public enum Resolution {
 
-    YEAR(TimeTreeLabels.Year, DateTimeFieldType.year()),
-    MONTH(TimeTreeLabels.Month, DateTimeFieldType.monthOfYear()),
-    DAY(TimeTreeLabels.Day, DateTimeFieldType.dayOfMonth()),
-    HOUR(TimeTreeLabels.Hour, DateTimeFieldType.hourOfDay()),
-    MINUTE(TimeTreeLabels.Minute, DateTimeFieldType.minuteOfHour()),
-    SECOND(TimeTreeLabels.Second, DateTimeFieldType.secondOfMinute()),
-    MILLISECOND(TimeTreeLabels.Millisecond, DateTimeFieldType.millisOfSecond());
+    YEAR(Year, DateTimeFieldType.year()),
+    MONTH(Month, DateTimeFieldType.monthOfYear()),
+    DAY(Day, DateTimeFieldType.dayOfMonth()),
+    HOUR(Hour, DateTimeFieldType.hourOfDay()),
+    MINUTE(Minute, DateTimeFieldType.minuteOfHour()),
+    SECOND(Second, DateTimeFieldType.secondOfMinute()),
+    MILLISECOND(Millisecond, DateTimeFieldType.millisOfSecond());
 
     private static final Logger LOG = LoggerFactory.getLogger(Resolution.class);
 
@@ -67,7 +69,7 @@ public enum Resolution {
      * Get the resolution one level below this resolution.
      *
      * @return child resolution.
-     * @throws IllegalStateException if this resolution does not have children.
+     * @throws IllegalStateException if this resolution does not have a child.
      */
     public Resolution getChild() {
         if (this.ordinal() >= values().length - 1) {

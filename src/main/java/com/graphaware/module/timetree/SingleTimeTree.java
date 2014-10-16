@@ -210,9 +210,6 @@ public class SingleTimeTree implements TimeTree {
         Node child = findChild(parent, dateTime.get(newCurrentResolution.getDateTimeFieldType()), RETURN_NULL);
 
         if (child == null) {
-            if (currentResolution == null) {
-                return null;
-            }
             switch (childNotFoundPolicy) {
                 case RETURN_NULL:
                     return null;

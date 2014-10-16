@@ -283,6 +283,30 @@ public class SingleTimeTreeTest extends DatabaseIntegrationTest {
     }
 
     @Test
+    public void previousDayShouldBeReturnedWhenNonExistingDayIsRequested4() {
+        //Given
+        TimeInstant timeInstant;
+
+        Node previous;
+        //When
+        try (Transaction tx = getDatabase().beginTx()) {
+            previous = timeTree.getOrCreateInstant(TimeInstant.instant(dateToMillis(2000, 12, 1)));
+            timeTree.getOrCreateInstant(TimeInstant.instant(dateToMillis(2020, 6, 1)));
+            tx.success();
+        }
+
+        timeInstant = TimeInstant.instant(dateToMillis(2013, 5, 5));
+        Node dayNode;
+        try (Transaction tx = getDatabase().beginTx()) {
+            dayNode = timeTree.getInstantAtOrBefore(timeInstant);
+            tx.success();
+        }
+
+        //Then
+        assertEquals(previous, dayNode);
+    }
+
+    @Test
     public void nextDayShouldBeReturnedWhenNonExistingDayIsRequested() {
         //Given
         TimeInstant timeInstant;
@@ -364,6 +388,30 @@ public class SingleTimeTreeTest extends DatabaseIntegrationTest {
         try (Transaction tx = getDatabase().beginTx()) {
             timeTree.getOrCreateInstant(TimeInstant.instant(dateToMillis(2013, 5, 4)));
             next = timeTree.getOrCreateInstant(TimeInstant.instant(dateToMillis(2014, 12, 12)));
+            tx.success();
+        }
+
+        timeInstant = TimeInstant.instant(dateToMillis(2013, 5, 5));
+        Node dayNode;
+        try (Transaction tx = getDatabase().beginTx()) {
+            dayNode = timeTree.getInstantAtOrAfter(timeInstant);
+            tx.success();
+        }
+
+        //Then
+        assertEquals(next, dayNode);
+    }
+
+    @Test
+    public void nextDayShouldBeReturnedWhenNonExistingDayIsRequested5() {
+        //Given
+        TimeInstant timeInstant;
+
+        Node next;
+        //When
+        try (Transaction tx = getDatabase().beginTx()) {
+            timeTree.getOrCreateInstant(TimeInstant.instant(dateToMillis(2000, 5, 4)));
+            next = timeTree.getOrCreateInstant(TimeInstant.instant(dateToMillis(2020, 12, 12)));
             tx.success();
         }
 

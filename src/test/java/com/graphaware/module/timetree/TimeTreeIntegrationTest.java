@@ -21,13 +21,16 @@ import org.eclipse.jetty.http.HttpStatus;
 import org.junit.Test;
 
 import java.io.IOException;
+import java.util.Date;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicInteger;
 
+import static com.graphaware.test.util.TestUtils.executeCypher;
 import static com.graphaware.test.util.TestUtils.get;
 import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertNotSame;
 
 /**
  * {@link NeoServerIntegrationTest} for {@link TimeTree} module and {@link com.graphaware.module.timetree.api.TimeTreeApi}.
@@ -59,5 +62,18 @@ public class TimeTreeIntegrationTest extends NeoServerIntegrationTest {
         executor.awaitTermination(30, TimeUnit.SECONDS);
 
         assertEquals(noRequests, successfulRequests.get());
+    }
+
+    @Test
+    public void shouldReturnEvents() {
+        String nodeId = get(baseUrl() + "/graphaware/timetree/now?resolution=second", HttpStatus.OK_200);
+
+        executeCypher(baseUrl(), "START second=node(" + nodeId + ") " +
+                "CREATE (email:Event {subject:'Neo4j'})-[:SENT_ON]->(second)");
+
+        long now = new Date().getTime();
+
+        String actual = get(baseUrl() + "/graphaware/timetree/range/" + (now - 100000000000L) + "/" + (now + 100000000000L) + "/events?resolution=second", HttpStatus.OK_200);
+        assertNotSame("[]", actual);
     }
 }

@@ -79,4 +79,18 @@ public interface TimeTree {
      * @return nodes representing all time instants in the interval, ordered chronologically.
      */
     List<Node> getOrCreateInstants(TimeInstant startTime, TimeInstant endTime);
+
+    /**
+     * Remove the Complete Index-Tree.
+     * <b>ATTENTION</b> this will remove all the root-node and nodes matching (root)-[:CHILD*1..]-(child) so never
+     * link your events with a CHILD-relationship to the index.
+     */
+    void removeAll();
+
+    /**
+     * Remove a time instant, this instant must have no events attached and no child-nodes
+     *
+     * @param instantNode finest Resolution TimeInstant
+     */
+    void removeInstant(Node instantNode);
 }

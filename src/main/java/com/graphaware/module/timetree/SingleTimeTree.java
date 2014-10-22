@@ -520,6 +520,79 @@ public class SingleTimeTree implements TimeTree {
     }
 
     /**
+     * {@inheritDoc}
+     */
+    @Override
+    public void removeAll() {
+        removeChildren(getTimeRoot());
+    }
+
+    private void removeChildren(Node root) {
+        for (Relationship relationship : root.getRelationships(OUTGOING)) {
+            relationship.delete();
+            if (relationship.isType(CHILD)) {
+                removeChildren(relationship.getEndNode());
+            }
+        }
+        root.delete();
+    }
+
+    /**
+     * {@inheritDoc}
+     */
+    @Override
+    public void removeInstant(Node instantNode) {
+        if (instantNode.hasRelationship(CHILD, OUTGOING)) {
+            return;
+        }
+
+        Relationship first = instantNode.getSingleRelationship(FIRST, INCOMING);
+        Relationship last = instantNode.getSingleRelationship(LAST, INCOMING);
+
+        Relationship prev = instantNode.getSingleRelationship(NEXT, INCOMING);
+        Relationship next = instantNode.getSingleRelationship(NEXT, OUTGOING);
+
+        if (prev != null && next != null) {  // middle
+            if (last != null) {
+                last.getStartNode().createRelationshipTo(prev.getStartNode(), LAST);
+                last.delete();
+            }
+            if (first != null) {
+                first.getStartNode().createRelationshipTo(next.getEndNode(), FIRST);
+                first.delete();
+            }
+
+            prev.getStartNode().createRelationshipTo(next.getEndNode(), NEXT);
+            prev.delete();
+            next.delete();
+        } else if (first != null && next != null) { // beginning
+            first.getStartNode().createRelationshipTo(next.getEndNode(), FIRST);
+            first.delete();
+            next.delete();
+        } else if (prev != null && last != null) { // end
+            last.getStartNode().createRelationshipTo(prev.getStartNode(), LAST);
+            last.delete();
+            prev.delete();
+        }
+
+
+        if (instantNode.hasRelationship(FIRST, OUTGOING)) {
+            instantNode.getSingleRelationship(FIRST, OUTGOING).delete();
+        }
+
+        if (instantNode.hasRelationship(LAST, OUTGOING)) {
+            instantNode.getSingleRelationship(LAST, OUTGOING).delete();
+        }
+
+        if (instantNode.hasRelationship(CHILD, INCOMING)) {
+            Relationship toParent = instantNode.getSingleRelationship(CHILD, INCOMING);
+            toParent.delete();
+            removeInstant(toParent.getStartNode());
+        }
+        instantNode.delete();
+    }
+
+    /**
      * Find the parent of a node.
      *
      * @param node to find a parent for.

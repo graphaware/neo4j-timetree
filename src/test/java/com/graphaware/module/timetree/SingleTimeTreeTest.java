@@ -26,7 +26,6 @@ import org.junit.Before;
 import org.junit.Test;
 import org.neo4j.cypher.javacompat.ExecutionEngine;
 import org.neo4j.graphdb.Node;
-import org.neo4j.graphdb.NotFoundException;
 import org.neo4j.graphdb.Transaction;
 import org.neo4j.tooling.GlobalGraphOperations;
 
@@ -37,7 +36,7 @@ import static com.graphaware.module.timetree.SingleTimeTree.VALUE_PROPERTY;
 import static com.graphaware.module.timetree.domain.Resolution.*;
 import static com.graphaware.test.unit.GraphUnit.assertSameGraph;
 import static org.junit.Assert.*;
-import static org.junit.Assert.assertEquals;
+import static org.neo4j.graphdb.DynamicRelationshipType.withName;
 
 /**
  * Unit test for {@link SingleTimeTree}.
@@ -877,6 +876,280 @@ public class SingleTimeTreeTest extends DatabaseIntegrationTest {
                 "(month032013)-[:CHILD]->(day10032013)," +
                 "(month032013)-[:FIRST]->(day10032013)," +
                 "(month032013)-[:LAST]->(day10032013)");
+    }
+
+
+    @Test
+    public void testDeleteFront() throws Exception {
+        try (Transaction tx = getDatabase().beginTx()) {
+
+            Node t1 = timeTree.getOrCreateInstant(TimeInstant.instant(dateToMillis(2000, 3, 10)));
+            Node t2 = timeTree.getOrCreateInstant(TimeInstant.instant(dateToMillis(2000, 3, 12)));
+            Node t3 = timeTree.getOrCreateInstant(TimeInstant.instant(dateToMillis(2000, 3, 13)));
+
+            Node ev1 = getDatabase().createNode();
+            ev1.setProperty("ev", 1);
+            t2.createRelationshipTo(ev1, withName("VALUE"));
+
+            Node ev2 = getDatabase().createNode();
+            ev2.setProperty("ev", 2);
+            t3.createRelationshipTo(ev2, withName("VALUE"));
+
+            timeTree.removeInstant(t1);
+            tx.success();
+        }
+        assertSameGraph(getDatabase(), "create " +
+                "(root:TimeTreeRoot)-[:CHILD]->(Year_1:Year {value:2000})," +
+                "(root)-[:FIRST]->(Year_1)," +
+                "(root)-[:LAST]->(Year_1)," +
+                "(Year_1)-[:CHILD]->(Month_1:Month  {value:3})," +
+                "(Year_1)-[:FIRST]->(Month_1)," +
+                "(Year_1)-[:LAST]->(Month_1)," +
+                "(Month_1)-[:CHILD]->(Day_1:Day {value:12})-[:VALUE]->({ev:1})," +
+                "(Month_1)-[:CHILD]->(Day_2:Day {value:13})-[:VALUE]->({ev:2})," +
+                "(Month_1)-[:FIRST]->(Day_1)," +
+                "(Month_1)-[:LAST]->(Day_2)," +
+                "(Day_1)-[:NEXT]->(Day_2)");
+    }
+
+    @Test
+    public void testDeleteMid() throws Exception {
+        try (Transaction tx = getDatabase().beginTx()) {
+
+            Node t1 = timeTree.getOrCreateInstant(TimeInstant.instant(dateToMillis(2000, 3, 10)));
+            Node t2 = timeTree.getOrCreateInstant(TimeInstant.instant(dateToMillis(2000, 3, 12)));
+            Node t3 = timeTree.getOrCreateInstant(TimeInstant.instant(dateToMillis(2000, 3, 13)));
+
+            Node ev1 = getDatabase().createNode();
+            ev1.setProperty("ev", 1);
+            Node ev3 = getDatabase().createNode();
+            ev3.setProperty("ev", 3);
+
+
+            t1.createRelationshipTo(ev1, withName("VALUE"));
+            t3.createRelationshipTo(ev3, withName("VALUE"));
+            timeTree.removeInstant(t2);
+            tx.success();
+        }
+        assertSameGraph(getDatabase(), "create " +
+                "(root:TimeTreeRoot)-[:CHILD]->(Year_1:Year  {value:2000})," +
+                "(root)-[:FIRST]->(Year_1)," +
+                "(root)-[:LAST]->(Year_1)," +
+                "(Year_1)-[:CHILD]->(Month_1:Month {value:3})," +
+                "(Year_1)-[:FIRST]->(Month_1)," +
+                "(Year_1)-[:LAST]->(Month_1)," +
+                "(Month_1)-[:CHILD]->(Day_1:Day {value:10})-[:VALUE]->({ev:1})," +
+                "(Month_1)-[:CHILD]->(Day_2:Day {value:13})-[:VALUE]->({ev:3})," +
+                "(Month_1)-[:FIRST]->(Day_1)," +
+                "(Month_1)-[:LAST]->(Day_2)," +
+                "(Day_1)-[:NEXT]->(Day_2)");
+    }
+
+    @Test
+    public void testDeleteEnd() throws Exception {
+        try (Transaction tx = getDatabase().beginTx()) {
+
+            Node t1 = timeTree.getOrCreateInstant(TimeInstant.instant(dateToMillis(2000, 3, 10)));
+            Node t2 = timeTree.getOrCreateInstant(TimeInstant.instant(dateToMillis(2000, 3, 12)));
+            Node t3 = timeTree.getOrCreateInstant(TimeInstant.instant(dateToMillis(2000, 3, 13)));
+
+            Node ev1 = getDatabase().createNode();
+            ev1.setProperty("ev", 1);
+            Node ev2 = getDatabase().createNode();
+            ev2.setProperty("ev", 2);
+
+            t1.createRelationshipTo(ev1, withName("VALUE"));
+            t2.createRelationshipTo(ev2, withName("VALUE"));
+            timeTree.removeInstant(t3);
+            tx.success();
+        }
+        assertSameGraph(getDatabase(), "create " +
+                "(root:TimeTreeRoot)-[:CHILD]->(Year_1:Year {value:2000})," +
+                "(root)-[:FIRST]->(Year_1)," +
+                "(root)-[:LAST]->(Year_1)," +
+                "(Year_1)-[:CHILD]->(Month_1:Month  {value:3})," +
+                "(Year_1)-[:FIRST]->(Month_1)," +
+                "(Year_1)-[:LAST]->(Month_1)," +
+                "(Month_1)-[:CHILD]->(Day_1:Day {value:10})-[:VALUE]->({ev:1})," +
+                "(Month_1)-[:CHILD]->(Day_2:Day {value:12})-[:VALUE]->({ev:2})," +
+                "(Month_1)-[:FIRST]->(Day_1)," +
+                "(Month_1)-[:LAST]->(Day_2)," +
+                "(Day_1)-[:NEXT]->(Day_2)");
+    }
+
+    @Test
+    public void testDeleteCross() throws Exception {
+        try (Transaction tx = getDatabase().beginTx()) {
+            Node t1 = timeTree.getOrCreateInstant(TimeInstant.instant(dateToMillis(2000, 1, 10)));
+            Node ev1 = getDatabase().createNode();
+            ev1.setProperty("ev", 1);
+            t1.createRelationshipTo(ev1, withName("VALUE"));
+
+            Node t2 = timeTree.getOrCreateInstant(TimeInstant.instant(dateToMillis(2000, 2, 10)));
+            Node ev2 = getDatabase().createNode();
+            ev2.setProperty("ev", 2);
+            t2.createRelationshipTo(ev2, withName("VALUE"));
+
+
+            Node t3 = timeTree.getOrCreateInstant(TimeInstant.instant(dateToMillis(2000, 1, 13)));
+            timeTree.removeInstant(t3);
+
+            Node t4 = timeTree.getOrCreateInstant(TimeInstant.instant(dateToMillis(2000, 1, 14)));
+            Node ev3 = getDatabase().createNode();
+            ev3.setProperty("ev", 3);
+
+            t4.createRelationshipTo(ev3, withName("VALUE"));
+            tx.success();
+        }
+        assertSameGraph(getDatabase(), "create " +
+                "(root:TimeTreeRoot)-[:CHILD]->(Year_1:Year {value:2000})," +
+                "(root)-[:FIRST]->(Year_1)," +
+                "(root)-[:LAST]->(Year_1)," +
+                "(Year_1)-[:CHILD]->(Month_1:Month {value:1})," +
+                "(Year_1)-[:CHILD]->(Month_2:Month {value:2})," +
+                "(Year_1)-[:FIRST]->(Month_1)," +
+                "(Year_1)-[:LAST]->(Month_2)," +
+                "(Month_1)-[:CHILD]->(Day_1:Day {value:10})-[:VALUE]->({ev:1})," +
+                "(Month_1)-[:CHILD]->(Day_2:Day {value:14})-[:VALUE]->({ev:3})," +
+                "(Month_1)-[:FIRST]->(Day_1)," +
+                "(Month_1)-[:LAST]->(Day_2)," +
+                "(Month_1)-[:NEXT]->(Month_2)," +
+                "(Month_2)-[:CHILD]->(Day_3:Day {value:10})-[:VALUE]->({ev:2})," +
+                "(Month_2)-[:FIRST]->(Day_3)," +
+                "(Month_2)-[:LAST]->(Day_3)," +
+                "(Day_1)-[:NEXT]->(Day_2)-[:NEXT]->(Day_3)");
+    }
+
+    @Test
+    public void testDeleteFrontLv2() throws Exception {
+        try (Transaction tx = getDatabase().beginTx()) {
+            Node t1 = timeTree.getOrCreateInstant(TimeInstant.instant(dateToMillis(2000, 1, 10)));
+            Node t2 = timeTree.getOrCreateInstant(TimeInstant.instant(dateToMillis(2000, 2, 12)));
+            Node t3 = timeTree.getOrCreateInstant(TimeInstant.instant(dateToMillis(2000, 3, 13)));
+
+            Node ev2 = getDatabase().createNode();
+            ev2.setProperty("ev", 2);
+            Node ev3 = getDatabase().createNode();
+            ev3.setProperty("ev", 3);
+
+            t2.createRelationshipTo(ev2, withName("VALUE"));
+            t3.createRelationshipTo(ev3, withName("VALUE"));
+
+            timeTree.removeInstant(t1);
+            tx.success();
+        }
+        assertSameGraph(getDatabase(), "create " +
+                "(root:TimeTreeRoot)-[:CHILD]->(Year_1:Year {value:2000})," +
+                "(root)-[:FIRST]->(Year_1)," +
+                "(root)-[:LAST]->(Year_1)," +
+                "(Year_1)-[:CHILD]->(Month_1:Month {value:2})," +
+                "(Year_1)-[:CHILD]->(Month_2:Month {value:3})," +
+                "(Year_1)-[:FIRST]->(Month_1)," +
+                "(Year_1)-[:LAST]->(Month_2)," +
+                "(Month_1)-[:CHILD]->(Day_1:Day {value:12})-[:VALUE]->({ev:2})," +
+                "(Month_1)-[:FIRST]->(Day_1)," +
+                "(Month_1)-[:LAST]->(Day_1)," +
+                "(Month_1)-[:NEXT]->(Month_2)," +
+                "(Month_2)-[:CHILD]->(Day_2:Day {value:13})-[:VALUE]->({ev:3})," +
+                "(Month_2)-[:FIRST]->(Day_2)," +
+                "(Month_2)-[:LAST]->(Day_2)," +
+                "(Day_1)-[:NEXT]->(Day_2)");
+    }
+
+    @Test
+    public void testDeleteMidLv2() throws Exception {
+        try (Transaction tx = getDatabase().beginTx()) {
+            Node t1 = timeTree.getOrCreateInstant(TimeInstant.instant(dateToMillis(2000, 1, 10)));
+            Node t2 = timeTree.getOrCreateInstant(TimeInstant.instant(dateToMillis(2000, 2, 12)));
+            Node t3 = timeTree.getOrCreateInstant(TimeInstant.instant(dateToMillis(2000, 3, 13)));
+
+            Node ev1 = getDatabase().createNode();
+            ev1.setProperty("ev", 1);
+            Node ev3 = getDatabase().createNode();
+            ev3.setProperty("ev", 3);
+
+            t1.createRelationshipTo(ev1, withName("VALUE"));
+            t3.createRelationshipTo(ev3, withName("VALUE"));
+
+            timeTree.removeInstant(t2);
+            tx.success();
+        }
+        assertSameGraph(getDatabase(), "create " +
+                "(root:TimeTreeRoot)-[:CHILD]->(Year_1:Year {value:2000})," +
+                "(root)-[:FIRST]->(Year_1)," +
+                "(root)-[:LAST]->(Year_1)," +
+                "(Year_1)-[:CHILD]->(Month_1:Month {value:1})," +
+                "(Year_1)-[:CHILD]->(Month_2:Month {value:3})," +
+                "(Year_1)-[:FIRST]->(Month_1)," +
+                "(Year_1)-[:LAST]->(Month_2)," +
+                "(Month_1)-[:CHILD]->(Day_1:Day {value:10})-[:VALUE]->({ev:1})," +
+                "(Month_1)-[:FIRST]->(Day_1)," +
+                "(Month_1)-[:LAST]->(Day_1)," +
+                "(Month_1)-[:NEXT]->(Month_2)," +
+                "(Month_2)-[:CHILD]->(Day_2:Day {value:13})-[:VALUE]->({ev:3})," +
+                "(Month_2)-[:FIRST]->(Day_2)," +
+                "(Month_2)-[:LAST]->(Day_2)," +
+                "(Day_1)-[:NEXT]->(Day_2)");
+    }
+
+    @Test
+    public void testDeleteEndLv2() throws Exception {
+        try (Transaction tx = getDatabase().beginTx()) {
+            Node t1 = timeTree.getOrCreateInstant(TimeInstant.instant(dateToMillis(2000, 1, 10)));
+            Node t2 = timeTree.getOrCreateInstant(TimeInstant.instant(dateToMillis(2000, 2, 12)));
+            Node t3 = timeTree.getOrCreateInstant(TimeInstant.instant(dateToMillis(2000, 3, 13)));
+
+            Node ev1 = getDatabase().createNode();
+            ev1.setProperty("ev", 1);
+            Node ev2 = getDatabase().createNode();
+            ev2.setProperty("ev", 2);
+
+            t1.createRelationshipTo(ev1, withName("VALUE"));
+            t2.createRelationshipTo(ev2, withName("VALUE"));
+
+            timeTree.removeInstant(t3);
+            tx.success();
+        }
+        assertSameGraph(getDatabase(), "create " +
+                "(root:TimeTreeRoot)-[:CHILD]->(Year_1:Year {value:2000})," +
+                "(root)-[:FIRST]->(Year_1)," +
+                "(root)-[:LAST]->(Year_1)," +
+                "(Year_1)-[:CHILD]->(Month_1:Month {value:1})," +
+                "(Year_1)-[:CHILD]->(Month_2:Month {value:2})," +
+                "(Year_1)-[:FIRST]->(Month_1)," +
+                "(Year_1)-[:LAST]->(Month_2)," +
+                "(Month_1)-[:CHILD]->(Day_1:Day {value:10})-[:VALUE]->({ev:1})," +
+                "(Month_1)-[:FIRST]->(Day_1)," +
+                "(Month_1)-[:LAST]->(Day_1)," +
+                "(Month_1)-[:NEXT]->(Month_2)," +
+                "(Month_2)-[:CHILD]->(Day_2:Day {value:12})-[:VALUE]->({ev:2})," +
+                "(Month_2)-[:FIRST]->(Day_2)," +
+                "(Month_2)-[:LAST]->(Day_2)," +
+                "(Day_1)-[:NEXT]->(Day_2)");
+    }
+
+
+    @Test
+    public void testRemoveAll() throws Exception {
+        try (Transaction tx = getDatabase().beginTx()) {
+            Node t1 = timeTree.getOrCreateInstant(TimeInstant.instant(dateToMillis(2000, 1, 10)));
+            Node t2 = timeTree.getOrCreateInstant(TimeInstant.instant(dateToMillis(2000, 2, 12)));
+            Node t3 = timeTree.getOrCreateInstant(TimeInstant.instant(dateToMillis(2000, 3, 13)));
+
+            Node ev1 = getDatabase().createNode();
+            ev1.setProperty("ev", 1);
+            Node ev2 = getDatabase().createNode();
+            ev2.setProperty("ev", 2);
+
+            t1.createRelationshipTo(ev1, withName("VALUE"));
+            t2.createRelationshipTo(ev2, withName("VALUE"));
+
+            timeTree.removeAll();
+            tx.success();
+        }
+        assertSameGraph(getDatabase(), "create " +
+                "({ev:1})," +
+                "({ev:2})");
     }
 
     private long dateToMillis(int year, int month, int day) {

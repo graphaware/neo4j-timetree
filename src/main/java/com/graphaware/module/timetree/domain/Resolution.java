@@ -73,8 +73,8 @@ public enum Resolution {
      */
     public Resolution getChild() {
         if (this.ordinal() >= values().length - 1) {
-            LOG.error("Parent resolution " + this.toString() + " does not have children. This is a bug.");
-            throw new IllegalStateException("Parent resolution " + this.toString() + " does not have children. This is a bug.");
+            LOG.error("Parent resolution " + this + " does not have children. This is a bug.");
+            throw new IllegalStateException("Parent resolution " + this + " does not have children. This is a bug.");
         }
 
         return values()[this.ordinal() + 1];
@@ -96,8 +96,8 @@ public enum Resolution {
             }
         }
 
-        LOG.error("Node " + node.toString() + " does not have a corresponding resolution. This is a bug.");
-        throw new IllegalArgumentException("Node " + node.toString() + " does not have a corresponding resolution. This is a bug.");
+        LOG.error("Node " + node + " does not have a corresponding resolution. This is a bug.");
+        throw new IllegalArgumentException("Node " + node + " does not have a corresponding resolution. This is a bug.");
     }
 
     /**

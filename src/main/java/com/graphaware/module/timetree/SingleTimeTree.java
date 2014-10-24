@@ -233,7 +233,7 @@ public class SingleTimeTree implements TimeTree {
     }
 
     private Node findChild(Node parent, RelationshipType relationshipType, Resolution targetResolution) {
-        if (parent.getId() != getTimeRoot().getId()) {
+        if (!parent.equals(getTimeRoot())) {
             Resolution currentResolution = findForNode(parent);
 
             if (currentResolution.equals(targetResolution)) {
@@ -250,7 +250,7 @@ public class SingleTimeTree implements TimeTree {
     }
 
     private Resolution currentResolution(Node parent) {
-        if (parent.getId() == getTimeRoot().getId()) {
+        if (parent.equals(getTimeRoot())) {
             return null;
         }
 
@@ -258,7 +258,7 @@ public class SingleTimeTree implements TimeTree {
     }
 
     private Resolution childResolution(Node parent) {
-        if (parent.getId() == getTimeRoot().getId()) {
+        if (parent.equals(getTimeRoot())) {
             return YEAR;
         }
 
@@ -307,7 +307,7 @@ public class SingleTimeTree implements TimeTree {
         }
 
         Node existingChild = firstRelationship.getEndNode();
-        while (getInt(existingChild, VALUE_PROPERTY) < value && parent(existingChild).getId() == parent.getId()) {
+        while (getInt(existingChild, VALUE_PROPERTY) < value && parent(existingChild).equals(parent)) {
             Relationship nextRelationship = existingChild.getSingleRelationship(NEXT, OUTGOING);
 
             if (nextRelationship == null) {
@@ -321,7 +321,7 @@ public class SingleTimeTree implements TimeTree {
                 }
             }
 
-            if (parent(nextRelationship.getEndNode()).getId() != parent.getId()) {
+            if (!parent(nextRelationship.getEndNode()).equals(parent)) {
                 switch (childNotFoundPolicy) {
                     case RETURN_NULL:
                         return null;
@@ -367,11 +367,11 @@ public class SingleTimeTree implements TimeTree {
 
         Node existingChild = firstRelationship.getEndNode();
         boolean isFirst = true;
-        while (getInt(existingChild, VALUE_PROPERTY) < value && parent(existingChild).getId() == parent.getId()) {
+        while (getInt(existingChild, VALUE_PROPERTY) < value && parent(existingChild).equals(parent)) {
             isFirst = false;
             Relationship nextRelationship = existingChild.getSingleRelationship(NEXT, OUTGOING);
 
-            if (nextRelationship == null || parent(nextRelationship.getEndNode()).getId() != parent.getId()) {
+            if (nextRelationship == null || !parent(nextRelationship.getEndNode()).equals(parent)) {
                 return createLastChild(parent, existingChild, nextRelationship == null ? null : nextRelationship.getEndNode(), value);
             }
 
@@ -400,8 +400,8 @@ public class SingleTimeTree implements TimeTree {
      */
     private Node createFirstChildEver(Node parent, int value) {
         if (parent.getSingleRelationship(LAST, OUTGOING) != null) { //sanity check
-            LOG.error(parent.toString() + " has no " + FIRST.name() + " relationship, but has a " + LAST.name() + " one!");
-            throw new IllegalStateException(parent.toString() + " has no " + FIRST.name() + " relationship, but has a " + LAST.name() + " one!");
+            LOG.error(parent + " has no " + FIRST + " relationship, but has a " + LAST + " one!");
+            throw new IllegalStateException(parent + " has no " + FIRST + " relationship, but has a " + LAST + " one!");
         }
 
         Node previousChild = null;
@@ -444,9 +444,9 @@ public class SingleTimeTree implements TimeTree {
     private Node createFirstChild(Node parent, Node previousChild, Node nextChild, int value) {
         Relationship firstRelationship = parent.getSingleRelationship(FIRST, OUTGOING);
 
-        if (nextChild.getId() != firstRelationship.getEndNode().getId()) { //sanity check
-            LOG.error(nextChild.toString() + " seems to be the first child of node " + parent.toString() + ", but there is no " + FIRST.name() + " relationship between the two!");
-            throw new IllegalStateException(nextChild.toString() + " seems to be the first child of node " + parent.toString() + ", but there is no " + FIRST.name() + " relationship between the two!");
+        if (!nextChild.equals(firstRelationship.getEndNode())) { //sanity check
+            LOG.error(nextChild + " seems to be the first child of node " + parent + ", but there is no " + FIRST + " relationship between the two!");
+            throw new IllegalStateException(nextChild + " seems to be the first child of node " + parent + ", but there is no " + FIRST + " relationship between the two!");
         }
 
         firstRelationship.delete();
@@ -471,9 +471,9 @@ public class SingleTimeTree implements TimeTree {
         Relationship lastRelationship = parent.getSingleRelationship(LAST, OUTGOING);
 
         Node endNode = lastRelationship.getEndNode();
-        if (previousChild.getId() != endNode.getId()) { //sanity check
-            LOG.error(previousChild.toString() + " seems to be the last child of node " + parent.toString() + ", but there is no " + LAST.name() + " relationship between the two!");
-            throw new IllegalStateException(previousChild.toString() + " seems to be the last child of node " + parent.toString() + ", but there is no " + LAST.name() + " relationship between the two!");
+        if (!previousChild.equals(endNode)) { //sanity check
+            LOG.error(previousChild + " seems to be the last child of node " + parent + ", but there is no " + LAST + " relationship between the two!");
+            throw new IllegalStateException(previousChild + " seems to be the last child of node " + parent + ", but there is no " + LAST + " relationship between the two!");
         }
 
         lastRelationship.delete();
@@ -495,9 +495,9 @@ public class SingleTimeTree implements TimeTree {
      * @return the newly created child.
      */
     private Node createChild(Node parent, Node previous, Node next, int value) {
-        if (previous != null && next != null && next.getId() != previous.getSingleRelationship(NEXT, OUTGOING).getEndNode().getId()) {
-            LOG.error(previous.toString() + " and " + next.toString() + " are not connected with a " + NEXT.name() + " relationship!");
-            throw new IllegalArgumentException(previous.toString() + " and " + next.toString() + " are not connected with a " + NEXT.name() + " relationship!");
+        if (previous != null && next != null && !next.equals(previous.getSingleRelationship(NEXT, OUTGOING).getEndNode())) {
+            LOG.error(previous + " and " + next + " are not connected with a " + NEXT + " relationship!");
+            throw new IllegalArgumentException(previous + " and " + next + " are not connected with a " + NEXT + " relationship!");
         }
 
         Node child = database.createNode(TimeTreeLabels.getChild(parent));
@@ -530,8 +530,8 @@ public class SingleTimeTree implements TimeTree {
         Relationship parentRelationship = node.getSingleRelationship(CHILD, INCOMING);
 
         if (parentRelationship == null) {
-            LOG.error(node.toString() + " has no parent!");
-            throw new IllegalStateException(node.toString() + " has no parent!");
+            LOG.error(node + " has no parent!");
+            throw new IllegalStateException(node + " has no parent!");
         }
 
         return parentRelationship.getStartNode();

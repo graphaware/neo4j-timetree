@@ -38,8 +38,8 @@ public enum TimeTreeLabels implements Label {
      */
     public Label getChild() {
         if (this.ordinal() >= values().length - 1) {
-            LOG.error("Label " + this.toString() + " does not have children. This is a bug.");
-            throw new IllegalArgumentException("Label " + this.toString() + " does not have children. This is a bug.");
+            LOG.error("Label " + this + " does not have children. This is a bug.");
+            throw new IllegalArgumentException("Label " + this + " does not have children. This is a bug.");
         }
 
         return values()[this.ordinal() + 1];

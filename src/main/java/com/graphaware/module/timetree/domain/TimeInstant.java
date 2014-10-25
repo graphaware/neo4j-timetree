@@ -178,7 +178,7 @@ public class TimeInstant {
         }
 
         if (vo.getTimezone() != null) {
-            instant = instant.with(DateTimeZone.forTimeZone(TimeZone.getTimeZone(vo.getTimezone().toUpperCase())));
+            instant = instant.with(DateTimeZone.forTimeZone(TimeZone.getTimeZone(vo.getTimezone())));
         }
 
         return instant;

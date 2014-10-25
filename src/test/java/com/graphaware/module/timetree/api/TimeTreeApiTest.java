@@ -308,6 +308,38 @@ public class TimeTreeApiTest extends GraphAwareApiTest {
         get(getUrl() + "0/single/" + dateInMillis, HttpStatus.SC_NOT_FOUND);
     }
 
+    @Test
+    public void timeZoneShouldWork() {
+        //Given
+        long dateInMillis = new DateTime(2014, 10, 25, 6, 36, DateTimeZone.UTC).getMillis();
+
+        //When
+        String timezone = "America/Los_Angeles";
+        String result = get(getUrl() + "single/" + dateInMillis + "?resolution=minute&timezone=" + timezone, HttpStatus.SC_OK);
+
+        //Then
+        assertSameGraph(getDatabase(), "CREATE" +
+                "(root:TimeTreeRoot)," +
+                "(root)-[:FIRST]->(year:Year {value:2014})," +
+                "(root)-[:CHILD]->(year)," +
+                "(root)-[:LAST]->(year)," +
+                "(year)-[:FIRST]->(month:Month {value:10})," +
+                "(year)-[:CHILD]->(month)," +
+                "(year)-[:LAST]->(month)," +
+                "(month)-[:FIRST]->(day:Day {value:24})," +
+                "(month)-[:CHILD]->(day)," +
+                "(month)-[:LAST]->(day)," +
+                "(day)-[:CHILD]->(hour:Hour{value:23})," +
+                "(day)-[:FIRST]->(hour)," +
+                "(day)-[:LAST]->(hour)," +
+                "(hour)-[:CHILD]->(minute:Minute{value:36})," +
+                "(hour)-[:FIRST]->(minute)," +
+                "(hour)-[:LAST]->(minute)"
+        );
+
+        assertEquals("5", result);
+    }
+
 
     private long dateToMillis(int year, int month, int day) {
         return dateToDateTime(year, month, day).getMillis();

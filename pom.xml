@@ -113,7 +113,6 @@
             <groupId>com.graphaware.neo4j</groupId>
             <artifactId>common</artifactId>
             <version>${graphaware.version}</version>
-            <scope>provided</scope>
         </dependency>
 
         <!-- Joda -->

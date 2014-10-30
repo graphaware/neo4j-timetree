@@ -17,8 +17,6 @@
 package com.graphaware.module.timetree.api;
 
 import com.graphaware.common.util.PropertyContainerUtils;
-import com.graphaware.module.timetree.domain.Resolution;
-import com.graphaware.module.timetree.domain.TimeInstant;
 import com.graphaware.test.integration.GraphAwareApiTest;
 import org.apache.http.HttpStatus;
 import org.joda.time.DateTime;
@@ -31,9 +29,7 @@ import org.neo4j.tooling.GlobalGraphOperations;
 
 import static com.graphaware.test.unit.GraphUnit.assertSameGraph;
 import static com.graphaware.test.util.TestUtils.get;
-import static com.graphaware.test.util.TestUtils.post;
 import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertTrue;
 
 /**
  * Integration test for {@link com.graphaware.module.timetree.api.TimeTreeApi}.
@@ -333,6 +329,38 @@ public class TimeTreeApiTest extends GraphAwareApiTest {
                 "(day)-[:FIRST]->(hour)," +
                 "(day)-[:LAST]->(hour)," +
                 "(hour)-[:CHILD]->(minute:Minute{value:36})," +
+                "(hour)-[:FIRST]->(minute)," +
+                "(hour)-[:LAST]->(minute)"
+        );
+
+        assertEquals("5", result);
+    }
+
+    @Test
+    public void timeZoneShouldWork2() {
+        //Given
+        long dateInMillis = 1414264162000L;
+
+        //When
+        String timezone = "PST";
+        String result = get(getUrl() + "single/" + dateInMillis + "?resolution=minute&timezone=" + timezone, HttpStatus.SC_OK);
+
+        //Then
+        assertSameGraph(getDatabase(), "CREATE" +
+                "(root:TimeTreeRoot)," +
+                "(root)-[:FIRST]->(year:Year {value:2014})," +
+                "(root)-[:CHILD]->(year)," +
+                "(root)-[:LAST]->(year)," +
+                "(year)-[:FIRST]->(month:Month {value:10})," +
+                "(year)-[:CHILD]->(month)," +
+                "(year)-[:LAST]->(month)," +
+                "(month)-[:FIRST]->(day:Day {value:25})," +
+                "(month)-[:CHILD]->(day)," +
+                "(month)-[:LAST]->(day)," +
+                "(day)-[:CHILD]->(hour:Hour{value:12})," +
+                "(day)-[:FIRST]->(hour)," +
+                "(day)-[:LAST]->(hour)," +
+                "(hour)-[:CHILD]->(minute:Minute{value:9})," +
                 "(hour)-[:FIRST]->(minute)," +
                 "(hour)-[:LAST]->(minute)"
         );

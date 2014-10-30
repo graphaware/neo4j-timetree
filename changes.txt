@@ -1,0 +1,2 @@
+2.1.5.21.18:
+    - fixed a timezone support bug, timezones are now case-sensitive

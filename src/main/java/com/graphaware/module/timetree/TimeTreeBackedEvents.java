@@ -2,32 +2,30 @@ package com.graphaware.module.timetree;
 
 import com.graphaware.module.timetree.domain.Event;
 import com.graphaware.module.timetree.domain.TimeInstant;
-import com.graphaware.module.timetree.domain.ValidationUtils;
 import org.neo4j.graphdb.Node;
 import org.neo4j.graphdb.Relationship;
 import org.neo4j.graphdb.RelationshipType;
-import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.stereotype.Service;
 
-import java.util.*;
+import java.util.ArrayList;
+import java.util.Collections;
+import java.util.LinkedList;
+import java.util.List;
 
-import static com.graphaware.module.timetree.SingleTimeTree.*;
+import static com.graphaware.module.timetree.SingleTimeTree.parent;
 import static com.graphaware.module.timetree.domain.TimeTreeRelationshipTypes.*;
-import static com.graphaware.module.timetree.domain.ValidationUtils.*;
+import static com.graphaware.module.timetree.domain.ValidationUtils.validateRange;
 import static org.neo4j.graphdb.Direction.INCOMING;
 import static org.neo4j.graphdb.Direction.OUTGOING;
 
 /**
  * {@link TimedEvents} backed by a {@link TimeTree}.
  */
-@Service
 public class TimeTreeBackedEvents implements TimedEvents {
 
     private final TimeTree timeTree;
 
     private static final List<String> timeTreeRelationships = getTimeTreeRelationshipNames();
 
-    @Autowired
     public TimeTreeBackedEvents(TimeTree timeTree) {
         this.timeTree = timeTree;
     }

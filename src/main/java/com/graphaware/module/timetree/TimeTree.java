@@ -88,7 +88,8 @@ public interface TimeTree {
     void removeAll();
 
     /**
-     * Remove a time instant, this instant must have no events attached and no child-nodes
+     * Remove a time instant, this instant must have no events attached and no child-nodes. If it does have any events
+     * or child nodes attached, it will not be removed and a warning will be logged.
      *
      * @param instantNode finest Resolution TimeInstant
      */

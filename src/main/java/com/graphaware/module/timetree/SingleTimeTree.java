@@ -539,6 +539,7 @@ public class SingleTimeTree implements TimeTree {
     @Override
     public void removeInstant(Node instantNode) {
         if (instantNode.hasRelationship(CHILD, OUTGOING)) {
+            LOG.warn("Cannot remove " + instantNode + ". It still has children.");
             return;
         }
 

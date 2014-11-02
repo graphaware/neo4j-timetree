@@ -242,10 +242,6 @@ public class SingleTimeTreeTest extends DatabaseIntegrationTest {
         Node dayNode;
         try (Transaction tx = getDatabase().beginTx()) {
             dayNode = timeTree.getInstantAtOrBefore(timeInstant);
-
-            System.out.println("expected:"+PropertyContainerUtils.nodeToString(previous));
-            System.out.println("actual:"+PropertyContainerUtils.nodeToString(dayNode));
-
             tx.success();
         }
 
@@ -270,10 +266,6 @@ public class SingleTimeTreeTest extends DatabaseIntegrationTest {
         Node dayNode;
         try (Transaction tx = getDatabase().beginTx()) {
             dayNode = timeTree.getInstantAtOrBefore(timeInstant);
-
-            System.out.println("expected:"+PropertyContainerUtils.nodeToString(previous));
-            System.out.println("actual:"+PropertyContainerUtils.nodeToString(dayNode));
-
             tx.success();
         }
 

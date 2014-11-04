@@ -1,4 +1,4 @@
-2.1.5.21.18:
+2.1.5.23.18:
     - fixed a timezone support bug, timezones are now case-sensitive
     - fixed issue with external dependencies bundled with the .jar in Maven Central
     - consistent equality checks

@@ -31,7 +31,7 @@ Releases are synced to <a href="http://search.maven.org/#search%7Cga%7C1%7Ca%3A%
         <dependency>
             <groupId>com.graphaware.neo4j</groupId>
             <artifactId>timetree</artifactId>
-            <version>2.1.5.24.18</version>
+            <version>2.1.5.25.18</version>
         </dependency>
         ...
     </dependencies>

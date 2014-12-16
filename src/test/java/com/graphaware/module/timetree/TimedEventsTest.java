@@ -169,7 +169,6 @@ public class TimedEventsTest extends DatabaseIntegrationTest {
     @Test
     public void eventShouldBeFetchedForATimeInstant() {
         //Given
-        DateTime now = DateTime.now(UTC);
         TimeInstant timeInstant = TimeInstant.now();
 
         Node event;
@@ -254,7 +253,6 @@ public class TimedEventsTest extends DatabaseIntegrationTest {
     @Test
     public void multipleEventsShouldBeFetchedForATimeInstant() {
         //Given
-        DateTime now = DateTime.now(UTC);
         TimeInstant timeInstant = TimeInstant.now();
         Node event1, event2;
 
@@ -470,6 +468,35 @@ public class TimedEventsTest extends DatabaseIntegrationTest {
             assertEquals("eventB", events.get(1).getNode().getProperty("name"));
 
             events = timedEvents.getEvents(timeInstant1, timeInstant2, DynamicRelationshipType.withName("NONEXISTENT_RELATION"));
+            assertEquals(0, events.size());
+
+            tx.success();
+        }
+    }
+
+    @Test
+    public void noEventsShouldBeFetchedWhenThereAreNoEventsInTheRange() {   //Issue #9
+        //Given
+        TimeInstant timeInstant1 = TimeInstant.instant(dateToMillis(2012, 11, 2)).with(Resolution.MILLISECOND);
+        TimeInstant zero = TimeInstant.instant(0l).with(Resolution.MILLISECOND);
+        TimeInstant beforeTimeInstant1 = TimeInstant.instant(dateToMillis(2012, 11, 1)).with(Resolution.MILLISECOND);
+        Node event1;
+
+        try (Transaction tx = getDatabase().beginTx()) {
+            event1 = getDatabase().createNode();
+            event1.setProperty("name", "eventA");
+            tx.success();
+        }
+
+        //When
+        try (Transaction tx = getDatabase().beginTx()) {
+            timedEvents.attachEvent(event1, AT_TIME, timeInstant1);
+            tx.success();
+        }
+
+        //Then
+        try (Transaction tx = getDatabase().beginTx()) {
+            List<Event> events = timedEvents.getEvents(zero, beforeTimeInstant1);
             assertEquals(0, events.size());
 
             tx.success();

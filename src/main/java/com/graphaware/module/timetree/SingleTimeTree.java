@@ -342,7 +342,7 @@ public class SingleTimeTree implements TimeTree {
             case RETURN_NEXT:
                 return existingChild;
             case RETURN_PREVIOUS:
-                return existingChild.getSingleRelationship(NEXT, INCOMING).getStartNode();
+                return existingChild.getSingleRelationship(NEXT, INCOMING)==null?null:existingChild.getSingleRelationship(NEXT, INCOMING).getStartNode();
             default:
                 throw new IllegalStateException("Unknown child not found resolution: " + childNotFoundPolicy);
         }

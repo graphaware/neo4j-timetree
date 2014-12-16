@@ -1,3 +1,6 @@
+NEXT:
+    -fixed issue #9 (NPE when requesting events in a range before any existing events)
+
 2.1.6.26.18:
     -no changes
 

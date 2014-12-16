@@ -290,11 +290,13 @@ public class SingleTimeTree implements TimeTree {
     }
 
     /**
-     * Find a child node with value equal to the given value. If no such child exists, return <code>null</code>.
+     * Find a child node with value equal to the given value. If no such child exists, return a value according to the
+     * provided {@link ChildNotFoundPolicy}.
      *
-     * @param parent parent of the node to be found.
-     * @param value  value of the node to be found.
-     * @return child node, <code>null</code> of none exists.
+     * @param parent              parent of the node to be found.
+     * @param value               value of the node to be found.
+     * @param childNotFoundPolicy what to do when child isn't found?
+     * @return child node, or a value specified by the given {@link ChildNotFoundPolicy}.
      */
     private Node findChild(Node parent, int value, ChildNotFoundPolicy childNotFoundPolicy) {
         Relationship firstRelationship = parent.getSingleRelationship(FIRST, OUTGOING);
@@ -342,9 +344,9 @@ public class SingleTimeTree implements TimeTree {
             case RETURN_NEXT:
                 return existingChild;
             case RETURN_PREVIOUS:
-                return existingChild.getSingleRelationship(NEXT, INCOMING)==null?null:existingChild.getSingleRelationship(NEXT, INCOMING).getStartNode();
+                return existingChild.getSingleRelationship(NEXT, INCOMING) == null ? null : existingChild.getSingleRelationship(NEXT, INCOMING).getStartNode();
             default:
-                throw new IllegalStateException("Unknown child not found resolution: " + childNotFoundPolicy);
+                throw new IllegalStateException("Unknown child not found policy: " + childNotFoundPolicy);
         }
     }
 

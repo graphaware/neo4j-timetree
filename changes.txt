@@ -1,3 +1,6 @@
+2.1.6.27.19:
+    -no changes
+
 2.1.6.26.19:
     -fixed issue #9 (NPE when requesting events in a range before any existing events)
 

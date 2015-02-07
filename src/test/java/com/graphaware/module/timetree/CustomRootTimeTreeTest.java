@@ -19,6 +19,8 @@ package com.graphaware.module.timetree;
 import com.graphaware.common.util.PropertyContainerUtils;
 import com.graphaware.module.timetree.domain.TimeInstant;
 import com.graphaware.module.timetree.domain.TimeTreeLabels;
+import com.graphaware.test.data.DatabasePopulator;
+import com.graphaware.test.data.SingleTransactionPopulator;
 import com.graphaware.test.integration.DatabaseIntegrationTest;
 import org.joda.time.DateTime;
 import org.joda.time.DateTimeZone;
@@ -41,8 +43,13 @@ public class CustomRootTimeTreeTest extends DatabaseIntegrationTest {
     private static final DateTimeZone UTC = DateTimeZone.forTimeZone(TimeZone.getTimeZone("UTC"));
 
     @Override
-    protected void populateDatabase(GraphDatabaseService database) {
-        database.createNode(DynamicLabel.label("CustomRoot"));
+    protected DatabasePopulator databasePopulator() {
+        return new SingleTransactionPopulator() {
+            @Override
+            protected void doPopulate(GraphDatabaseService database) {
+                database.createNode(DynamicLabel.label("CustomRoot"));
+            }
+        };
     }
 
     @Test

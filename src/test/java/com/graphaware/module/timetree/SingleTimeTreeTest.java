@@ -1144,6 +1144,38 @@ public class SingleTimeTreeTest extends DatabaseIntegrationTest {
                 "({ev:2})");
     }
 
+    @Test
+    public void shouldSupportDatesBefore1970() {
+        //Given
+        long dateInMillis = dateToMillis(1959, 7, 25);
+        TimeInstant timeInstant = TimeInstant.instant(dateInMillis);
+
+        //When
+        Node dayNode;
+        try (Transaction tx = getDatabase().beginTx()) {
+            dayNode = timeTree.getOrCreateInstant(timeInstant);
+            tx.success();
+        }
+
+        //Then
+        assertSameGraph(getDatabase(), "CREATE" +
+                "(root:TimeTreeRoot)," +
+                "(root)-[:FIRST]->(year:Year {value:1959})," +
+                "(root)-[:CHILD]->(year)," +
+                "(root)-[:LAST]->(year)," +
+                "(year)-[:FIRST]->(month:Month {value:7})," +
+                "(year)-[:CHILD]->(month)," +
+                "(year)-[:LAST]->(month)," +
+                "(month)-[:FIRST]->(day:Day {value:25})," +
+                "(month)-[:CHILD]->(day)," +
+                "(month)-[:LAST]->(day)");
+
+        try (Transaction tx = getDatabase().beginTx()) {
+            assertTrue(dayNode.hasLabel(TimeTreeLabels.Day));
+            assertEquals(25, dayNode.getProperty(VALUE_PROPERTY));
+        }
+    }
+
     private long dateToMillis(int year, int month, int day) {
         return dateToDateTime(year, month, day).getMillis();
     }

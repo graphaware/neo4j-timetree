@@ -368,6 +368,29 @@ public class TimeTreeApiTest extends GraphAwareApiTest {
         assertEquals("5", result);
     }
 
+    @Test
+    public void shouldSupportDatesBefore1970() {
+        //Given
+        long dateInMillis = dateToMillis(1940, 2, 5);
+
+        //When
+        String result = get(getUrl() + "single/" + dateInMillis, HttpStatus.SC_OK);
+
+        //Then
+        assertSameGraph(getDatabase(), "CREATE" +
+                "(root:TimeTreeRoot)," +
+                "(root)-[:FIRST]->(year:Year {value:1940})," +
+                "(root)-[:CHILD]->(year)," +
+                "(root)-[:LAST]->(year)," +
+                "(year)-[:FIRST]->(month:Month {value:2})," +
+                "(year)-[:CHILD]->(month)," +
+                "(year)-[:LAST]->(month)," +
+                "(month)-[:FIRST]->(day:Day {value:5})," +
+                "(month)-[:CHILD]->(day)," +
+                "(month)-[:LAST]->(day)");
+
+        assertEquals("3", result);
+    }
 
     private long dateToMillis(int year, int month, int day) {
         return dateToDateTime(year, month, day).getMillis();

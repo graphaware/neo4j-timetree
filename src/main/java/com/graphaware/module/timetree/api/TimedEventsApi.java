@@ -27,6 +27,7 @@ import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Controller;
 import org.springframework.web.bind.annotation.*;
 
+import javax.servlet.http.HttpServletResponse;
 import java.util.*;
 
 /**
@@ -68,17 +69,23 @@ public class TimedEventsApi {
     }
 
     @RequestMapping(value = "/single/event", method = RequestMethod.POST)
-    @ResponseStatus(HttpStatus.CREATED)
-    public void attachEvent(@RequestBody TimedEventVO event) {
+    public void attachEvent(@RequestBody TimedEventVO event, HttpServletResponse response) {
         event.validate();
 
         try (Transaction tx = database.beginTx()) {
             Node eventNode = database.getNodeById(event.getEvent().getNodeId());
 
-            timedEvents.attachEvent(
+            boolean attached = timedEvents.attachEvent(
                     eventNode,
                     DynamicRelationshipType.withName(event.getEvent().getRelationshipType()),
                     TimeInstant.fromValueObject(event.getTimeInstant()));
+
+            if (attached) {
+                response.setStatus(HttpStatus.CREATED.value());
+            }
+            else {
+                response.setStatus(HttpStatus.OK.value());
+            }
 
             tx.success();
         }

@@ -16,14 +16,13 @@
 
 package com.graphaware.module.timetree.api;
 
-import com.fasterxml.jackson.core.JsonParseException;
-import com.fasterxml.jackson.databind.ObjectMapper;
 import com.graphaware.module.timetree.domain.Resolution;
 import com.graphaware.module.timetree.domain.TimeInstant;
 import com.graphaware.test.integration.GraphAwareApiTest;
 import org.apache.http.HttpStatus;
 import org.joda.time.DateTime;
 import org.joda.time.DateTimeZone;
+import org.junit.Ignore;
 import org.junit.Test;
 import org.neo4j.graphdb.DynamicLabel;
 import org.neo4j.graphdb.Node;
@@ -35,8 +34,6 @@ import static com.graphaware.test.unit.GraphUnit.assertSameGraph;
 import static com.graphaware.test.util.TestUtils.get;
 import static com.graphaware.test.util.TestUtils.post;
 import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertNotNull;
-import static org.junit.Assert.assertTrue;
 
 /**
  * Integration test for {@link TimeTreeApi}.
@@ -109,7 +106,7 @@ public class TimedEventsApiTest extends GraphAwareApiTest {
                 "        \"timezone\": \"ILLEGAL\"," +
                 "        \"resolution\": \"DAY\"," +
                 "        \"relationshipType\": \"AT_TIME\"," +
-                "        \"time\": " + System.currentTimeMillis() +
+                "        \"time\": " + (System.currentTimeMillis() - 1000 * 3600 * 24 * 2) + //two days less, we already have an event for this day
                 "    }";
 
         post(getUrl() + "single/event", eventJson, HttpStatus.SC_CREATED); //with default timezone
@@ -146,6 +143,57 @@ public class TimedEventsApiTest extends GraphAwareApiTest {
                 "    }";
 
         post(getUrl() + "single/event", eventJson, HttpStatus.SC_CREATED);
+
+        String getResult = get(getUrl() + "single/" + timeInstant.getTime() + "/events?relationshipType=AT_TIME", HttpStatus.SC_OK);
+
+        //Then
+        assertSameGraph(getDatabase(), "CREATE" +
+                "(root:TimeTreeRoot)," +
+                "(root)-[:FIRST]->(year:Year {value:" + now.getYear() + "})," +
+                "(root)-[:CHILD]->(year)," +
+                "(root)-[:LAST]->(year)," +
+                "(year)-[:FIRST]->(month:Month {value:" + now.getMonthOfYear() + "})," +
+                "(year)-[:CHILD]->(month)," +
+                "(year)-[:LAST]->(month)," +
+                "(month)-[:FIRST]->(day:Day {value:" + now.getDayOfMonth() + "})," +
+                "(month)-[:CHILD]->(day)," +
+                "(month)-[:LAST]->(day)," +
+                "(day)<-[:AT_TIME]-(event {name:'eventA'})");
+
+        assertEquals("[{\"nodeId\":0,\"relationshipType\":\"AT_TIME\"}]", getResult);
+    }
+
+    @Test
+    public void eventShouldOnlyBeAttachedOnce() throws IOException {
+        //Given
+        DateTime now = DateTime.now(DateTimeZone.UTC);
+        TimeInstant timeInstant = TimeInstant
+                .now()
+                .with(DateTimeZone.UTC)
+                .with(Resolution.DAY);
+
+        Node event;
+        long eventId;
+        try (Transaction tx = getDatabase().beginTx()) {
+            event = getDatabase().createNode();
+            event.setProperty("name", "eventA");
+            eventId = event.getId();
+            tx.success();
+        }
+
+
+        //When
+        String eventJson = "{" +
+                "        \"nodeId\": " + eventId + "," +
+                "        \"relationshipType\": \"AT_TIME\"," +
+                "        \"timezone\": \"UTC\"," +
+                "        \"resolution\": \"DAY\"," +
+                "        \"time\": " + timeInstant.getTime() +
+                "    }";
+
+        post(getUrl() + "single/event", eventJson, HttpStatus.SC_CREATED);
+        post(getUrl() + "single/event", eventJson, HttpStatus.SC_OK);
+        post(getUrl() + "single/event", eventJson, HttpStatus.SC_OK);
 
         String getResult = get(getUrl() + "single/" + timeInstant.getTime() + "/events?relationshipType=AT_TIME", HttpStatus.SC_OK);
 
@@ -355,6 +403,38 @@ public class TimedEventsApiTest extends GraphAwareApiTest {
                 "{\"nodeId\":2,\"relationshipType\":\"AT_TIME\"}]", getResult);
     }
 
+    @Test(timeout = 5000L) //issue https://github.com/graphaware/neo4j-timetree/issues/12
+    @Ignore //not fixed yet
+    public void shouldBeAbleToAttachEventsInARunningTx() {
+        String txId = post(baseNeoUrl() + "/db/data/transaction", "{\n" +
+                "  \"statements\" : [ {\n" +
+                "    \"statement\" : \"CREATE (e:Email {props}) RETURN id(e)\",\n" +
+                "    \"parameters\" : {\n" +
+                "      \"props\" : {\n" +
+                "        \"subject\" : \"Neo4j\"\n" +
+                "      }\n" +
+                "    }\n" +
+                "  } ]\n" +
+                "}", HttpStatus.SC_CREATED);
+
+        System.out.println("TX ID:" + txId);
+
+        //When
+        String eventJson1 = "{" +
+                "        \"nodeId\": " + 0 + "," +
+                "        \"relationshipType\": \"AT_TIME\"," +
+                "        \"timezone\": \"UTC\"," +
+                "        \"resolution\": \"DAY\"," +
+                "        \"time\": 123343242132" +
+                "    }";
+
+        post(getUrl() + "single/event", eventJson1, HttpStatus.SC_CREATED);
+
+        String txSuccess = post(baseNeoUrl() + "/db/data/transaction/1/commit", HttpStatus.SC_OK);
+
+        System.out.println("TX success:" + txSuccess);
+
+    }
 
     private long dateToMillis(int year, int month, int day) {
         return dateToDateTime(year, month, day).getMillis();

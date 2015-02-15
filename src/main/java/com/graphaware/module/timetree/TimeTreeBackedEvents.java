@@ -34,8 +34,17 @@ public class TimeTreeBackedEvents implements TimedEvents {
      * {@inheritDoc}
      */
     @Override
-    public void attachEvent(Node event, RelationshipType relationshipType, TimeInstant timeInstant) {
-        event.createRelationshipTo(timeTree.getOrCreateInstant(timeInstant), relationshipType);
+    public boolean attachEvent(Node event, RelationshipType relationshipType, TimeInstant timeInstant) {
+        Node instant = timeTree.getOrCreateInstant(timeInstant);
+
+        for (Relationship existing : event.getRelationships(OUTGOING, relationshipType)) {
+            if (existing.getEndNode().equals(instant)) {
+                return false;
+            }
+        }
+
+        event.createRelationshipTo(instant, relationshipType);
+        return true;
     }
 
     /**

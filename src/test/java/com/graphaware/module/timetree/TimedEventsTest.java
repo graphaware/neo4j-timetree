@@ -31,10 +31,14 @@ import org.neo4j.graphdb.Transaction;
 
 import java.util.*;
 
-import static com.graphaware.module.timetree.domain.Resolution.*;
+import static com.graphaware.module.timetree.domain.Resolution.MONTH;
+import static com.graphaware.module.timetree.domain.Resolution.YEAR;
 import static com.graphaware.test.unit.GraphUnit.assertSameGraph;
 import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertFalse;
 import static org.junit.Assert.assertTrue;
+import static org.neo4j.graphdb.Direction.OUTGOING;
+import static org.neo4j.helpers.collection.Iterables.count;
 
 /**
  * Unit test for {@link com.graphaware.module.timetree.SingleTimeTree}.
@@ -42,7 +46,7 @@ import static org.junit.Assert.assertTrue;
 public class TimedEventsTest extends DatabaseIntegrationTest {
 
     private static final DynamicRelationshipType AT_TIME = DynamicRelationshipType.withName("AT_TIME");
-    
+
     private TimedEvents timedEvents;
 
     private static final DateTimeZone UTC = DateTimeZone.forTimeZone(TimeZone.getTimeZone("UTC"));
@@ -87,12 +91,71 @@ public class TimedEventsTest extends DatabaseIntegrationTest {
                 "(day)<-[:AT_TIME]-(event {name:'eventA'})");
     }
 
+    @Test //https://github.com/graphaware/neo4j-timetree/issues/13
+    public void eventShouldNotBeAttachedTwiceInTheSameTx() {
+        //Given
+        DateTime now = DateTime.now(UTC);
+        TimeInstant timeInstant = TimeInstant.now();
+        Node event;
+
+        try (Transaction tx = getDatabase().beginTx()) {
+            event = getDatabase().createNode();
+            event.setProperty("name", "eventA");
+            tx.success();
+        }
+
+        //When
+        try (Transaction tx = getDatabase().beginTx()) {
+            assertTrue(timedEvents.attachEvent(event, AT_TIME, timeInstant));
+            assertFalse(timedEvents.attachEvent(event, AT_TIME, timeInstant));
+            tx.success();
+        }
+
+        //Then
+        try (Transaction tx = getDatabase().beginTx()) {
+            assertEquals(1, count(event.getRelationships(OUTGOING, AT_TIME)));
+            tx.success();
+        }
+    }
+
+    @Test //https://github.com/graphaware/neo4j-timetree/issues/13
+    public void eventShouldNotBeAttachedTwiceInDifferentTx() {
+        //Given
+        DateTime now = DateTime.now(UTC);
+        TimeInstant timeInstant = TimeInstant.now();
+        Node event;
+
+        try (Transaction tx = getDatabase().beginTx()) {
+            event = getDatabase().createNode();
+            event.setProperty("name", "eventA");
+            tx.success();
+        }
+
+        //When
+        try (Transaction tx = getDatabase().beginTx()) {
+            assertTrue(timedEvents.attachEvent(event, AT_TIME, timeInstant));
+            tx.success();
+        }
+
+        try (Transaction tx = getDatabase().beginTx()) {
+            assertFalse(timedEvents.attachEvent(event, AT_TIME, timeInstant));
+            tx.success();
+        }
+
+        //Then
+        try (Transaction tx = getDatabase().beginTx()) {
+            assertEquals(1, count(event.getRelationships(OUTGOING, AT_TIME)));
+            tx.success();
+        }
+    }
+
+
     @Test
     public void multipleEventsAndTimeInstantShouldBeCreatedWhenEventIsAttached() {
         //Given
         DateTime now = DateTime.now(UTC);
         TimeInstant timeInstant = TimeInstant.now();
-        
+
         Node event1, event2;
 
         try (Transaction tx = getDatabase().beginTx()) {
@@ -507,26 +570,26 @@ public class TimedEventsTest extends DatabaseIntegrationTest {
     @Ignore //save my CPU from frying
     public void perSecondEventsShouldBeFetched() { //Test for Issue #2
         //Given an event every second for 6 hours
-        Calendar runningCal = new GregorianCalendar(2014,Calendar.OCTOBER,11,0,0,0);
-        Calendar endCal = new GregorianCalendar(2014,Calendar.OCTOBER,11,5,59,59);
+        Calendar runningCal = new GregorianCalendar(2014, Calendar.OCTOBER, 11, 0, 0, 0);
+        Calendar endCal = new GregorianCalendar(2014, Calendar.OCTOBER, 11, 5, 59, 59);
 
-        Calendar beforeStartCal = new GregorianCalendar(2014,Calendar.OCTOBER,10,0,0,0);
-        Calendar afterEndCal = new GregorianCalendar(2014,Calendar.OCTOBER,13,0,59,59);
+        Calendar beforeStartCal = new GregorianCalendar(2014, Calendar.OCTOBER, 10, 0, 0, 0);
+        Calendar afterEndCal = new GregorianCalendar(2014, Calendar.OCTOBER, 13, 0, 59, 59);
 
 
         TimeInstant beforeStartTime = TimeInstant.instant(beforeStartCal.getTime().getTime()).with(Resolution.MILLISECOND);
         TimeInstant afterEndTime = TimeInstant.instant(afterEndCal.getTime().getTime()).with(Resolution.MILLISECOND);
 
         //When
-        int count=0;
+        int count = 0;
         try (Transaction tx = getDatabase().beginTx()) {
             while (runningCal.before(endCal)) {
                 System.out.println("Creating event " + count);
                 Node event = getDatabase().createNode();
-                event.setProperty("name","event" + count++);
+                event.setProperty("name", "event" + count++);
                 TimeInstant runningTime = TimeInstant.instant(runningCal.getTime().getTime()).with(Resolution.MILLISECOND);
-                timedEvents.attachEvent(event,AT_TIME,runningTime);
-                runningCal.add(Calendar.SECOND,1);
+                timedEvents.attachEvent(event, AT_TIME, runningTime);
+                runningCal.add(Calendar.SECOND, 1);
             }
             tx.success();
         }
@@ -538,10 +601,11 @@ public class TimedEventsTest extends DatabaseIntegrationTest {
             List<Event> events = timedEvents.getEvents(beforeStartTime, afterEndTime, AT_TIME); //Make sure that events are still returned within this range
             assertEquals(count, events.size());
             assertEquals("event0", events.get(0).getNode().getProperty("name"));
-            assertEquals("event" + (count-1), events.get(count-1).getNode().getProperty("name"));
+            assertEquals("event" + (count - 1), events.get(count - 1).getNode().getProperty("name"));
             tx.success();
         }
     }
+
     private long dateToMillis(int year, int month, int day) {
         return dateToDateTime(year, month, day).getMillis();
     }

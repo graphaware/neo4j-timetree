@@ -41,6 +41,8 @@ public class TimeInstant {
 
     /**
      * Create a new time instant representing now in UTC timezone with {@link Resolution#DAY}.
+     *
+     * @return time instant representing now.
      */
     public static TimeInstant now() {
         return instant(DateTime.now().getMillis());
@@ -50,6 +52,7 @@ public class TimeInstant {
      * Create a new time instant representing the given time in UTC timezone with {@link Resolution#DAY}.
      *
      * @param time to represent.
+     * @return time instant representing the given time.
      */
     public static TimeInstant instant(long time) {
         return new TimeInstant(time, DEFAULT_TIME_ZONE, DEFAULT_RESOLUTION);

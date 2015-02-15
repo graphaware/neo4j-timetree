@@ -16,14 +16,13 @@
 
 package com.graphaware.module.timetree.api;
 
-import com.fasterxml.jackson.core.JsonParseException;
-import com.fasterxml.jackson.databind.ObjectMapper;
 import com.graphaware.module.timetree.domain.Resolution;
 import com.graphaware.module.timetree.domain.TimeInstant;
 import com.graphaware.test.integration.GraphAwareApiTest;
 import org.apache.http.HttpStatus;
 import org.joda.time.DateTime;
 import org.joda.time.DateTimeZone;
+import org.junit.Ignore;
 import org.junit.Test;
 import org.neo4j.graphdb.DynamicLabel;
 import org.neo4j.graphdb.Node;
@@ -35,8 +34,6 @@ import static com.graphaware.test.unit.GraphUnit.assertSameGraph;
 import static com.graphaware.test.util.TestUtils.get;
 import static com.graphaware.test.util.TestUtils.post;
 import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertNotNull;
-import static org.junit.Assert.assertTrue;
 
 /**
  * Integration test for {@link TimeTreeApi}.
@@ -355,6 +352,38 @@ public class TimedEventsApiTest extends GraphAwareApiTest {
                 "{\"nodeId\":2,\"relationshipType\":\"AT_TIME\"}]", getResult);
     }
 
+    @Test(timeout = 5000L) //issue https://github.com/graphaware/neo4j-timetree/issues/12
+    @Ignore //not fixed yet
+    public void shouldBeAbleToAttachEventsInARunningTx() {
+        String txId = post(baseNeoUrl() + "/db/data/transaction", "{\n" +
+                "  \"statements\" : [ {\n" +
+                "    \"statement\" : \"CREATE (e:Email {props}) RETURN id(e)\",\n" +
+                "    \"parameters\" : {\n" +
+                "      \"props\" : {\n" +
+                "        \"subject\" : \"Neo4j\"\n" +
+                "      }\n" +
+                "    }\n" +
+                "  } ]\n" +
+                "}", HttpStatus.SC_CREATED);
+
+        System.out.println("TX ID:" + txId);
+
+        //When
+        String eventJson1 = "{" +
+                "        \"nodeId\": " + 0 + "," +
+                "        \"relationshipType\": \"AT_TIME\"," +
+                "        \"timezone\": \"UTC\"," +
+                "        \"resolution\": \"DAY\"," +
+                "        \"time\": 123343242132" +
+                "    }";
+
+        post(getUrl() + "single/event", eventJson1, HttpStatus.SC_CREATED);
+
+        String txSuccess = post(baseNeoUrl() + "/db/data/transaction/1/commit", HttpStatus.SC_OK);
+
+        System.out.println("TX success:" + txSuccess);
+
+    }
 
     private long dateToMillis(int year, int month, int day) {
         return dateToDateTime(year, month, day).getMillis();

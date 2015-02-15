@@ -106,7 +106,7 @@ public class TimedEventsApiTest extends GraphAwareApiTest {
                 "        \"timezone\": \"ILLEGAL\"," +
                 "        \"resolution\": \"DAY\"," +
                 "        \"relationshipType\": \"AT_TIME\"," +
-                "        \"time\": " + System.currentTimeMillis() +
+                "        \"time\": " + (System.currentTimeMillis() - 1000 * 3600 * 24 * 2) + //two days less, we already have an event for this day
                 "    }";
 
         post(getUrl() + "single/event", eventJson, HttpStatus.SC_CREATED); //with default timezone
@@ -143,6 +143,57 @@ public class TimedEventsApiTest extends GraphAwareApiTest {
                 "    }";
 
         post(getUrl() + "single/event", eventJson, HttpStatus.SC_CREATED);
+
+        String getResult = get(getUrl() + "single/" + timeInstant.getTime() + "/events?relationshipType=AT_TIME", HttpStatus.SC_OK);
+
+        //Then
+        assertSameGraph(getDatabase(), "CREATE" +
+                "(root:TimeTreeRoot)," +
+                "(root)-[:FIRST]->(year:Year {value:" + now.getYear() + "})," +
+                "(root)-[:CHILD]->(year)," +
+                "(root)-[:LAST]->(year)," +
+                "(year)-[:FIRST]->(month:Month {value:" + now.getMonthOfYear() + "})," +
+                "(year)-[:CHILD]->(month)," +
+                "(year)-[:LAST]->(month)," +
+                "(month)-[:FIRST]->(day:Day {value:" + now.getDayOfMonth() + "})," +
+                "(month)-[:CHILD]->(day)," +
+                "(month)-[:LAST]->(day)," +
+                "(day)<-[:AT_TIME]-(event {name:'eventA'})");
+
+        assertEquals("[{\"nodeId\":0,\"relationshipType\":\"AT_TIME\"}]", getResult);
+    }
+
+    @Test
+    public void eventShouldOnlyBeAttachedOnce() throws IOException {
+        //Given
+        DateTime now = DateTime.now(DateTimeZone.UTC);
+        TimeInstant timeInstant = TimeInstant
+                .now()
+                .with(DateTimeZone.UTC)
+                .with(Resolution.DAY);
+
+        Node event;
+        long eventId;
+        try (Transaction tx = getDatabase().beginTx()) {
+            event = getDatabase().createNode();
+            event.setProperty("name", "eventA");
+            eventId = event.getId();
+            tx.success();
+        }
+
+
+        //When
+        String eventJson = "{" +
+                "        \"nodeId\": " + eventId + "," +
+                "        \"relationshipType\": \"AT_TIME\"," +
+                "        \"timezone\": \"UTC\"," +
+                "        \"resolution\": \"DAY\"," +
+                "        \"time\": " + timeInstant.getTime() +
+                "    }";
+
+        post(getUrl() + "single/event", eventJson, HttpStatus.SC_CREATED);
+        post(getUrl() + "single/event", eventJson, HttpStatus.SC_OK);
+        post(getUrl() + "single/event", eventJson, HttpStatus.SC_OK);
 
         String getResult = get(getUrl() + "single/" + timeInstant.getTime() + "/events?relationshipType=AT_TIME", HttpStatus.SC_OK);
 

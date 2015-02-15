@@ -34,8 +34,9 @@ public interface TimedEvents {
      * @param event            event node to be associated with the specified time instant.
      * @param relationshipType type of the relationship between the event node and the time instant node.
      * @param timeInstant      specific time instant to attach the event to.
+     * @return <code>true</code> iff the event was attached, <code>false</code> iff it was already attached.
      */
-    void attachEvent(Node event, RelationshipType relationshipType, TimeInstant timeInstant);
+    boolean attachEvent(Node event, RelationshipType relationshipType, TimeInstant timeInstant);
 
     /**
      * Get events attached (using any incoming relationship) to a specific time instant and all its children.
@@ -43,7 +44,7 @@ public interface TimedEvents {
      *
      * @param timeInstant specific time instant.
      * @return events attached to the time instant and all children. Ordered chronologically with events with higher
-     *         resolution before events with lower resolution.
+     * resolution before events with lower resolution.
      */
     List<Event> getEvents(TimeInstant timeInstant);
 
@@ -54,7 +55,7 @@ public interface TimedEvents {
      * @param startTime Time instant representing the start of the interval (inclusive).
      * @param endTime   Time instant representing the end of the interval (inclusive).
      * @return events attached to all time instants in the interval and their children. Ordered chronologically with events with higher
-     *         resolution before events with lower resolution.
+     * resolution before events with lower resolution.
      */
     List<Event> getEvents(TimeInstant startTime, TimeInstant endTime);
 
@@ -65,7 +66,7 @@ public interface TimedEvents {
      * @param timeInstant      specific time instant.
      * @param relationshipType of the relationship between the event and the time instant.
      * @return events attached to the time instant and all children. Ordered chronologically with events with higher
-     *         resolution before events with lower resolution.
+     * resolution before events with lower resolution.
      */
     List<Event> getEvents(TimeInstant timeInstant, RelationshipType relationshipType);
 
@@ -77,7 +78,7 @@ public interface TimedEvents {
      * @param endTime          Time instant representing the end of the interval (inclusive).
      * @param relationshipType of the relationship between the event and the time instant.
      * @return events attached to all time instants in the interval and their children. Ordered chronologically with events with higher
-     *         resolution before events with lower resolution.
+     * resolution before events with lower resolution.
      */
     List<Event> getEvents(TimeInstant startTime, TimeInstant endTime, RelationshipType relationshipType);
 }

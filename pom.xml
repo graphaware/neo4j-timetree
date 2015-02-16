@@ -102,8 +102,15 @@
 
         <dependency>
             <groupId>org.eclipse.jetty</groupId>
+            <artifactId>jetty-server</artifactId>
+            <version>9.2.1.v20140609</version>
+            <scope>provided</scope>
+        </dependency>
+
+        <dependency>
+            <groupId>org.eclipse.jetty</groupId>
             <artifactId>jetty-servlet</artifactId>
-            <version>9.0.5.v20130815</version>
+            <version>9.2.1.v20140609</version>
             <scope>provided</scope>
         </dependency>
 
@@ -127,6 +134,20 @@
         <dependency>
             <groupId>com.graphaware.neo4j</groupId>
             <artifactId>common</artifactId>
+            <version>${graphaware.version}</version>
+            <scope>provided</scope>
+        </dependency>
+
+        <dependency>
+            <groupId>com.graphaware.neo4j</groupId>
+            <artifactId>runtime-api</artifactId>
+            <version>${graphaware.version}</version>
+            <scope>provided</scope>
+        </dependency>
+
+        <dependency>
+            <groupId>com.graphaware.neo4j</groupId>
+            <artifactId>runtime</artifactId>
             <version>${graphaware.version}</version>
             <scope>provided</scope>
         </dependency>
@@ -237,6 +258,7 @@
                         <link>http://api.neo4j.org/2.2.0-M04/</link>
                         <link>http://graphaware.com/site/framework/latest/apidocs/</link>
                     </links>
+                    <additionalparam>-Xdoclint:none</additionalparam>
                 </configuration>
                 <executions>
                     <execution>

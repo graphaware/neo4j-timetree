@@ -2,4 +2,4 @@ language: java
 
 branches:
   except:
-    - 2.1
+    - 2.2

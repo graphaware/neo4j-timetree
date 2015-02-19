@@ -1,5 +1,6 @@
 2.1.7.28.20:
     -fixed https://github.com/graphaware/neo4j-timetree/issues/13
+    -fixed https://github.com/graphaware/neo4j-timetree/issues/16
 
 2.1.7.28.19:
     -no changes

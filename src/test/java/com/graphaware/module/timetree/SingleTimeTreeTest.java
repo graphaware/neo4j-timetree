@@ -1176,6 +1176,103 @@ public class SingleTimeTreeTest extends DatabaseIntegrationTest {
         }
     }
 
+    @Test
+    public void reproduceIssue16() {
+        try (Transaction tx = getDatabase().beginTx()) {
+            timeTree.getOrCreateInstant(TimeInstant.instant(new DateTime(2015, 2, 16, 0, 0, UTC).getMillis()).with(DAY));
+            timeTree.getOrCreateInstant(TimeInstant.instant(new DateTime(2015, 2, 17, 1, 0, UTC).getMillis()).with(HOUR));
+            tx.success();
+        }
+
+        try (Transaction tx = getDatabase().beginTx()) {
+            timeTree.getOrCreateInstants(TimeInstant.instant(new DateTime(2015, 2, 15, 23, 0, UTC).getMillis()).with(HOUR), TimeInstant.instant(new DateTime(2015, 2, 16, 0, 0, UTC).getMillis()).with(HOUR));
+            tx.success();
+        }
+
+        assertSameGraph(getDatabase(), "CREATE " +
+                "(root:TimeTreeRoot)," +
+                "(y2015:Year {value: 2015})," +
+                "(m2:Month {value: 2})," +
+                "(d15:Day {value: 15})," +
+                "(d16:Day {value: 16})," +
+                "(d17:Day {value: 17})," +
+                "(h23:Hour {value: 23})," +
+                "(h0:Hour {value: 0})," +
+                "(h1:Hour {value: 1})," +
+                "(root)-[:CHILD]->(y2015)," +
+                "(root)-[:FIRST]->(y2015)," +
+                "(root)-[:LAST]->(y2015)," +
+                "(y2015)-[:CHILD]->(m2)," +
+                "(y2015)-[:FIRST]->(m2)," +
+                "(y2015)-[:LAST]->(m2)," +
+                "(m2)-[:CHILD]->(d15)," +
+                "(m2)-[:CHILD]->(d16)," +
+                "(m2)-[:CHILD]->(d17)," +
+                "(m2)-[:FIRST]->(d15)," +
+                "(m2)-[:LAST]->(d17)," +
+                "(d15)-[:CHILD]->(h23)," +
+                "(d15)-[:LAST]->(h23)," +
+                "(d15)-[:FIRST]->(h23)," +
+                "(d16)-[:CHILD]->(h0)," +
+                "(d16)-[:FIRST]->(h0)," +
+                "(d16)-[:LAST]->(h0)," +
+                "(d17)-[:CHILD]->(h1)," +
+                "(d17)-[:FIRST]->(h1)," +
+                "(d17)-[:LAST]->(h1)," +
+                "(d15)-[:NEXT]->(d16)," +
+                "(d16)-[:NEXT]->(d17)," +
+                "(h23)-[:NEXT]->(h0)," +
+                "(h0)-[:NEXT]->(h1)");
+
+    }
+
+    @Test
+    public void reproduceIssue16OtherSide() {
+        try (Transaction tx = getDatabase().beginTx()) {
+            timeTree.getOrCreateInstant(TimeInstant.instant(new DateTime(2015, 2, 16, 23, 0, UTC).getMillis()).with(HOUR));
+            timeTree.getOrCreateInstant(TimeInstant.instant(new DateTime(2015, 2, 17, 0, 0, UTC).getMillis()).with(DAY));
+            tx.success();
+        }
+
+        try (Transaction tx = getDatabase().beginTx()) {
+            timeTree.getOrCreateInstants(TimeInstant.instant(new DateTime(2015, 2, 18, 0, 0, UTC).getMillis()).with(HOUR), TimeInstant.instant(new DateTime(2015, 2, 18, 1, 0, UTC).getMillis()).with(HOUR));
+            tx.success();
+        }
+
+        assertSameGraph(getDatabase(), "CREATE " +
+                "(root:TimeTreeRoot)," +
+                "(y2015:Year {value: 2015})," +
+                "(m2:Month {value: 2})," +
+                "(d16:Day {value: 16})," +
+                "(d17:Day {value: 17})," +
+                "(d18:Day {value: 18})," +
+                "(h23:Hour {value: 23})," +
+                "(h0:Hour {value: 0})," +
+                "(h1:Hour {value: 1})," +
+                "(root)-[:CHILD]->(y2015)," +
+                "(root)-[:FIRST]->(y2015)," +
+                "(root)-[:LAST]->(y2015)," +
+                "(y2015)-[:CHILD]->(m2)," +
+                "(y2015)-[:FIRST]->(m2)," +
+                "(y2015)-[:LAST]->(m2)," +
+                "(m2)-[:CHILD]->(d16)," +
+                "(m2)-[:CHILD]->(d17)," +
+                "(m2)-[:CHILD]->(d18)," +
+                "(m2)-[:FIRST]->(d16)," +
+                "(m2)-[:LAST]->(d18)," +
+                "(d16)-[:CHILD]->(h23)," +
+                "(d16)-[:FIRST]->(h23)," +
+                "(d16)-[:LAST]->(h23)," +
+                "(d16)-[:NEXT]->(d17)," +
+                "(d17)-[:NEXT]->(d18)," +
+                "(d18)-[:CHILD]->(h0)," +
+                "(d18)-[:CHILD]->(h1)," +
+                "(d18)-[:FIRST]->(h0)," +
+                "(d18)-[:LAST]->(h1)," +
+                "(h0)-[:NEXT]->(h1)," +
+                "(h23)-[:NEXT]->(h0)");
+    }
+
     private long dateToMillis(int year, int month, int day) {
         return dateToDateTime(year, month, day).getMillis();
     }

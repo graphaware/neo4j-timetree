@@ -403,18 +403,30 @@ public class SingleTimeTree implements TimeTree {
         }
 
         Node previousChild = null;
-        Relationship previousParentRelationship = parent.getSingleRelationship(NEXT, INCOMING);
-        if (previousParentRelationship != null) {
-            Relationship previousParentLastChildRelationship = previousParentRelationship.getStartNode().getSingleRelationship(LAST, OUTGOING);
-            if (previousParentLastChildRelationship != null) {
-                previousChild = previousParentLastChildRelationship.getEndNode();
+        Node previousParent = parent;
+        while (previousChild == null) {
+            Relationship previousParentRelationship = previousParent.getSingleRelationship(NEXT, INCOMING);
+            if (previousParentRelationship == null) {
+                break;
+            }
+
+            previousParent = previousParentRelationship.getStartNode();
+            Relationship currentParentLastChildRelationship = previousParent.getSingleRelationship(LAST, OUTGOING);
+            if (currentParentLastChildRelationship != null) {
+                previousChild = currentParentLastChildRelationship.getEndNode();
             }
         }
 
         Node nextChild = null;
-        Relationship nextParentRelationship = parent.getSingleRelationship(NEXT, OUTGOING);
-        if (nextParentRelationship != null) {
-            Relationship nextParentFirstChildRelationship = nextParentRelationship.getEndNode().getSingleRelationship(FIRST, OUTGOING);
+        Node nextParent = parent;
+        while (nextChild == null) {
+            Relationship nextParentRelationship = nextParent.getSingleRelationship(NEXT, OUTGOING);
+            if (nextParentRelationship == null) {
+                break;
+            }
+
+            nextParent = nextParentRelationship.getEndNode();
+            Relationship nextParentFirstChildRelationship = nextParent.getSingleRelationship(FIRST, OUTGOING);
             if (nextParentFirstChildRelationship != null) {
                 nextChild = nextParentFirstChildRelationship.getEndNode();
             }
@@ -493,7 +505,7 @@ public class SingleTimeTree implements TimeTree {
      * @return the newly created child.
      */
     private Node createChild(Node parent, Node previous, Node next, int value) {
-        if (previous != null && next != null && !next.equals(previous.getSingleRelationship(NEXT, OUTGOING).getEndNode())) {
+        if (previous != null && next != null && next.getId() != previous.getSingleRelationship(NEXT, OUTGOING).getEndNode().getId()) {
             LOG.error(previous + " and " + next + " are not connected with a " + NEXT + " relationship!");
             throw new IllegalArgumentException(previous + " and " + next + " are not connected with a " + NEXT + " relationship!");
         }

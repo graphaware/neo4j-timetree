@@ -1177,7 +1177,7 @@ public class SingleTimeTreeTest extends DatabaseIntegrationTest {
     }
 
     @Test
-    public void reproduceIssue16() {
+    public void reproduceIssue14() {
         try (Transaction tx = getDatabase().beginTx()) {
             timeTree.getOrCreateInstant(TimeInstant.instant(new DateTime(2015, 2, 16, 0, 0, UTC).getMillis()).with(DAY));
             timeTree.getOrCreateInstant(TimeInstant.instant(new DateTime(2015, 2, 17, 1, 0, UTC).getMillis()).with(HOUR));
@@ -1227,7 +1227,7 @@ public class SingleTimeTreeTest extends DatabaseIntegrationTest {
     }
 
     @Test
-    public void reproduceIssue16OtherSide() {
+    public void reproduceIssue14OtherSide() {
         try (Transaction tx = getDatabase().beginTx()) {
             timeTree.getOrCreateInstant(TimeInstant.instant(new DateTime(2015, 2, 16, 23, 0, UTC).getMillis()).with(HOUR));
             timeTree.getOrCreateInstant(TimeInstant.instant(new DateTime(2015, 2, 17, 0, 0, UTC).getMillis()).with(DAY));

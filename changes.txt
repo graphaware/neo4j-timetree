@@ -1,3 +1,7 @@
+2.2.0.28.21:
+    - ability to automatically attach events to the tree
+    -fixed https://github.com/graphaware/neo4j-timetree/issues/12
+
 2.1.7.28.20:
     -fixed https://github.com/graphaware/neo4j-timetree/issues/13
     -fixed https://github.com/graphaware/neo4j-timetree/issues/14

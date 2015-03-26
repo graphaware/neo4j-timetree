@@ -38,7 +38,7 @@ public class TimeTreeBackedEvents implements TimedEvents {
         Node instant = timeTree.getOrCreateInstant(timeInstant);
 
         for (Relationship existing : event.getRelationships(OUTGOING, relationshipType)) {
-            if (existing.getEndNode().equals(instant)) {
+            if (existing.getEndNode().getId() == instant.getId()) {
                 return false;
             }
         }
@@ -95,7 +95,7 @@ public class TimeTreeBackedEvents implements TimedEvents {
 
         events.addAll(getEventsAttachedToNodeAndChildren(startTimeNode, type));
 
-        if (startTimeNode.equals(endTimeNode)) {
+        if (startTimeNode.getId() == endTimeNode.getId()) {
             return events;
         }
 

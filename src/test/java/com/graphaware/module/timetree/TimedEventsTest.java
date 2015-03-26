@@ -527,8 +527,8 @@ public class TimedEventsTest extends DatabaseIntegrationTest {
         try (Transaction tx = getDatabase().beginTx()) {
             List<Event> events = timedEvents.getEvents(timeInstant1, timeInstant2, AT_TIME);
             assertEquals(2, events.size());
-            assertEquals("eventA", events.get(0).getNode().getProperty("name"));
-            assertEquals("eventB", events.get(1).getNode().getProperty("name"));
+            assertTrue("eventA".equals(events.get(0).getNode().getProperty("name")) || "eventA".equals(events.get(1).getNode().getProperty("name")));
+            assertTrue("eventB".equals(events.get(0).getNode().getProperty("name")) || "eventA".equals(events.get(1).getNode().getProperty("name")));
 
             events = timedEvents.getEvents(timeInstant1, timeInstant2, DynamicRelationshipType.withName("NONEXISTENT_RELATION"));
             assertEquals(0, events.size());

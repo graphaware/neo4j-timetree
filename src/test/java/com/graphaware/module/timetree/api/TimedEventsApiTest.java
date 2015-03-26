@@ -19,16 +19,17 @@ package com.graphaware.module.timetree.api;
 import com.graphaware.module.timetree.domain.Resolution;
 import com.graphaware.module.timetree.domain.TimeInstant;
 import com.graphaware.test.integration.GraphAwareApiTest;
+import com.graphaware.test.unit.GraphUnit;
 import org.apache.http.HttpStatus;
 import org.joda.time.DateTime;
 import org.joda.time.DateTimeZone;
-import org.junit.Ignore;
 import org.junit.Test;
 import org.neo4j.graphdb.DynamicLabel;
 import org.neo4j.graphdb.Node;
 import org.neo4j.graphdb.Transaction;
 
 import java.io.IOException;
+import java.util.Collections;
 
 import static com.graphaware.test.unit.GraphUnit.assertSameGraph;
 import static com.graphaware.test.util.TestUtils.get;
@@ -403,10 +404,9 @@ public class TimedEventsApiTest extends GraphAwareApiTest {
                 "{\"nodeId\":2,\"relationshipType\":\"AT_TIME\"}]", getResult);
     }
 
-    @Test(timeout = 5000L) //issue https://github.com/graphaware/neo4j-timetree/issues/12
-    @Ignore //not fixed yet
+    @Test //issue https://github.com/graphaware/neo4j-timetree/issues/12
     public void shouldBeAbleToAttachEventsInARunningTx() {
-        String txId = post(baseNeoUrl() + "/db/data/transaction", "{\n" +
+        post(baseNeoUrl() + "/db/data/transaction", "{\n" +
                 "  \"statements\" : [ {\n" +
                 "    \"statement\" : \"CREATE (e:Email {props}) RETURN id(e)\",\n" +
                 "    \"parameters\" : {\n" +
@@ -417,8 +417,6 @@ public class TimedEventsApiTest extends GraphAwareApiTest {
                 "  } ]\n" +
                 "}", HttpStatus.SC_CREATED);
 
-        System.out.println("TX ID:" + txId);
-
         //When
         String eventJson1 = "{" +
                 "        \"nodeId\": " + 0 + "," +
@@ -428,12 +426,28 @@ public class TimedEventsApiTest extends GraphAwareApiTest {
                 "        \"time\": 123343242132" +
                 "    }";
 
-        post(getUrl() + "single/event", eventJson1, HttpStatus.SC_CREATED);
+        //we should parse out the tx id, but we know it's 1 on a new database:
 
-        String txSuccess = post(baseNeoUrl() + "/db/data/transaction/1/commit", HttpStatus.SC_OK);
+        post(getUrl() + "single/event", eventJson1, Collections.singletonMap("_GA_TX_ID","1"), HttpStatus.SC_CREATED);
 
-        System.out.println("TX success:" + txSuccess);
+        post(baseNeoUrl() + "/db/data/transaction/1/commit", HttpStatus.SC_OK);
 
+        GraphUnit.assertSameGraph(getDatabase(), "CREATE " +
+                "(e:Email {subject: 'Neo4j'})," +
+                "(r:TimeTreeRoot)," +
+                "(y:Year {value: 1973})," +
+                "(m:Month {value: 11})," +
+                "(d:Day {value: 28})," +
+                "(r)-[:CHILD]->(y)," +
+                "(r)-[:FIRST]->(y)," +
+                "(r)-[:LAST]->(y)," +
+                "(y)-[:CHILD]->(m)," +
+                "(y)-[:FIRST]->(m)," +
+                "(y)-[:LAST]->(m)," +
+                "(m)-[:CHILD]->(d)," +
+                "(m)-[:FIRST]->(d)," +
+                "(m)-[:LAST]->(d)," +
+                "(e)-[:AT_TIME]->(d)");
     }
 
     private long dateToMillis(int year, int month, int day) {

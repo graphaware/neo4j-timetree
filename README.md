@@ -169,6 +169,40 @@ where
 * `resolution` as described above (optional)
 * `time` is a number representing the number of milliseconds since 1/1/1970
 
+### Automatic Event Attachment
+
+All TimeTree versions compatible with Neo4j 2.2.0+ have the capability of automatically attaching events to the tree.
+This capability can be configured in `neo4j.properties` as follows:
+
+```
+# Runtime must be enabled like this
+com.graphaware.runtime.enabled=true
+
+# A Runtime module that takes care of attaching the events like this (TT is the ID of the module)
+com.graphaware.module.TT.1=com.graphaware.module.timetree.module.TimeTreeModuleBootstrapper
+
+# Nodes which represent events and should be attached automatically have to be defined
+com.graphaware.module.TT.event=hasLabel('Email')
+
+# Optionally, a property on the event nodes that represents the the time (long) at which the event took place must be specified (defaults to "timestamp")
+com.graphaware.module.TT.timestamp=time
+
+# Optionally, a resolution can be specified (defaults to DAY)
+com.graphaware.module.TT.resolution=HOUR
+
+# Optionally, a time zone can be specified (defaults to UTC)
+com.graphaware.module.TT.timezone=GMT+1
+
+# Optionally, a relationship type with which the events will be attached to the tree can be specified (defaults to AT_TIME)
+com.graphaware.module.TT.relationship=SENT_ON
+
+# autoAttach must be set to true
+com.graphaware.module.TT.autoAttach=true
+```
+
+For more information on the `com.graphaware.module.TT.event` setting, i.e. how to write expressions that define which
+nodes should be attached to the tree, please refer to [Inclusion Policies](https://github.com/graphaware/neo4j-framework/tree/master/common#inclusion-policies).
+
 ### Java API
 
 Java API has the same functionality as the rest API. Please refer to <a href="http://graphaware.com/site/timetree/latest/apidocs/" target="_blank">its Javadoc</a> (look at the `TimeTree` and `TimedEvents` interfaces).

@@ -13,7 +13,7 @@ import org.springframework.context.annotation.Configuration;
  * Spring configuration of beans wired into the APIs.
  */
 @Configuration
-public class SpringConfig {
+public class TimeTreeSpringConfig {
 
     @Autowired
     private GraphDatabaseService database;

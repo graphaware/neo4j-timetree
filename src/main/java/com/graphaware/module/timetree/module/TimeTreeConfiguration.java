@@ -85,6 +85,8 @@ public class TimeTreeConfiguration extends BaseTxDrivenModuleConfiguration<TimeT
      * default relationship type = {@link #DEFAULT_RELATIONSHIP_TYPE}
      * <p/>
      * Change the configuration by using the fluent with* methods.
+     *
+     * @return default config.
      */
     public static TimeTreeConfiguration defaultConfiguration() {
         return new TimeTreeConfiguration(DEFAULT_INCLUSION_POLICIES, DEFAULT_TIMESTAMP_PROPERTY, DEFAULT_RESOLUTION, DEFAULT_TIME_ZONE, DEFAULT_RELATIONSHIP_TYPE, DEFAULT_AUTO_ATTACH);

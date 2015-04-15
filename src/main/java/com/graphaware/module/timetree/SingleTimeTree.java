@@ -154,12 +154,22 @@ public class SingleTimeTree implements TimeTree {
      */
     protected Node getTimeRoot() {
         if (timeTreeRoot != null) {
-            return timeTreeRoot;
+            try {
+                timeTreeRoot.getDegree();
+                return timeTreeRoot;
+            } catch (NotFoundException e) {
+                timeTreeRoot = null;
+            }
         }
 
         synchronized (this) {
             if (timeTreeRoot != null) {
-                return timeTreeRoot;
+                try {
+                    timeTreeRoot.getDegree();
+                    return timeTreeRoot;
+                } catch (NotFoundException e) {
+                    timeTreeRoot = null;
+                }
             }
 
             timeTreeRoot = IterableUtils.getSingleOrNull(database.findNodes(TimeTreeRoot));

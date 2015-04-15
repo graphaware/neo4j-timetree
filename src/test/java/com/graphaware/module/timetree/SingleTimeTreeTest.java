@@ -508,6 +508,43 @@ public class SingleTimeTreeTest extends DatabaseIntegrationTest {
         }
     }
 
+    @Test //issue #20
+    public void trivialTreeShouldBeCreatedWhenFirstDayIsRequestedAfterFirstTxWasNotCommitted() {
+        //Given
+        long dateInMillis = dateToMillis(2013, 5, 4);
+        TimeInstant timeInstant = TimeInstant.instant(dateInMillis);
+
+        //When
+        Node dayNode;
+        try (Transaction tx = getDatabase().beginTx()) {
+            timeTree.getOrCreateInstant(timeInstant);
+            tx.failure();
+        }
+
+        try (Transaction tx = getDatabase().beginTx()) {
+            dayNode = timeTree.getOrCreateInstant(timeInstant);
+            tx.success();
+        }
+
+        //Then
+        assertSameGraph(getDatabase(), "CREATE" +
+                "(root:TimeTreeRoot)," +
+                "(root)-[:FIRST]->(year:Year {value:2013})," +
+                "(root)-[:CHILD]->(year)," +
+                "(root)-[:LAST]->(year)," +
+                "(year)-[:FIRST]->(month:Month {value:5})," +
+                "(year)-[:CHILD]->(month)," +
+                "(year)-[:LAST]->(month)," +
+                "(month)-[:FIRST]->(day:Day {value:4})," +
+                "(month)-[:CHILD]->(day)," +
+                "(month)-[:LAST]->(day)");
+
+        try (Transaction tx = getDatabase().beginTx()) {
+            assertTrue(dayNode.hasLabel(TimeTreeLabels.Day));
+            assertEquals(4, dayNode.getProperty(VALUE_PROPERTY));
+        }
+    }
+
     @Test
     public void consecutiveDaysShouldBeCreatedWhenRequested() {
 

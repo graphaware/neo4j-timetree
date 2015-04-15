@@ -25,7 +25,6 @@ import java.util.Calendar;
 import java.util.TimeZone;
 
 import static com.graphaware.test.unit.GraphUnit.assertSameGraph;
-import static com.graphaware.test.util.TestUtils.executeCypher;
 
 /**
  * Integration test for {@link com.graphaware.module.timetree.module.TimeTreeModule}.
@@ -51,7 +50,7 @@ public class TimeTreeModuleDeclarativeTest extends GraphAwareApiTest {
 
     @Test
     public void eventAndTimeInstantShouldBeCreatedWhenEventIsAttached() throws IOException {
-        executeCypher(baseNeoUrl(), "CREATE (:Email {subject:'Neo4j', time:" + TIMESTAMP + "})");
+        httpClient.executeCypher(baseNeoUrl(), "CREATE (:Email {subject:'Neo4j', time:" + TIMESTAMP + "})");
 
         assertSameGraph(getDatabase(), "CREATE " +
                         "(event:Email {subject:'Neo4j', time:" + TIMESTAMP + "})," +

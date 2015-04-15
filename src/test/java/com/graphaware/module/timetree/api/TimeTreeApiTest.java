@@ -28,7 +28,6 @@ import org.neo4j.graphdb.Transaction;
 import org.neo4j.tooling.GlobalGraphOperations;
 
 import static com.graphaware.test.unit.GraphUnit.assertSameGraph;
-import static com.graphaware.test.util.TestUtils.get;
 import static org.junit.Assert.assertEquals;
 
 /**
@@ -42,7 +41,7 @@ public class TimeTreeApiTest extends GraphAwareApiTest {
         long dateInMillis = dateToMillis(2013, 5, 4);
 
         //When
-        String result = get(getUrl() + "single/" + dateInMillis, HttpStatus.SC_OK);
+        String result = httpClient.get(getUrl() + "single/" + dateInMillis, HttpStatus.SC_OK);
 
         //Then
         assertSameGraph(getDatabase(), "CREATE" +
@@ -68,7 +67,7 @@ public class TimeTreeApiTest extends GraphAwareApiTest {
         long endDateInMillis = dateToMillis(2013, 5, 7);
 
         //When
-        String result = get(getUrl() + "range/" + startDateInMillis + "/" + endDateInMillis, HttpStatus.SC_OK);
+        String result = httpClient.get(getUrl() + "range/" + startDateInMillis + "/" + endDateInMillis, HttpStatus.SC_OK);
 
         //Then
         assertSameGraph(getDatabase(), "CREATE" +
@@ -103,7 +102,7 @@ public class TimeTreeApiTest extends GraphAwareApiTest {
             tx.success();
         }
 
-        String result = get(getUrl() + "0/single/" + dateInMillis, HttpStatus.SC_OK);
+        String result = httpClient.get(getUrl() + "0/single/" + dateInMillis, HttpStatus.SC_OK);
 
         //Then
         assertSameGraph(getDatabase(), "CREATE" +
@@ -134,7 +133,7 @@ public class TimeTreeApiTest extends GraphAwareApiTest {
             tx.success();
         }
 
-        String result = get(getUrl() + "0/range/" + startDateInMillis + "/" + endDateInMillis, HttpStatus.SC_OK);
+        String result = httpClient.get(getUrl() + "0/range/" + startDateInMillis + "/" + endDateInMillis, HttpStatus.SC_OK);
 
         //Then
         assertSameGraph(getDatabase(), "CREATE" +
@@ -164,7 +163,7 @@ public class TimeTreeApiTest extends GraphAwareApiTest {
         long dateInMillis = new DateTime(2014, 4, 5, 13, 56, 22, 123, DateTimeZone.UTC).getMillis();
 
         //When
-        String result = get(getUrl() + "single/" + dateInMillis + "?resolution=millisecond&timezone=GMT%2B1", HttpStatus.SC_OK);
+        String result = httpClient.get(getUrl() + "single/" + dateInMillis + "?resolution=millisecond&timezone=GMT%2B1", HttpStatus.SC_OK);
 
         //Then
         assertSameGraph(getDatabase(), "CREATE" +
@@ -200,7 +199,7 @@ public class TimeTreeApiTest extends GraphAwareApiTest {
         DateTime now = DateTime.now(DateTimeZone.UTC);
 
         //When
-        String result = get(getUrl() + "now", HttpStatus.SC_OK);
+        String result = httpClient.get(getUrl() + "now", HttpStatus.SC_OK);
 
         //Then
         assertSameGraph(getDatabase(), "CREATE" +
@@ -229,7 +228,7 @@ public class TimeTreeApiTest extends GraphAwareApiTest {
             tx.success();
         }
 
-        String result = get(getUrl() + "/0/now", HttpStatus.SC_OK);
+        String result = httpClient.get(getUrl() + "/0/now", HttpStatus.SC_OK);
 
         //Then
         assertSameGraph(getDatabase(), "CREATE" +
@@ -251,7 +250,7 @@ public class TimeTreeApiTest extends GraphAwareApiTest {
     public void whenTheRootIsDeletedSubsequentRestApiCallsShouldBeOK() {
         //Given
         long dateInMillis = dateToMillis(2013, 5, 4);
-        String result = get(getUrl() + "single/" + dateInMillis, HttpStatus.SC_OK);
+        String result = httpClient.get(getUrl() + "single/" + dateInMillis, HttpStatus.SC_OK);
         assertEquals("3", result);
 
         //When
@@ -263,7 +262,7 @@ public class TimeTreeApiTest extends GraphAwareApiTest {
         }
 
         //Then
-        result = get(getUrl() + "single/" + dateInMillis, HttpStatus.SC_OK);
+        result = httpClient.get(getUrl() + "single/" + dateInMillis, HttpStatus.SC_OK);
 
         assertSameGraph(getDatabase(), "CREATE" +
                 "(root:TimeTreeRoot)," +
@@ -289,7 +288,7 @@ public class TimeTreeApiTest extends GraphAwareApiTest {
         }
 
         long dateInMillis = dateToMillis(2013, 5, 4);
-        String result = get(getUrl() + "0/single/" + dateInMillis, HttpStatus.SC_OK);
+        String result = httpClient.get(getUrl() + "0/single/" + dateInMillis, HttpStatus.SC_OK);
         assertEquals("3", result);
 
         //When
@@ -301,7 +300,7 @@ public class TimeTreeApiTest extends GraphAwareApiTest {
         }
 
         //Then
-        get(getUrl() + "0/single/" + dateInMillis, HttpStatus.SC_NOT_FOUND);
+        httpClient.get(getUrl() + "0/single/" + dateInMillis, HttpStatus.SC_NOT_FOUND);
     }
 
     @Test
@@ -311,7 +310,7 @@ public class TimeTreeApiTest extends GraphAwareApiTest {
 
         //When
         String timezone = "America/Los_Angeles";
-        String result = get(getUrl() + "single/" + dateInMillis + "?resolution=minute&timezone=" + timezone, HttpStatus.SC_OK);
+        String result = httpClient.get(getUrl() + "single/" + dateInMillis + "?resolution=minute&timezone=" + timezone, HttpStatus.SC_OK);
 
         //Then
         assertSameGraph(getDatabase(), "CREATE" +
@@ -343,7 +342,7 @@ public class TimeTreeApiTest extends GraphAwareApiTest {
 
         //When
         String timezone = "PST";
-        String result = get(getUrl() + "single/" + dateInMillis + "?resolution=minute&timezone=" + timezone, HttpStatus.SC_OK);
+        String result = httpClient.get(getUrl() + "single/" + dateInMillis + "?resolution=minute&timezone=" + timezone, HttpStatus.SC_OK);
 
         //Then
         assertSameGraph(getDatabase(), "CREATE" +
@@ -374,7 +373,7 @@ public class TimeTreeApiTest extends GraphAwareApiTest {
         long dateInMillis = dateToMillis(1940, 2, 5);
 
         //When
-        String result = get(getUrl() + "single/" + dateInMillis, HttpStatus.SC_OK);
+        String result = httpClient.get(getUrl() + "single/" + dateInMillis, HttpStatus.SC_OK);
 
         //Then
         assertSameGraph(getDatabase(), "CREATE" +

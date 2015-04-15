@@ -32,8 +32,6 @@ import java.io.IOException;
 import java.util.Collections;
 
 import static com.graphaware.test.unit.GraphUnit.assertSameGraph;
-import static com.graphaware.test.util.TestUtils.get;
-import static com.graphaware.test.util.TestUtils.post;
 import static org.junit.Assert.assertEquals;
 
 /**
@@ -56,7 +54,7 @@ public class TimedEventsApiTest extends GraphAwareApiTest {
                 "        \"time\": " + System.currentTimeMillis() +
                 "    }";
 
-        post(getUrl() + "single/event", eventJson, HttpStatus.SC_BAD_REQUEST);
+        httpClient.post(getUrl() + "single/event", eventJson, HttpStatus.SC_BAD_REQUEST);
 
         eventJson = "{" +
                 "        \"nodeId\":0," +
@@ -64,7 +62,7 @@ public class TimedEventsApiTest extends GraphAwareApiTest {
                 "        \"time\": " + System.currentTimeMillis() +
                 "    }";
 
-        post(getUrl() + "single/event", eventJson, HttpStatus.SC_CREATED);
+        httpClient.post(getUrl() + "single/event", eventJson, HttpStatus.SC_CREATED);
 
         eventJson = "{" +
                 "        \"nodeId\":100," +
@@ -72,7 +70,7 @@ public class TimedEventsApiTest extends GraphAwareApiTest {
                 "        \"time\": " + System.currentTimeMillis() +
                 "    }";
 
-        post(getUrl() + "single/event", eventJson, HttpStatus.SC_NOT_FOUND);
+        httpClient.post(getUrl() + "single/event", eventJson, HttpStatus.SC_NOT_FOUND);
 
         eventJson = "{" +
                 "        \"nodeId\":0," +
@@ -81,7 +79,7 @@ public class TimedEventsApiTest extends GraphAwareApiTest {
                 "        \"resolution\": \"DAY\"" +
                 "    }";
 
-        post(getUrl() + "single/event", eventJson, HttpStatus.SC_BAD_REQUEST);
+        httpClient.post(getUrl() + "single/event", eventJson, HttpStatus.SC_BAD_REQUEST);
 
         eventJson = "{" +
                 "        \"nodeId\":0," +
@@ -90,7 +88,7 @@ public class TimedEventsApiTest extends GraphAwareApiTest {
                 "        \"time\": " + System.currentTimeMillis() +
                 "    }";
 
-        post(getUrl() + "single/event", eventJson, HttpStatus.SC_BAD_REQUEST);
+        httpClient.post(getUrl() + "single/event", eventJson, HttpStatus.SC_BAD_REQUEST);
 
         eventJson = "{" +
                 "        \"nodeId\":0," +
@@ -100,7 +98,7 @@ public class TimedEventsApiTest extends GraphAwareApiTest {
                 "        \"time\": " + System.currentTimeMillis() +
                 "    }";
 
-        post(getUrl() + "single/event", eventJson, HttpStatus.SC_BAD_REQUEST);
+        httpClient.post(getUrl() + "single/event", eventJson, HttpStatus.SC_BAD_REQUEST);
 
         eventJson = "{" +
                 "        \"nodeId\":0," +
@@ -110,9 +108,9 @@ public class TimedEventsApiTest extends GraphAwareApiTest {
                 "        \"time\": " + (System.currentTimeMillis() - 1000 * 3600 * 24 * 2) + //two days less, we already have an event for this day
                 "    }";
 
-        post(getUrl() + "single/event", eventJson, HttpStatus.SC_CREATED); //with default timezone
+        httpClient.post(getUrl() + "single/event", eventJson, HttpStatus.SC_CREATED); //with default timezone
 
-        get(getUrl() + "range/2/1/events", HttpStatus.SC_BAD_REQUEST);
+        httpClient.get(getUrl() + "range/2/1/events", HttpStatus.SC_BAD_REQUEST);
     }
 
     @Test
@@ -143,9 +141,9 @@ public class TimedEventsApiTest extends GraphAwareApiTest {
                 "        \"time\": " + timeInstant.getTime() +
                 "    }";
 
-        post(getUrl() + "single/event", eventJson, HttpStatus.SC_CREATED);
+        httpClient.post(getUrl() + "single/event", eventJson, HttpStatus.SC_CREATED);
 
-        String getResult = get(getUrl() + "single/" + timeInstant.getTime() + "/events?relationshipType=AT_TIME", HttpStatus.SC_OK);
+        String getResult = httpClient.get(getUrl() + "single/" + timeInstant.getTime() + "/events?relationshipType=AT_TIME", HttpStatus.SC_OK);
 
         //Then
         assertSameGraph(getDatabase(), "CREATE" +
@@ -192,11 +190,11 @@ public class TimedEventsApiTest extends GraphAwareApiTest {
                 "        \"time\": " + timeInstant.getTime() +
                 "    }";
 
-        post(getUrl() + "single/event", eventJson, HttpStatus.SC_CREATED);
-        post(getUrl() + "single/event", eventJson, HttpStatus.SC_OK);
-        post(getUrl() + "single/event", eventJson, HttpStatus.SC_OK);
+        httpClient.post(getUrl() + "single/event", eventJson, HttpStatus.SC_CREATED);
+        httpClient.post(getUrl() + "single/event", eventJson, HttpStatus.SC_OK);
+        httpClient.post(getUrl() + "single/event", eventJson, HttpStatus.SC_OK);
 
-        String getResult = get(getUrl() + "single/" + timeInstant.getTime() + "/events?relationshipType=AT_TIME", HttpStatus.SC_OK);
+        String getResult = httpClient.get(getUrl() + "single/" + timeInstant.getTime() + "/events?relationshipType=AT_TIME", HttpStatus.SC_OK);
 
         //Then
         assertSameGraph(getDatabase(), "CREATE" +
@@ -248,9 +246,9 @@ public class TimedEventsApiTest extends GraphAwareApiTest {
                 "        \"time\": " + timeInstant.getTime() +
                 "    }";
 
-        post(getUrl() + "0/single/event", eventJson, HttpStatus.SC_CREATED);
+        httpClient.post(getUrl() + "0/single/event", eventJson, HttpStatus.SC_CREATED);
 
-        String getResult = get(getUrl() + "0/single/" + timeInstant.getTime() + "/events", HttpStatus.SC_OK);
+        String getResult = httpClient.get(getUrl() + "0/single/" + timeInstant.getTime() + "/events", HttpStatus.SC_OK);
 
         //Then
         assertSameGraph(getDatabase(), "CREATE" +
@@ -307,8 +305,8 @@ public class TimedEventsApiTest extends GraphAwareApiTest {
                 "        \"time\": " + timeInstant2.getTime() +
                 "    }";
 
-        post(getUrl() + "single/event", eventJson1, HttpStatus.SC_CREATED);
-        post(getUrl() + "single/event", eventJson2, HttpStatus.SC_CREATED);
+        httpClient.post(getUrl() + "single/event", eventJson1, HttpStatus.SC_CREATED);
+        httpClient.post(getUrl() + "single/event", eventJson2, HttpStatus.SC_CREATED);
 
 
         //Then
@@ -328,7 +326,7 @@ public class TimedEventsApiTest extends GraphAwareApiTest {
                 "(day)<-[:AT_TIME]-(event1 {name:'eventA'})," +
                 "(day2)<-[:AT_TIME]-(event2 {name:'eventB'})");
 
-        String getResult = get(getUrl() + "range/" + timeInstant1.getTime() + "/" + timeInstant2.getTime() + "/events", HttpStatus.SC_OK);
+        String getResult = httpClient.get(getUrl() + "range/" + timeInstant1.getTime() + "/" + timeInstant2.getTime() + "/events", HttpStatus.SC_OK);
 
         assertEquals("[{\"nodeId\":0,\"relationshipType\":\"AT_TIME\"}," +
                 "{\"nodeId\":1,\"relationshipType\":\"AT_TIME\"}]", getResult);
@@ -377,8 +375,8 @@ public class TimedEventsApiTest extends GraphAwareApiTest {
                 "        \"time\": " + timeInstant2.getTime() +
                 "    }";
 
-        post(getUrl() + "0/single/event", eventJson1, HttpStatus.SC_CREATED);
-        post(getUrl() + "0/single/event", eventJson2, HttpStatus.SC_CREATED);
+        httpClient.post(getUrl() + "0/single/event", eventJson1, HttpStatus.SC_CREATED);
+        httpClient.post(getUrl() + "0/single/event", eventJson2, HttpStatus.SC_CREATED);
 
 
         //Then
@@ -398,7 +396,7 @@ public class TimedEventsApiTest extends GraphAwareApiTest {
                 "(day)<-[:AT_TIME]-(event1 {name:'eventA'})," +
                 "(day2)<-[:AT_TIME]-(event2 {name:'eventB'})");
 
-        String getResult = get(getUrl() + "0/range/" + timeInstant1.getTime() + "/" + timeInstant2.getTime() + "/events", HttpStatus.SC_OK);
+        String getResult = httpClient.get(getUrl() + "0/range/" + timeInstant1.getTime() + "/" + timeInstant2.getTime() + "/events", HttpStatus.SC_OK);
 
         assertEquals("[{\"nodeId\":1,\"relationshipType\":\"AT_TIME\"}," +
                 "{\"nodeId\":2,\"relationshipType\":\"AT_TIME\"}]", getResult);
@@ -406,7 +404,7 @@ public class TimedEventsApiTest extends GraphAwareApiTest {
 
     @Test //issue https://github.com/graphaware/neo4j-timetree/issues/12
     public void shouldBeAbleToAttachEventsInARunningTx() {
-        post(baseNeoUrl() + "/db/data/transaction", "{\n" +
+        httpClient.post(baseNeoUrl() + "/db/data/transaction", "{\n" +
                 "  \"statements\" : [ {\n" +
                 "    \"statement\" : \"CREATE (e:Email {props}) RETURN id(e)\",\n" +
                 "    \"parameters\" : {\n" +
@@ -428,9 +426,9 @@ public class TimedEventsApiTest extends GraphAwareApiTest {
 
         //we should parse out the tx id, but we know it's 1 on a new database:
 
-        post(getUrl() + "single/event", eventJson1, Collections.singletonMap("_GA_TX_ID","1"), HttpStatus.SC_CREATED);
+        httpClient.post(getUrl() + "single/event", eventJson1, Collections.singletonMap("_GA_TX_ID","1"), HttpStatus.SC_CREATED);
 
-        post(baseNeoUrl() + "/db/data/transaction/1/commit", HttpStatus.SC_OK);
+        httpClient.post(baseNeoUrl() + "/db/data/transaction/1/commit", HttpStatus.SC_OK);
 
         GraphUnit.assertSameGraph(getDatabase(), "CREATE " +
                 "(e:Email {subject: 'Neo4j'})," +

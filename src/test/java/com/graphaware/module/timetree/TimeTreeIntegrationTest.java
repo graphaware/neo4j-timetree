@@ -27,8 +27,6 @@ import java.util.concurrent.Executors;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicInteger;
 
-import static com.graphaware.test.util.TestUtils.executeCypher;
-import static com.graphaware.test.util.TestUtils.get;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertNotSame;
 
@@ -39,7 +37,7 @@ public class TimeTreeIntegrationTest extends NeoServerIntegrationTest {
 
     @Test
     public void graphAwareApisAreMountedWhenPresentOnClasspath() throws InterruptedException, IOException {
-        get(baseUrl() + "/graphaware/timetree/now/", HttpStatus.OK_200);
+        httpClient.get(baseUrl() + "/graphaware/timetree/now/", HttpStatus.OK_200);
     }
 
     @Test
@@ -52,7 +50,7 @@ public class TimeTreeIntegrationTest extends NeoServerIntegrationTest {
             executor.execute(new Runnable() {
                 @Override
                 public void run() {
-                    get(baseUrl() + "/graphaware/timetree/now?resolution=millisecond", HttpStatus.OK_200);
+                    httpClient.get(baseUrl() + "/graphaware/timetree/now?resolution=millisecond", HttpStatus.OK_200);
                     successfulRequests.incrementAndGet();
                 }
             });
@@ -66,14 +64,14 @@ public class TimeTreeIntegrationTest extends NeoServerIntegrationTest {
 
     @Test
     public void shouldReturnEvents() {
-        String nodeId = get(baseUrl() + "/graphaware/timetree/now?resolution=second", HttpStatus.OK_200);
+        String nodeId = httpClient.get(baseUrl() + "/graphaware/timetree/now?resolution=second", HttpStatus.OK_200);
 
-        executeCypher(baseUrl(), "START second=node(" + nodeId + ") " +
+        httpClient.executeCypher(baseUrl(), "START second=node(" + nodeId + ") " +
                 "CREATE (email:Event {subject:'Neo4j'})-[:SENT_ON]->(second)");
 
         long now = new Date().getTime();
 
-        String actual = get(baseUrl() + "/graphaware/timetree/range/" + (now - 100000000000L) + "/" + (now + 100000000000L) + "/events?resolution=second", HttpStatus.OK_200);
+        String actual = httpClient.get(baseUrl() + "/graphaware/timetree/range/" + (now - 100000000000L) + "/" + (now + 100000000000L) + "/events?resolution=second", HttpStatus.OK_200);
         assertNotSame("[]", actual);
     }
 }

@@ -29,6 +29,7 @@ import org.slf4j.LoggerFactory;
 
 import java.util.LinkedList;
 import java.util.List;
+import java.util.concurrent.locks.*;
 
 import static com.graphaware.common.util.PropertyContainerUtils.getInt;
 import static com.graphaware.module.timetree.SingleTimeTree.ChildNotFoundPolicy.*;
@@ -49,8 +50,7 @@ public class SingleTimeTree implements TimeTree {
     protected static final String VALUE_PROPERTY = "value";
 
     private final GraphDatabaseService database;
-
-    private volatile Node timeTreeRoot;
+    private final ReentrantLock rootLock = new ReentrantLock();
 
     /**
      * Constructor for time tree.
@@ -60,14 +60,38 @@ public class SingleTimeTree implements TimeTree {
     public SingleTimeTree(GraphDatabaseService database) {
         this.database = database;
 
-        database.registerTransactionEventHandler(new TransactionEventHandler.Adapter<Void>(){
+        database.registerTransactionEventHandler(new TransactionEventHandler<Boolean>() {
             @Override
-            public Void beforeCommit(TransactionData data) throws Exception {
-                if (timeTreeRoot != null && data.isDeleted(timeTreeRoot)) {
-                    LOG.warn("The time tree seems to have been deleted!");
-                    timeTreeRoot = null;
+            public Boolean beforeCommit(TransactionData transactionData) throws Exception {
+                if (!rootLock.isLocked()) {
+                    return false;
                 }
-                return null;
+
+                for (Node node : transactionData.createdNodes()) {
+                    if (node.hasLabel(TimeTreeRoot)) {
+                        return true;
+                    }
+                }
+
+                return false;
+            }
+
+            @Override
+            public void afterCommit(TransactionData transactionData, Boolean rootCreated) {
+                if (rootCreated) {
+                    if (rootLock.isHeldByCurrentThread()) {
+                        rootLock.unlock();
+                    }
+                }
+            }
+
+            @Override
+            public void afterRollback(TransactionData transactionData, Boolean rootCreated) {
+                if (rootCreated) {
+                    if (rootLock.isHeldByCurrentThread()) {
+                        rootLock.unlock();
+                    }
+                }
             }
         });
     }
@@ -153,34 +177,28 @@ public class SingleTimeTree implements TimeTree {
      * @return root of the time tree.
      */
     protected Node getTimeRoot() {
+        Node timeTreeRoot = IterableUtils.getSingleOrNull(database.findNodes(TimeTreeRoot));
+
         if (timeTreeRoot != null) {
             try {
                 timeTreeRoot.getDegree();
                 return timeTreeRoot;
             } catch (NotFoundException e) {
-                timeTreeRoot = null;
+                //ok
             }
         }
 
-        synchronized (this) {
-            if (timeTreeRoot != null) {
-                try {
-                    timeTreeRoot.getDegree();
-                    return timeTreeRoot;
-                } catch (NotFoundException e) {
-                    timeTreeRoot = null;
-                }
-            }
+        rootLock.lock();
 
-            timeTreeRoot = IterableUtils.getSingleOrNull(database.findNodes(TimeTreeRoot));
+        timeTreeRoot = IterableUtils.getSingleOrNull(database.findNodes(TimeTreeRoot));
 
-            if (timeTreeRoot != null) {
-                return timeTreeRoot;
-            }
-
-            LOG.info("Creating time tree root");
-            timeTreeRoot = database.createNode(TimeTreeRoot);
+        if (timeTreeRoot != null) {
+            rootLock.unlock();
+            return timeTreeRoot;
         }
+
+        LOG.info("Creating time tree root");
+        timeTreeRoot = database.createNode(TimeTreeRoot);
 
         return timeTreeRoot;
     }

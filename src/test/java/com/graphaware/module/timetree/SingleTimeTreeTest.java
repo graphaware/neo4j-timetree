@@ -24,7 +24,6 @@ import org.joda.time.DateTime;
 import org.joda.time.DateTimeZone;
 import org.junit.Before;
 import org.junit.Test;
-import org.neo4j.cypher.javacompat.ExecutionEngine;
 import org.neo4j.graphdb.Node;
 import org.neo4j.graphdb.Transaction;
 import org.neo4j.tooling.GlobalGraphOperations;
@@ -826,7 +825,7 @@ public class SingleTimeTreeTest extends DatabaseIntegrationTest {
 
     @Test
     public void whenRootExistsItShouldNotBeRecreated() {
-        new ExecutionEngine(getDatabase()).execute(
+        getDatabase().execute(
                 "CREATE" +
                         "(root:TimeTreeRoot)," +
                         "(root)-[:FIRST]->(year:Year {value:2013})," +

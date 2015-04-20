@@ -60,6 +60,9 @@ public class TimeTreeIntegrationTest extends NeoServerIntegrationTest {
         executor.awaitTermination(30, TimeUnit.SECONDS);
 
         assertEquals(noRequests, successfulRequests.get());
+
+        //make sure there's only 1 root
+        assertEquals("{\"results\":[{\"columns\":[\"count(n)\"],\"data\":[{\"row\":[1]}]}],\"errors\":[]}", httpClient.executeCypher(baseUrl(), "MATCH (n:TimeTreeRoot) RETURN count(n)"));
     }
 
     @Test

@@ -26,6 +26,7 @@ import org.junit.Before;
 import org.junit.Ignore;
 import org.junit.Test;
 import org.neo4j.graphdb.DynamicRelationshipType;
+import org.neo4j.graphdb.RelationshipType;
 import org.neo4j.graphdb.Node;
 import org.neo4j.graphdb.Transaction;
 
@@ -46,6 +47,8 @@ import static org.neo4j.helpers.collection.Iterables.count;
 public class TimedEventsTest extends DatabaseIntegrationTest {
 
     private static final DynamicRelationshipType AT_TIME = DynamicRelationshipType.withName("AT_TIME");
+    private static final DynamicRelationshipType AT_OTHER_TIME = DynamicRelationshipType.withName("AT_OTHER_TIME");
+    private static final ArrayList<RelationshipType> REL_TYPES = new ArrayList<>();
 
     private TimedEvents timedEvents;
 
@@ -55,6 +58,10 @@ public class TimedEventsTest extends DatabaseIntegrationTest {
     public void setUp() throws Exception {
         super.setUp();
         timedEvents = new TimeTreeBackedEvents(new SingleTimeTree(getDatabase()));
+        if (REL_TYPES.isEmpty()) {
+            REL_TYPES.add(AT_TIME);
+            REL_TYPES.add(AT_OTHER_TIME);
+        }
     }
 
     @Test
@@ -380,6 +387,41 @@ public class TimedEventsTest extends DatabaseIntegrationTest {
     }
 
     @Test
+    public void eventShouldBeFetchedForMultipleRelationsAndTimeInstant() {
+        //Given
+        TimeInstant timeInstant = TimeInstant.now();
+        Node event1, event2;
+
+        try (Transaction tx = getDatabase().beginTx()) {
+            event1 = getDatabase().createNode();
+            event1.setProperty("name", "eventA");
+
+            event2 = getDatabase().createNode();
+            event2.setProperty("name", "eventB");
+            tx.success();
+        }
+
+        //When
+        try (Transaction tx = getDatabase().beginTx()) {
+            timedEvents.attachEvent(event1, AT_TIME, timeInstant);
+            timedEvents.attachEvent(event2, AT_OTHER_TIME, timeInstant);
+            tx.success();
+        }
+
+        //Then
+        try (Transaction tx = getDatabase().beginTx()) {
+            List<RelationshipType> relList = new ArrayList<>();
+            relList.add(AT_TIME);
+            relList.add(AT_OTHER_TIME);
+            List<Event> events = timedEvents.getEvents(timeInstant, relList);
+            assertEquals(2, events.size());
+        }
+
+    }
+
+
+
+    @Test
     public void eventsShouldBeFetchedForTimeRange() {
         //Given
         TimeInstant timeInstant1 = TimeInstant.instant(dateToMillis(2012, 11, 1));
@@ -448,6 +490,45 @@ public class TimedEventsTest extends DatabaseIntegrationTest {
             tx.success();
         }
     }
+
+        @Test
+    public void eventsShouldBeFetchedForMultipleRelationsAndTimeRange() {
+        //Given
+        TimeInstant timeInstant1 = TimeInstant.instant(dateToMillis(2012, 11, 1));
+        TimeInstant timeInstant2 = TimeInstant.instant(dateToMillis(2012, 11, 3));
+
+        Node event1, event2, event3;
+
+        try (Transaction tx = getDatabase().beginTx()) {
+            event1 = getDatabase().createNode();
+            event1.setProperty("name", "eventA");
+            event2 = getDatabase().createNode();
+            event2.setProperty("name", "eventB");
+            event3 = getDatabase().createNode();
+            event3.setProperty("name", "eventC");
+            tx.success();
+        }
+
+        //When
+        try (Transaction tx = getDatabase().beginTx()) {
+            timedEvents.attachEvent(event1, AT_TIME, timeInstant1);
+            timedEvents.attachEvent(event2, AT_TIME, timeInstant2);
+            timedEvents.attachEvent(event3, AT_OTHER_TIME, timeInstant1);
+            tx.success();
+        }
+
+        //Then
+        try (Transaction tx = getDatabase().beginTx()) {
+            List<Event> events = timedEvents.getEvents(timeInstant1, timeInstant2, REL_TYPES);
+            assertEquals(3, events.size());
+            assertEquals("eventA", events.get(0).getNode().getProperty("name"));
+            assertEquals("eventB", events.get(1).getNode().getProperty("name"));
+            assertEquals("eventC", events.get(2).getNode().getProperty("name"));
+
+            tx.success();
+        }
+    }
+
 
     @Test
     public void eventsShouldBeFetchedForMillisecondResolutionTree() { //Test for Issue #2

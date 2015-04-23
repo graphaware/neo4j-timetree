@@ -54,14 +54,19 @@ public class TimedEventsApi {
             @PathVariable long time,
             @RequestParam(required = false) String resolution,
             @RequestParam(required = false) String timezone,
-            @RequestParam(required = false) String relationshipType) {
+            @RequestParam(required = false) String relationshipType,
+            @RequestParam(required = false) ArrayList<String> relationshipTypes) {
 
         List<EventVO> events;
 
         TimeInstant timeInstant = TimeInstant.fromValueObject(new TimeInstantVO(time, resolution, timezone));
 
         try (Transaction tx = database.beginTx()) {
-            events = convertEvents(timedEvents.getEvents(timeInstant, getRelationshipType(relationshipType)));
+            if (relationshipTypes == null) {
+                events = convertEvents(timedEvents.getEvents(timeInstant, getRelationshipType(relationshipType)));
+            } else {
+                events = convertEvents(timedEvents.getEvents(timeInstant, getRelationshipTypes(relationshipTypes)));
+            }
             tx.success();
         }
 
@@ -99,7 +104,8 @@ public class TimedEventsApi {
             @PathVariable long endTime,
             @RequestParam(required = false) String resolution,
             @RequestParam(required = false) String timezone,
-            @RequestParam(required = false) String relationshipType) {
+            @RequestParam(required = false) String relationshipType,
+            @RequestParam(required = false) ArrayList<String> relationshipTypes) {
 
         List<EventVO> events;
 
@@ -107,7 +113,11 @@ public class TimedEventsApi {
         TimeInstant endTimeInstant = TimeInstant.fromValueObject(new TimeInstantVO(endTime, resolution, timezone));
 
         try (Transaction tx = database.beginTx()) {
-            events = convertEvents(timedEvents.getEvents(startTimeInstant, endTimeInstant, getRelationshipType(relationshipType)));
+            if (relationshipTypes == null) {
+                events = convertEvents(timedEvents.getEvents(startTimeInstant, endTimeInstant, getRelationshipType(relationshipType)));
+            } else {
+                events = convertEvents(timedEvents.getEvents(startTimeInstant, endTimeInstant, getRelationshipTypes(relationshipTypes)));
+            }
             tx.success();
         }
 
@@ -121,7 +131,8 @@ public class TimedEventsApi {
             @PathVariable long time,
             @RequestParam(required = false) String resolution,
             @RequestParam(required = false) String timezone,
-            @RequestParam(required = false) String relationshipType) {
+            @RequestParam(required = false) String relationshipType,
+            @RequestParam(required = false) ArrayList<String> relationshipTypes) {
 
         List<EventVO> events;
 
@@ -129,7 +140,12 @@ public class TimedEventsApi {
 
         try (Transaction tx = database.beginTx()) {
             CustomRootTimeTree timeTree = new CustomRootTimeTree(database.getNodeById(rootNodeId));
-            events = convertEvents(new TimeTreeBackedEvents(timeTree).getEvents(timeInstant, getRelationshipType(relationshipType)));
+
+            if (relationshipTypes == null) {
+                events = convertEvents(new TimeTreeBackedEvents(timeTree).getEvents(timeInstant, getRelationshipType(relationshipType)));
+            } else {
+                events = convertEvents(new TimeTreeBackedEvents(timeTree).getEvents(timeInstant, getRelationshipTypes(relationshipTypes)));
+            }
             tx.success();
         }
 
@@ -144,7 +160,8 @@ public class TimedEventsApi {
             @PathVariable long endTime,
             @RequestParam(required = false) String resolution,
             @RequestParam(required = false) String timezone,
-            @RequestParam(required = false) String relationshipType) {
+            @RequestParam(required = false) String relationshipType,
+            @RequestParam(required = false) ArrayList<String> relationshipTypes) {
 
         List<EventVO> events;
 
@@ -153,13 +170,16 @@ public class TimedEventsApi {
 
         try (Transaction tx = database.beginTx()) {
             CustomRootTimeTree timeTree = new CustomRootTimeTree(database.getNodeById(rootNodeId));
-            events = convertEvents(new TimeTreeBackedEvents(timeTree).getEvents(startTimeInstant, endTimeInstant, getRelationshipType(relationshipType)));
+            if (relationshipTypes == null) {
+                events = convertEvents(new TimeTreeBackedEvents(timeTree).getEvents(startTimeInstant, endTimeInstant, getRelationshipType(relationshipType)));
+            } else {
+                events = convertEvents(new TimeTreeBackedEvents(timeTree).getEvents(startTimeInstant, endTimeInstant, getRelationshipTypes(relationshipTypes)));
+            }
             tx.success();
         }
 
         return events;
     }
-
 
     @RequestMapping(value = "{rootNodeId}/single/event", method = RequestMethod.POST)
     @ResponseStatus(HttpStatus.CREATED)
@@ -178,6 +198,14 @@ public class TimedEventsApi {
             tx.success();
         }
 
+    }
+
+    private ArrayList<RelationshipType> getRelationshipTypes(ArrayList<String> relationshipTypes) {
+        ArrayList<RelationshipType> relTypeList = new ArrayList<>();
+        for (String type : relationshipTypes) {
+            relTypeList.add(getRelationshipType(type));
+        }
+        return relTypeList;
     }
 
     private RelationshipType getRelationshipType(String relationshipType) {

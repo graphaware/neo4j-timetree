@@ -60,7 +60,7 @@ public class TimeTreeBackedEvents implements TimedEvents {
      */
     @Override
     public List<Event> getEvents(TimeInstant startTime, TimeInstant endTime) {
-        return getEvents(startTime, endTime, null);
+        return getEventsWithList(startTime, endTime, null, null);
     }
 
     /**
@@ -81,10 +81,47 @@ public class TimeTreeBackedEvents implements TimedEvents {
      * {@inheritDoc}
      */
     @Override
+    public List<Event> getEvents(TimeInstant timeInstant, List<RelationshipType> types) {
+        Node instantNode = timeTree.getInstant(timeInstant);
+
+        if (instantNode == null) {
+            return Collections.emptyList();
+        }
+
+        List<Event> eventList = new LinkedList<>();
+        for (RelationshipType type : types) {
+            eventList.addAll(getEventsAttachedToNodeAndChildren(instantNode, type));
+        }
+        return eventList;
+    }
+
+
+    /**
+     * {@inheritDoc}
+     */
+    @Override
     public List<Event> getEvents(TimeInstant startTime, TimeInstant endTime, RelationshipType type) {
+        return getEventsWithList(startTime, endTime, type, null);
+    }
+
+    /**
+     * {@inheritDoc}
+     */
+    @Override
+    public List<Event> getEvents(TimeInstant startTime, TimeInstant endTime, List<RelationshipType> types) {
+        List<Event> events = new LinkedList<>();
+        for(RelationshipType type : types) {
+            events = getEventsWithList(startTime, endTime, type, events);
+        }
+        return events;
+    }
+
+    private List<Event> getEventsWithList(TimeInstant startTime, TimeInstant endTime, RelationshipType type, List<Event> events) {
         validateRange(startTime, endTime);
 
-        List<Event> events = new LinkedList<>();
+        if (events == null) {
+            events = new LinkedList<>();
+        }
 
         Node startTimeNode = timeTree.getInstantAtOrAfter(startTime);
         Node endTimeNode = timeTree.getInstantAtOrBefore(endTime);
@@ -106,7 +143,6 @@ public class TimeTreeBackedEvents implements TimedEvents {
             next = timeInstant.getSingleRelationship(NEXT, OUTGOING);
         }
         events.addAll(getEventsAttachedToNodeAndChildren(endTimeNode, type));
-
         return events;
     }
 

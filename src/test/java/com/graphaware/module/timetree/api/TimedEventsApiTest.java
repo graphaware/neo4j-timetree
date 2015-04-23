@@ -122,29 +122,58 @@ public class TimedEventsApiTest extends GraphAwareApiTest {
                 .with(DateTimeZone.UTC)
                 .with(Resolution.DAY);
 
-        Node event;
-        long eventId;
+        Node event1, event2, event3;
+        long eventId1, eventId2, eventId3;
         try (Transaction tx = getDatabase().beginTx()) {
-            event = getDatabase().createNode();
-            event.setProperty("name", "eventA");
-            eventId = event.getId();
+            event1 = getDatabase().createNode();
+            event1.setProperty("name", "eventA");
+            eventId1 = event1.getId();
+            tx.success();
+
+            event2 = getDatabase().createNode();
+            event2.setProperty("name", "eventB");
+            eventId2 = event2.getId();
+            tx.success();
+
+            event3 = getDatabase().createNode();
+            event3.setProperty("name", "eventC");
+            eventId3 = event3.getId();
             tx.success();
         }
 
 
         //When
-        String eventJson = "{" +
-                "        \"nodeId\": " + eventId + "," +
+        String eventJson1 = "{" +
+                "        \"nodeId\": " + eventId1 + "," +
                 "        \"relationshipType\": \"AT_TIME\"," +
                 "        \"timezone\": \"UTC\"," +
                 "        \"resolution\": \"DAY\"," +
                 "        \"time\": " + timeInstant.getTime() +
                 "    }";
 
-        httpClient.post(getUrl() + "single/event", eventJson, HttpStatus.SC_CREATED);
+        String eventJson2 = "{" +
+                "        \"nodeId\": " + eventId2 + "," +
+                "        \"relationshipType\": \"AT_OTHER_TIME\"," +
+                "        \"timezone\": \"UTC\"," +
+                "        \"resolution\": \"DAY\"," +
+                "        \"time\": " + timeInstant.getTime() +
+                "    }";
+
+
+        String eventJson3 = "{" +
+                "        \"nodeId\": " + eventId3 + "," +
+                "        \"relationshipType\": \"AT_BAD_TIME\"," +
+                "        \"timezone\": \"UTC\"," +
+                "        \"resolution\": \"DAY\"," +
+                "        \"time\": " + timeInstant.getTime() +
+                "    }";
+
+        httpClient.post(getUrl() + "single/event", eventJson1, HttpStatus.SC_CREATED);
+        httpClient.post(getUrl() + "single/event", eventJson2, HttpStatus.SC_CREATED);
+        httpClient.post(getUrl() + "single/event", eventJson3, HttpStatus.SC_CREATED);
 
         String getResult = httpClient.get(getUrl() + "single/" + timeInstant.getTime() + "/events?relationshipType=AT_TIME", HttpStatus.SC_OK);
-
+        String getMultipleResult = httpClient.get(getUrl() + "single/" + timeInstant.getTime() + "/events?relationshipTypes=AT_TIME,AT_OTHER_TIME", HttpStatus.SC_OK);
         //Then
         assertSameGraph(getDatabase(), "CREATE" +
                 "(root:TimeTreeRoot)," +
@@ -157,9 +186,13 @@ public class TimedEventsApiTest extends GraphAwareApiTest {
                 "(month)-[:FIRST]->(day:Day {value:" + now.getDayOfMonth() + "})," +
                 "(month)-[:CHILD]->(day)," +
                 "(month)-[:LAST]->(day)," +
-                "(day)<-[:AT_TIME]-(event {name:'eventA'})");
+                "(day)<-[:AT_TIME]-(event {name:'eventA'})," +
+                "(day)<-[:AT_OTHER_TIME]-(event2 {name:'eventB'})," +
+                "(day)<-[:AT_BAD_TIME]-(event3 {name:'eventC'})");
 
         assertEquals("[{\"nodeId\":0,\"relationshipType\":\"AT_TIME\"}]", getResult);
+        assertEquals("[{\"nodeId\":0,\"relationshipType\":\"AT_TIME\"},{\"nodeId\":1,\"relationshipType\":\"AT_OTHER_TIME\"}]",
+                getMultipleResult);
     }
 
     @Test

@@ -25,9 +25,8 @@ import org.joda.time.DateTimeZone;
 import org.junit.Before;
 import org.junit.Ignore;
 import org.junit.Test;
-import org.neo4j.graphdb.DynamicRelationshipType;
-import org.neo4j.graphdb.RelationshipType;
 import org.neo4j.graphdb.Node;
+import org.neo4j.graphdb.RelationshipType;
 import org.neo4j.graphdb.Transaction;
 
 import java.util.*;
@@ -35,10 +34,9 @@ import java.util.*;
 import static com.graphaware.module.timetree.domain.Resolution.MONTH;
 import static com.graphaware.module.timetree.domain.Resolution.YEAR;
 import static com.graphaware.test.unit.GraphUnit.assertSameGraph;
-import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertFalse;
-import static org.junit.Assert.assertTrue;
+import static org.junit.Assert.*;
 import static org.neo4j.graphdb.Direction.OUTGOING;
+import static org.neo4j.graphdb.DynamicRelationshipType.withName;
 import static org.neo4j.helpers.collection.Iterables.count;
 
 /**
@@ -46,9 +44,9 @@ import static org.neo4j.helpers.collection.Iterables.count;
  */
 public class TimedEventsTest extends DatabaseIntegrationTest {
 
-    private static final DynamicRelationshipType AT_TIME = DynamicRelationshipType.withName("AT_TIME");
-    private static final DynamicRelationshipType AT_OTHER_TIME = DynamicRelationshipType.withName("AT_OTHER_TIME");
-    private static final ArrayList<RelationshipType> REL_TYPES = new ArrayList<>();
+    private static final RelationshipType AT_TIME = withName("AT_TIME");
+    private static final RelationshipType AT_OTHER_TIME = withName("AT_OTHER_TIME");
+    private static final Set<RelationshipType> REL_TYPES = new HashSet<>(Arrays.asList(AT_TIME, AT_OTHER_TIME));
 
     private TimedEvents timedEvents;
 
@@ -58,10 +56,6 @@ public class TimedEventsTest extends DatabaseIntegrationTest {
     public void setUp() throws Exception {
         super.setUp();
         timedEvents = new TimeTreeBackedEvents(new SingleTimeTree(getDatabase()));
-        if (REL_TYPES.isEmpty()) {
-            REL_TYPES.add(AT_TIME);
-            REL_TYPES.add(AT_OTHER_TIME);
-        }
     }
 
     @Test
@@ -374,10 +368,10 @@ public class TimedEventsTest extends DatabaseIntegrationTest {
 
         //Then
         try (Transaction tx = getDatabase().beginTx()) {
-            List<Event> events = timedEvents.getEvents(timeInstant, DynamicRelationshipType.withName("NONEXISTENT_REL"));
+            List<Event> events = timedEvents.getEvents(timeInstant, Collections.<RelationshipType>singleton(withName("NONEXISTENT_REL")));
             assertEquals(0, events.size());
 
-            events = timedEvents.getEvents(timeInstant, AT_TIME);
+            events = timedEvents.getEvents(timeInstant, Collections.singleton(AT_TIME));
             assertEquals(1, events.size());
             assertEquals("eventA", events.get(0).getNode().getProperty("name"));
             assertEquals("AT_TIME", events.get(0).getRelationshipType().name());
@@ -410,10 +404,10 @@ public class TimedEventsTest extends DatabaseIntegrationTest {
 
         //Then
         try (Transaction tx = getDatabase().beginTx()) {
-            List<RelationshipType> relList = new ArrayList<>();
-            relList.add(AT_TIME);
-            relList.add(AT_OTHER_TIME);
-            List<Event> events = timedEvents.getEvents(timeInstant, relList);
+            Set<RelationshipType> relationships = new HashSet<>();
+            relationships.add(AT_TIME);
+            relationships.add(AT_OTHER_TIME);
+            List<Event> events = timedEvents.getEvents(timeInstant, relationships);
             assertEquals(2, events.size());
         }
 
@@ -479,12 +473,12 @@ public class TimedEventsTest extends DatabaseIntegrationTest {
 
         //Then
         try (Transaction tx = getDatabase().beginTx()) {
-            List<Event> events = timedEvents.getEvents(timeInstant1, timeInstant2, AT_TIME);
+            List<Event> events = timedEvents.getEvents(timeInstant1, timeInstant2, Collections.singleton(AT_TIME));
             assertEquals(2, events.size());
             assertEquals("eventA", events.get(0).getNode().getProperty("name"));
             assertEquals("eventB", events.get(1).getNode().getProperty("name"));
 
-            events = timedEvents.getEvents(timeInstant1, timeInstant2, DynamicRelationshipType.withName("NONEXISTENT_RELATION"));
+            events = timedEvents.getEvents(timeInstant1, timeInstant2, Collections.<RelationshipType>singleton(withName("NONEXISTENT_RELATION")));
             assertEquals(0, events.size());
 
             tx.success();
@@ -522,8 +516,8 @@ public class TimedEventsTest extends DatabaseIntegrationTest {
             List<Event> events = timedEvents.getEvents(timeInstant1, timeInstant2, REL_TYPES);
             assertEquals(3, events.size());
             assertEquals("eventA", events.get(0).getNode().getProperty("name"));
-            assertEquals("eventB", events.get(1).getNode().getProperty("name"));
-            assertEquals("eventC", events.get(2).getNode().getProperty("name"));
+            assertEquals("eventC", events.get(1).getNode().getProperty("name"));
+            assertEquals("eventB", events.get(2).getNode().getProperty("name"));
 
             tx.success();
         }
@@ -555,12 +549,12 @@ public class TimedEventsTest extends DatabaseIntegrationTest {
 
         //Then
         try (Transaction tx = getDatabase().beginTx()) {
-            List<Event> events = timedEvents.getEvents(timeInstant1, timeInstant2, AT_TIME);
+            List<Event> events = timedEvents.getEvents(timeInstant1, timeInstant2, Collections.singleton(AT_TIME));
             assertEquals(2, events.size());
             assertEquals("eventA", events.get(0).getNode().getProperty("name"));
             assertEquals("eventB", events.get(1).getNode().getProperty("name"));
 
-            events = timedEvents.getEvents(timeInstant1, timeInstant2, DynamicRelationshipType.withName("NONEXISTENT_RELATION"));
+            events = timedEvents.getEvents(timeInstant1, timeInstant2, Collections.<RelationshipType>singleton(withName("NONEXISTENT_RELATION")));
             assertEquals(0, events.size());
 
             tx.success();
@@ -574,7 +568,7 @@ public class TimedEventsTest extends DatabaseIntegrationTest {
         TimeInstant timeInstant2 = TimeInstant.instant(dateToMillis(2012, 11, 2)).with(Resolution.MILLISECOND);
 
         try (Transaction tx = getDatabase().beginTx()) {
-            List<Event> events = timedEvents.getEvents(timeInstant1, timeInstant2, AT_TIME);
+            List<Event> events = timedEvents.getEvents(timeInstant1, timeInstant2, Collections.singleton(AT_TIME));
             assertEquals(0, events.size());
 
             tx.success();
@@ -606,12 +600,13 @@ public class TimedEventsTest extends DatabaseIntegrationTest {
 
         //Then
         try (Transaction tx = getDatabase().beginTx()) {
-            List<Event> events = timedEvents.getEvents(timeInstant1, timeInstant2, AT_TIME);
+            List<Event> events;
+            events = timedEvents.getEvents(timeInstant1, timeInstant2, Collections.singleton(AT_TIME));
             assertEquals(2, events.size());
             assertTrue("eventA".equals(events.get(0).getNode().getProperty("name")) || "eventA".equals(events.get(1).getNode().getProperty("name")));
             assertTrue("eventB".equals(events.get(0).getNode().getProperty("name")) || "eventA".equals(events.get(1).getNode().getProperty("name")));
 
-            events = timedEvents.getEvents(timeInstant1, timeInstant2, DynamicRelationshipType.withName("NONEXISTENT_RELATION"));
+            events = timedEvents.getEvents(timeInstant1, timeInstant2, Collections.<RelationshipType>singleton(withName("NONEXISTENT_RELATION")));
             assertEquals(0, events.size());
 
             tx.success();
@@ -679,7 +674,7 @@ public class TimedEventsTest extends DatabaseIntegrationTest {
         System.out.println("Fetching events");
 
         try (Transaction tx = getDatabase().beginTx()) {
-            List<Event> events = timedEvents.getEvents(beforeStartTime, afterEndTime, AT_TIME); //Make sure that events are still returned within this range
+            List<Event> events = timedEvents.getEvents(beforeStartTime, afterEndTime, Collections.singleton(AT_TIME)); //Make sure that events are still returned within this range
             assertEquals(count, events.size());
             assertEquals("event0", events.get(0).getNode().getProperty("name"));
             assertEquals("event" + (count - 1), events.get(count - 1).getNode().getProperty("name"));

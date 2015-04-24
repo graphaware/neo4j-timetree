@@ -6,10 +6,7 @@ import org.neo4j.graphdb.Node;
 import org.neo4j.graphdb.Relationship;
 import org.neo4j.graphdb.RelationshipType;
 
-import java.util.ArrayList;
-import java.util.Collections;
-import java.util.LinkedList;
-import java.util.List;
+import java.util.*;
 
 import static com.graphaware.module.timetree.SingleTimeTree.parent;
 import static com.graphaware.module.timetree.domain.TimeTreeRelationshipTypes.*;
@@ -52,7 +49,7 @@ public class TimeTreeBackedEvents implements TimedEvents {
      */
     @Override
     public List<Event> getEvents(TimeInstant timeInstant) {
-        return getEvents(timeInstant, (RelationshipType) null);
+        return getEvents(timeInstant, (Set<RelationshipType>) null);
     }
 
     /**
@@ -60,68 +57,31 @@ public class TimeTreeBackedEvents implements TimedEvents {
      */
     @Override
     public List<Event> getEvents(TimeInstant startTime, TimeInstant endTime) {
-        return getEventsWithList(startTime, endTime, null, null);
+        return getEvents(startTime, endTime, null);
     }
 
     /**
      * {@inheritDoc}
      */
     @Override
-    public List<Event> getEvents(TimeInstant timeInstant, RelationshipType type) {
+    public List<Event> getEvents(TimeInstant timeInstant, Set<RelationshipType> types) {
         Node instantNode = timeTree.getInstant(timeInstant);
 
         if (instantNode == null) {
             return Collections.emptyList();
         }
 
-        return getEventsAttachedToNodeAndChildren(instantNode, type);
+        return getEventsAttachedToNodeAndChildren(instantNode, types);
     }
 
     /**
      * {@inheritDoc}
      */
     @Override
-    public List<Event> getEvents(TimeInstant timeInstant, List<RelationshipType> types) {
-        Node instantNode = timeTree.getInstant(timeInstant);
-
-        if (instantNode == null) {
-            return Collections.emptyList();
-        }
-
-        List<Event> eventList = new LinkedList<>();
-        for (RelationshipType type : types) {
-            eventList.addAll(getEventsAttachedToNodeAndChildren(instantNode, type));
-        }
-        return eventList;
-    }
-
-
-    /**
-     * {@inheritDoc}
-     */
-    @Override
-    public List<Event> getEvents(TimeInstant startTime, TimeInstant endTime, RelationshipType type) {
-        return getEventsWithList(startTime, endTime, type, null);
-    }
-
-    /**
-     * {@inheritDoc}
-     */
-    @Override
-    public List<Event> getEvents(TimeInstant startTime, TimeInstant endTime, List<RelationshipType> types) {
-        List<Event> events = new LinkedList<>();
-        for(RelationshipType type : types) {
-            events = getEventsWithList(startTime, endTime, type, events);
-        }
-        return events;
-    }
-
-    private List<Event> getEventsWithList(TimeInstant startTime, TimeInstant endTime, RelationshipType type, List<Event> events) {
+    public List<Event> getEvents(TimeInstant startTime, TimeInstant endTime, Set<RelationshipType> types) {
         validateRange(startTime, endTime);
 
-        if (events == null) {
-            events = new LinkedList<>();
-        }
+        List<Event> events = new LinkedList<>();
 
         Node startTimeNode = timeTree.getInstantAtOrAfter(startTime);
         Node endTimeNode = timeTree.getInstantAtOrBefore(endTime);
@@ -130,7 +90,7 @@ public class TimeTreeBackedEvents implements TimedEvents {
             return events;
         }
 
-        events.addAll(getEventsAttachedToNodeAndChildren(startTimeNode, type));
+        events.addAll(getEventsAttachedToNodeAndChildren(startTimeNode, types));
 
         if (startTimeNode.getId() == endTimeNode.getId()) {
             return events;
@@ -139,19 +99,20 @@ public class TimeTreeBackedEvents implements TimedEvents {
         Relationship next = startTimeNode.getSingleRelationship(NEXT, OUTGOING);
         while (next != null && !(next.getEndNode().equals(endTimeNode))) {
             Node timeInstant = next.getEndNode();
-            events.addAll(getEventsAttachedToNodeAndChildren(timeInstant, type));
+            events.addAll(getEventsAttachedToNodeAndChildren(timeInstant, types));
             next = timeInstant.getSingleRelationship(NEXT, OUTGOING);
         }
-        events.addAll(getEventsAttachedToNodeAndChildren(endTimeNode, type));
+        events.addAll(getEventsAttachedToNodeAndChildren(endTimeNode, types));
+
         return events;
     }
 
-    private List<Event> getEventsAttachedToNodeAndChildren(Node parent, RelationshipType type) {
+    private List<Event> getEventsAttachedToNodeAndChildren(Node parent, Set<RelationshipType> types) {
         List<Event> result = new ArrayList<>();
 
         Relationship firstRelationship = parent.getSingleRelationship(FIRST, OUTGOING);
         if (firstRelationship == null) {
-            return getEventsAttachedToNode(parent, type);
+            return getEventsAttachedToNode(parent, types);
         }
 
         Node child = null;
@@ -169,25 +130,39 @@ public class TimeTreeBackedEvents implements TimedEvents {
                 child = nextRelationship.getEndNode();
             }
 
-            result.addAll(getEventsAttachedToNodeAndChildren(child, type));
+            result.addAll(getEventsAttachedToNodeAndChildren(child, types));
         }
 
-        result.addAll(getEventsAttachedToNode(parent, type));
+        result.addAll(getEventsAttachedToNode(parent, types));
 
         return result;
     }
 
-    private List<Event> getEventsAttachedToNode(Node node, RelationshipType type) {
+    private List<Event> getEventsAttachedToNode(Node node, Set<RelationshipType> types) {
         List<Event> result = new LinkedList<>();
 
         for (Relationship rel : node.getRelationships(INCOMING)) {
             if (!timeTreeRelationships.contains(rel.getType().name())) {
-                if (type == null || (type.name().equals(rel.getType().name()))) {
+                if (types == null || contains(types, rel.getType())) {
                     result.add(new Event(rel.getOtherNode(node), rel.getType()));
                 }
             }
         }
 
         return result;
+    }
+
+    private boolean contains(Set<RelationshipType> types, RelationshipType toCheck) {
+        if (types == null || toCheck == null) {
+            throw new IllegalArgumentException("Relationship types must not be null, this is a bug");
+        }
+
+        for (RelationshipType type : types) {
+            if (toCheck.name().equals(type.name())) {
+                return true;
+            }
+        }
+
+        return false;
     }
 }

@@ -1,3 +1,6 @@
+2.2.1.30.22:
+    - querying for events now takes a set of relationship types, rather than a single one (issue #22)
+
 2.2.1.30.21:
     - fixed occasionally failing tests due to incorrect fix of issue #20
 

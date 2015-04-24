@@ -54,19 +54,14 @@ public class TimedEventsApi {
             @PathVariable long time,
             @RequestParam(required = false) String resolution,
             @RequestParam(required = false) String timezone,
-            @RequestParam(required = false) String relationshipType,
-            @RequestParam(required = false) ArrayList<String> relationshipTypes) {
+            @RequestParam(required = false) Set<String> relationshipTypes) {
 
         List<EventVO> events;
 
         TimeInstant timeInstant = TimeInstant.fromValueObject(new TimeInstantVO(time, resolution, timezone));
 
         try (Transaction tx = database.beginTx()) {
-            if (relationshipTypes == null) {
-                events = convertEvents(timedEvents.getEvents(timeInstant, getRelationshipType(relationshipType)));
-            } else {
-                events = convertEvents(timedEvents.getEvents(timeInstant, getRelationshipTypes(relationshipTypes)));
-            }
+            events = convertEvents(timedEvents.getEvents(timeInstant, getRelationshipTypes(relationshipTypes)));
             tx.success();
         }
 
@@ -87,8 +82,7 @@ public class TimedEventsApi {
 
             if (attached) {
                 response.setStatus(HttpStatus.CREATED.value());
-            }
-            else {
+            } else {
                 response.setStatus(HttpStatus.OK.value());
             }
 
@@ -104,8 +98,7 @@ public class TimedEventsApi {
             @PathVariable long endTime,
             @RequestParam(required = false) String resolution,
             @RequestParam(required = false) String timezone,
-            @RequestParam(required = false) String relationshipType,
-            @RequestParam(required = false) ArrayList<String> relationshipTypes) {
+            @RequestParam(required = false) Set<String> relationshipTypes) {
 
         List<EventVO> events;
 
@@ -113,11 +106,7 @@ public class TimedEventsApi {
         TimeInstant endTimeInstant = TimeInstant.fromValueObject(new TimeInstantVO(endTime, resolution, timezone));
 
         try (Transaction tx = database.beginTx()) {
-            if (relationshipTypes == null) {
-                events = convertEvents(timedEvents.getEvents(startTimeInstant, endTimeInstant, getRelationshipType(relationshipType)));
-            } else {
-                events = convertEvents(timedEvents.getEvents(startTimeInstant, endTimeInstant, getRelationshipTypes(relationshipTypes)));
-            }
+            events = convertEvents(timedEvents.getEvents(startTimeInstant, endTimeInstant, getRelationshipTypes(relationshipTypes)));
             tx.success();
         }
 
@@ -131,8 +120,7 @@ public class TimedEventsApi {
             @PathVariable long time,
             @RequestParam(required = false) String resolution,
             @RequestParam(required = false) String timezone,
-            @RequestParam(required = false) String relationshipType,
-            @RequestParam(required = false) ArrayList<String> relationshipTypes) {
+            @RequestParam(required = false) Set<String> relationshipTypes) {
 
         List<EventVO> events;
 
@@ -140,12 +128,7 @@ public class TimedEventsApi {
 
         try (Transaction tx = database.beginTx()) {
             CustomRootTimeTree timeTree = new CustomRootTimeTree(database.getNodeById(rootNodeId));
-
-            if (relationshipTypes == null) {
-                events = convertEvents(new TimeTreeBackedEvents(timeTree).getEvents(timeInstant, getRelationshipType(relationshipType)));
-            } else {
-                events = convertEvents(new TimeTreeBackedEvents(timeTree).getEvents(timeInstant, getRelationshipTypes(relationshipTypes)));
-            }
+            events = convertEvents(new TimeTreeBackedEvents(timeTree).getEvents(timeInstant, getRelationshipTypes(relationshipTypes)));
             tx.success();
         }
 
@@ -160,8 +143,7 @@ public class TimedEventsApi {
             @PathVariable long endTime,
             @RequestParam(required = false) String resolution,
             @RequestParam(required = false) String timezone,
-            @RequestParam(required = false) String relationshipType,
-            @RequestParam(required = false) ArrayList<String> relationshipTypes) {
+            @RequestParam(required = false) Set<String> relationshipTypes) {
 
         List<EventVO> events;
 
@@ -170,11 +152,7 @@ public class TimedEventsApi {
 
         try (Transaction tx = database.beginTx()) {
             CustomRootTimeTree timeTree = new CustomRootTimeTree(database.getNodeById(rootNodeId));
-            if (relationshipTypes == null) {
-                events = convertEvents(new TimeTreeBackedEvents(timeTree).getEvents(startTimeInstant, endTimeInstant, getRelationshipType(relationshipType)));
-            } else {
-                events = convertEvents(new TimeTreeBackedEvents(timeTree).getEvents(startTimeInstant, endTimeInstant, getRelationshipTypes(relationshipTypes)));
-            }
+            events = convertEvents(new TimeTreeBackedEvents(timeTree).getEvents(startTimeInstant, endTimeInstant, getRelationshipTypes(relationshipTypes)));
             tx.success();
         }
 
@@ -200,22 +178,16 @@ public class TimedEventsApi {
 
     }
 
-    private ArrayList<RelationshipType> getRelationshipTypes(ArrayList<String> relationshipTypes) {
-        ArrayList<RelationshipType> relTypeList = new ArrayList<>();
-        for (String type : relationshipTypes) {
-            relTypeList.add(getRelationshipType(type));
-        }
-        return relTypeList;
-    }
-
-    private RelationshipType getRelationshipType(String relationshipType) {
-        RelationshipType type = null;
-
-        if (relationshipType != null) {
-            type = DynamicRelationshipType.withName(relationshipType);
+    private Set<RelationshipType> getRelationshipTypes(Set<String> strings) {
+        if (strings == null) {
+            return null;
         }
 
-        return type;
+        Set<RelationshipType> result = new HashSet<>();
+        for (String type : strings) {
+            result.add(DynamicRelationshipType.withName(type));
+        }
+        return result;
     }
 
     private List<EventVO> convertEvents(List<Event> events) {
@@ -230,7 +202,7 @@ public class TimedEventsApi {
     @ResponseStatus(HttpStatus.BAD_REQUEST)
     @ResponseBody
     public Map<String, String> handleIllegalArgument(IllegalArgumentException e) {
-        LOG.warn("Bad Request: "+e.getMessage(), e);
+        LOG.warn("Bad Request: " + e.getMessage(), e);
         return Collections.singletonMap("message", e.getMessage());
     }
 
@@ -238,7 +210,7 @@ public class TimedEventsApi {
     @ResponseStatus(HttpStatus.NOT_FOUND)
     @ResponseBody
     public Map<String, String> handleNotFound(NotFoundException e) {
-        LOG.warn("Not Found: "+e.getMessage(), e);
+        LOG.warn("Not Found: " + e.getMessage(), e);
         return Collections.singletonMap("message", e.getMessage());
     }
 }

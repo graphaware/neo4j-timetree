@@ -172,7 +172,7 @@ public class TimedEventsApiTest extends GraphAwareApiTest {
         httpClient.post(getUrl() + "single/event", eventJson2, HttpStatus.SC_CREATED);
         httpClient.post(getUrl() + "single/event", eventJson3, HttpStatus.SC_CREATED);
 
-        String getResult = httpClient.get(getUrl() + "single/" + timeInstant.getTime() + "/events?relationshipType=AT_TIME", HttpStatus.SC_OK);
+        String getResult = httpClient.get(getUrl() + "single/" + timeInstant.getTime() + "/events?relationshipTypes=AT_TIME", HttpStatus.SC_OK);
         String getMultipleResult = httpClient.get(getUrl() + "single/" + timeInstant.getTime() + "/events?relationshipTypes=AT_TIME,AT_OTHER_TIME", HttpStatus.SC_OK);
         //Then
         assertSameGraph(getDatabase(), "CREATE" +

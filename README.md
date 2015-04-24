@@ -115,7 +115,7 @@ You have three query parameters:
     * `Second`
     * `Millisecond`
 * `timezone`, which can be a String representation of any `java.util.TimeZone`
-* `relationshipType`, which is a String representation of the RelationshipType that relates the event to a time instant.
+* `relationshipTypes`, which is a String representation of the `RelationshipType`s, one of which relate the event to a time instant, separated by a comma.
 The default is all relationships, which is useful if you have different kinds of events occurring at the same time instant,
   and related to the time instant with different relationship types. Here the default will give you all events that occurred at that time instant.
 

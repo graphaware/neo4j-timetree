@@ -6,6 +6,8 @@ GraphAware Neo4j TimeTree
 GraphAware TimeTree is a simple library for representing time in Neo4j as a tree of time instants. The tree is built on-demand,
 supports resolutions of one year down to one millisecond and has time zone support. It also supports attaching event nodes to time instants (created on demand).
 
+*** Please note that the API for GETting events changed subtly in 2.2.1.30.22. Provide `relationshipTypes` instead of `relationshipType` as an optional request parameter. ***
+
 Getting the Software
 --------------------
 

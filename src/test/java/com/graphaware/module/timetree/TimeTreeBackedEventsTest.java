@@ -40,9 +40,9 @@ import static org.neo4j.graphdb.DynamicRelationshipType.withName;
 import static org.neo4j.helpers.collection.Iterables.count;
 
 /**
- * Unit test for {@link com.graphaware.module.timetree.SingleTimeTree}.
+ * Unit test for {@link com.graphaware.module.timetree.TimeTreeBackedEvents}.
  */
-public class TimedEventsTest extends DatabaseIntegrationTest {
+public class TimeTreeBackedEventsTest extends DatabaseIntegrationTest {
 
     private static final RelationshipType AT_TIME = withName("AT_TIME");
     private static final RelationshipType AT_OTHER_TIME = withName("AT_OTHER_TIME");
@@ -413,8 +413,6 @@ public class TimedEventsTest extends DatabaseIntegrationTest {
 
     }
 
-
-
     @Test
     public void eventsShouldBeFetchedForTimeRange() {
         //Given
@@ -485,7 +483,7 @@ public class TimedEventsTest extends DatabaseIntegrationTest {
         }
     }
 
-        @Test
+    @Test
     public void eventsShouldBeFetchedForMultipleRelationsAndTimeRange() {
         //Given
         TimeInstant timeInstant1 = TimeInstant.instant(dateToMillis(2012, 11, 1));
@@ -523,6 +521,44 @@ public class TimedEventsTest extends DatabaseIntegrationTest {
         }
     }
 
+    @Test
+    public void eventsShouldBeFetchedForMultipleRelationsAndTimeRange2() {
+        //Given
+        TimeInstant timeInstant1 = TimeInstant.instant(dateToMillis(2012, 11, 1));
+        TimeInstant timeInstant2 = TimeInstant.instant(dateToMillis(2012, 11, 2));
+        TimeInstant timeInstant3 = TimeInstant.instant(dateToMillis(2012, 11, 3));
+
+        Node event1, event2, event3;
+
+        try (Transaction tx = getDatabase().beginTx()) {
+            event1 = getDatabase().createNode();
+            event1.setProperty("name", "eventA");
+            event2 = getDatabase().createNode();
+            event2.setProperty("name", "eventB");
+            event3 = getDatabase().createNode();
+            event3.setProperty("name", "eventC");
+            tx.success();
+        }
+
+        //When
+        try (Transaction tx = getDatabase().beginTx()) {
+            timedEvents.attachEvent(event1, AT_TIME, timeInstant1);
+            timedEvents.attachEvent(event2, AT_TIME, timeInstant2);
+            timedEvents.attachEvent(event3, AT_OTHER_TIME, timeInstant3);
+            tx.success();
+        }
+
+        //Then
+        try (Transaction tx = getDatabase().beginTx()) {
+            List<Event> events = timedEvents.getEvents(timeInstant1, timeInstant3, REL_TYPES);
+            assertEquals(3, events.size());
+            assertEquals("eventA", events.get(0).getNode().getProperty("name"));
+            assertEquals("eventB", events.get(1).getNode().getProperty("name"));
+            assertEquals("eventC", events.get(2).getNode().getProperty("name"));
+
+            tx.success();
+        }
+    }
 
     @Test
     public void eventsShouldBeFetchedForMillisecondResolutionTree() { //Test for Issue #2

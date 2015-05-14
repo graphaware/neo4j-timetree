@@ -125,10 +125,10 @@ public class TimeTreeModule extends BaseTxDrivenModule<Void> {
 
 
         if (created.hasProperty(configuration.getCustomTimeTreeRootProperty())){
-            Long rootId = Long.valueOf(created.getProperty(configuration.getCustomTimeTreeRootProperty()).toString());
+            Integer rootId = (Integer) created.getProperty(configuration.getCustomTimeTreeRootProperty());
             Node root = database.getNodeById(rootId);
-            TimeTreeBackedEvents customRootTimeTree = new TimeTreeBackedEvents(new CustomRootTimeTree(root));
-            customRootTimeTree.attachEvent(created, configuration.getRelationshipType(), TimeInstant.instant(timestamp).with(configuration.getResolution()).with(configuration.getTimeZone()));
+            TimeTreeBackedEvents ev = new TimeTreeBackedEvents(new CustomRootTimeTree(root));
+            ev.attachEvent(created, configuration.getRelationshipType(), TimeInstant.instant(timestamp).with(configuration.getResolution()).with(configuration.getTimeZone()));
 
             return;
         }

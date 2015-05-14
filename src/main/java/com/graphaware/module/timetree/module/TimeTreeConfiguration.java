@@ -47,7 +47,6 @@ public class TimeTreeConfiguration extends BaseTxDrivenModuleConfiguration<TimeT
             InclusionPoliciesFactory.allBusiness()
                     .with(IncludeNodes.all().with("Event"))
                     .with(IncludeNodeProperties.all().with(DEFAULT_TIMESTAMP_PROPERTY))
-                    .with(IncludeNodeProperties.all().with(DEFAULT_CUSTOM_TIMETREE_ROOT_PROPERTY))
                     .with(IncludeRelationships.all().with(DEFAULT_RELATIONSHIP_TYPE));
 
     private String timestampProperty;

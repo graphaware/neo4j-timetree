@@ -106,7 +106,13 @@ public class TimeTreeConfiguration extends BaseTxDrivenModuleConfiguration<TimeT
     public TimeTreeConfiguration withTimestampProperty(final String timestampProperty) {
         return new TimeTreeConfiguration(getInclusionPolicies().with(IncludeNodeProperties.all().with(timestampProperty)), timestampProperty, getCustomTimeTreeRootProperty(), getResolution(), getTimeZone(), getRelationshipType(), isAutoAttach());
     }
-    
+
+    /**
+     * Create a new instance of this {@link TimeTreeConfiguration} with different customTimeTreeRootID property
+     *
+     * @param CustomTimeTreeRootProperty
+     * @return new instance
+     */
     public TimeTreeConfiguration withCustomTimeTreeRootProperty(final String CustomTimeTreeRootProperty) {
         return new TimeTreeConfiguration(getInclusionPolicies().with(IncludeNodeProperties.all().with(customTimeTreeRootProperty)), timestampProperty, getCustomTimeTreeRootProperty(), getResolution(), getTimeZone(), getRelationshipType(), isAutoAttach());
     }

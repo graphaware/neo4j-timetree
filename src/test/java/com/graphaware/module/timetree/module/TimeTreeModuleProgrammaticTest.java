@@ -42,6 +42,7 @@ public class TimeTreeModuleProgrammaticTest extends DatabaseIntegrationTest {
 
     private static final Label Email = DynamicLabel.label("Email");
     private static final Label Event = DynamicLabel.label("Event");
+    private static final Label CustomRoot = DynamicLabel.label("CustomRoot");
     private static final long TIMESTAMP;
 
     static {
@@ -110,6 +111,36 @@ public class TimeTreeModuleProgrammaticTest extends DatabaseIntegrationTest {
         assertSameGraph(getDatabase(), "CREATE " +
                         "(event:Event {subject:'Neo4j', timestamp:" + TIMESTAMP + "})," +
                         "(root:TimeTreeRoot)," +
+                        "(root)-[:FIRST]->(year:Year {value:2015})," +
+                        "(root)-[:CHILD]->(year)," +
+                        "(root)-[:LAST]->(year)," +
+                        "(year)-[:FIRST]->(month:Month {value:4})," +
+                        "(year)-[:CHILD]->(month)," +
+                        "(year)-[:LAST]->(month)," +
+                        "(month)-[:FIRST]->(day:Day {value:5})," +
+                        "(month)-[:CHILD]->(day)," +
+                        "(month)-[:LAST]->(day)," +
+                        "(day)<-[:AT_TIME]-(event)"
+        );
+    }
+
+    @Test
+    public void shouldAttachEventForCustomRootWithDefaultConfig() {
+        GraphAwareRuntime runtime = GraphAwareRuntimeFactory.createRuntime(getDatabase());
+        runtime.registerModule(new TimeTreeModule("timetree", TimeTreeConfiguration.defaultConfiguration(), getDatabase()));
+        runtime.start();
+
+        Long customRootId;
+        try (Transaction tx = getDatabase().beginTx()) {
+            Node node = getDatabase().createNode(CustomRoot);
+            customRootId = node.getId();
+            tx.success();
+        }
+        createEventWithRootIdProperty(customRootId, Event);
+
+        assertSameGraph(getDatabase(), "CREATE " +
+                        "(event:Event {subject:'Neo4j', timestamp:" + TIMESTAMP + ", timeTreeRootId:" + customRootId + "})," +
+                        "(root:CustomRoot)," +
                         "(root)-[:FIRST]->(year:Year {value:2015})," +
                         "(root)-[:CHILD]->(year)," +
                         "(root)-[:LAST]->(year)," +
@@ -348,6 +379,16 @@ public class TimeTreeModuleProgrammaticTest extends DatabaseIntegrationTest {
             Node node = getDatabase().createNode(labels);
             node.setProperty("subject", "Neo4j");
             node.setProperty("timestamp", TIMESTAMP);
+            tx.success();
+        }
+    }
+
+    private void createEventWithRootIdProperty(Long rootId, Label... labels) {
+        try (Transaction tx = getDatabase().beginTx()) {
+            Node node = getDatabase().createNode(labels);
+            node.setProperty("subject", "Neo4j");
+            node.setProperty("timestamp", TIMESTAMP);
+            node.setProperty("timeTreeRootId", rootId);
             tx.success();
         }
     }

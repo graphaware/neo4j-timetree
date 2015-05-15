@@ -40,7 +40,7 @@ public class TimeTreeModuleBootstrapper implements RuntimeModuleBootstrapper {
 
     private static final String EVENT = "event";
     private static final String TIMESTAMP_PROPERTY = "timestamp";
-    private static final String CUSTOM_TIMETREE_ROOT_PROPERTY = "timeTreeRootId";
+    private static final String CUSTOM_TIMETREE_ROOT_PROPERTY = "customTimeTreeRootProperty";
     private static final String RESOLUTION = "resolution";
     private static final String TIME_ZONE = "timezone";
     private static final String RELATIONSHIP = "relationship";

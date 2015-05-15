@@ -47,6 +47,7 @@ public class TimeTreeConfiguration extends BaseTxDrivenModuleConfiguration<TimeT
             InclusionPoliciesFactory.allBusiness()
                     .with(IncludeNodes.all().with("Event"))
                     .with(IncludeNodeProperties.all().with(DEFAULT_TIMESTAMP_PROPERTY))
+                    .with(IncludeNodeProperties.all().with(DEFAULT_CUSTOM_TIMETREE_ROOT_PROPERTY))
                     .with(IncludeRelationships.all().with(DEFAULT_RELATIONSHIP_TYPE));
 
     private String timestampProperty;
@@ -114,7 +115,7 @@ public class TimeTreeConfiguration extends BaseTxDrivenModuleConfiguration<TimeT
      * @return new instance
      */
     public TimeTreeConfiguration withCustomTimeTreeRootProperty(final String CustomTimeTreeRootProperty) {
-        return new TimeTreeConfiguration(getInclusionPolicies().with(IncludeNodeProperties.all().with(customTimeTreeRootProperty)), timestampProperty, getCustomTimeTreeRootProperty(), getResolution(), getTimeZone(), getRelationshipType(), isAutoAttach());
+        return new TimeTreeConfiguration(getInclusionPolicies().with(IncludeNodeProperties.all().with(CustomTimeTreeRootProperty)), getTimestampProperty(), CustomTimeTreeRootProperty, getResolution(), getTimeZone(), getRelationshipType(), isAutoAttach());
     }
 
     /**

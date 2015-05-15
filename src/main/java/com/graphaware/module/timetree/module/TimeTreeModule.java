@@ -122,8 +122,9 @@ public class TimeTreeModule extends BaseTxDrivenModule<Void> {
             LOG.warn("Created node with ID " + created.getId() + " does not have a valid timestamp property", throwable);
             return;
         }
-
-
+        if (!created.hasProperty(configuration.getCustomTimeTreeRootProperty())) {
+            LOG.warn("Created node with ID " + created.getId() + " does not have a " + configuration.getCustomTimeTreeRootProperty() + " property");
+        }
         if (created.hasProperty(configuration.getCustomTimeTreeRootProperty())){
             Integer rootId = (Integer) created.getProperty(configuration.getCustomTimeTreeRootProperty());
             Node root = database.getNodeById(rootId);

@@ -125,36 +125,6 @@ public class TimeTreeModuleProgrammaticTest extends DatabaseIntegrationTest {
     }
 
     @Test
-    public void shouldAttachEventForCustomRootWithDefaultConfig() {
-        GraphAwareRuntime runtime = GraphAwareRuntimeFactory.createRuntime(getDatabase());
-        runtime.registerModule(new TimeTreeModule("timetree", TimeTreeConfiguration.defaultConfiguration(), getDatabase()));
-        runtime.start();
-
-        Long customRootId;
-        try (Transaction tx = getDatabase().beginTx()) {
-            Node node = getDatabase().createNode(CustomRoot);
-            customRootId = node.getId();
-            tx.success();
-        }
-        createEventWithRootIdProperty(customRootId, Event);
-
-        assertSameGraph(getDatabase(), "CREATE " +
-                        "(event:Event {subject:'Neo4j', timestamp:" + TIMESTAMP + ", timeTreeRootId:" + customRootId + "})," +
-                        "(root:CustomRoot)," +
-                        "(root)-[:FIRST]->(year:Year {value:2015})," +
-                        "(root)-[:CHILD]->(year)," +
-                        "(root)-[:LAST]->(year)," +
-                        "(year)-[:FIRST]->(month:Month {value:4})," +
-                        "(year)-[:CHILD]->(month)," +
-                        "(year)-[:LAST]->(month)," +
-                        "(month)-[:FIRST]->(day:Day {value:5})," +
-                        "(month)-[:CHILD]->(day)," +
-                        "(month)-[:LAST]->(day)," +
-                        "(day)<-[:AT_TIME]-(event)"
-        );
-    }
-
-    @Test
     public void shouldAttachEventWithMultipleLabels() {
         GraphAwareRuntime runtime = GraphAwareRuntimeFactory.createRuntime(getDatabase());
         runtime.registerModule(new TimeTreeModule("timetree", TimeTreeConfiguration.defaultConfiguration(), getDatabase()));
@@ -211,6 +181,8 @@ public class TimeTreeModuleProgrammaticTest extends DatabaseIntegrationTest {
             tx.success();
         }
 
+
+
         assertSameGraph(getDatabase(), "CREATE " +
                         "(event:Email {subject:'Neo4j', time:" + TIMESTAMP + "})," +
                         "(root:TimeTreeRoot)," +
@@ -230,6 +202,57 @@ public class TimeTreeModuleProgrammaticTest extends DatabaseIntegrationTest {
                         "(hour)-[:CHILD]->(minute)," +
                         "(hour)-[:LAST]->(minute)," +
                         "(minute)<-[:SENT_AT]-(event)"
+        );
+    }
+
+    @Test
+    public void shouldAttachEventWithCustomRootPropertyConfig() {
+        GraphAwareRuntime runtime = GraphAwareRuntimeFactory.createRuntime(getDatabase());
+        runtime.registerModule(new TimeTreeModule("timetree",
+                TimeTreeConfiguration
+                        .defaultConfiguration()
+                        .with(new NodeInclusionPolicy() {
+                            @Override
+                            public boolean include(Node node) {
+                                return node.hasLabel(Email);
+                            }
+                        })
+                        .with(new NodePropertyInclusionPolicy() {
+                            @Override
+                            public boolean include(String key, Node propertyContainer) {
+                                return "time".equals(key);
+                            }
+                        })
+                        .withRelationshipType(DynamicRelationshipType.withName("SENT_AT"))
+                        .withTimeZone(DateTimeZone.forTimeZone(TimeZone.getTimeZone("GMT+1")))
+                        .withTimestampProperty("time")
+                        .withCustomTimeTreeRootProperty("timeTreeRootId")
+                        .withResolution(Resolution.MINUTE)
+                ,
+                getDatabase()));
+        runtime.start();
+
+        Long customRootId;
+        try (Transaction tx = getDatabase().beginTx()) {
+            Node node = getDatabase().createNode(CustomRoot);
+            customRootId = node.getId();
+            tx.success();
+        }
+        createEventWithRootIdProperty(customRootId, Event);
+
+        assertSameGraph(getDatabase(), "CREATE " +
+                        "(event:Event {subject:'Neo4j', timestamp:" + TIMESTAMP + ", timeTreeRootId:" + customRootId + "})," +
+                        "(root:CustomRoot)," +
+                        "(root)-[:FIRST]->(year:Year {value:2015})," +
+                        "(root)-[:CHILD]->(year)," +
+                        "(root)-[:LAST]->(year)," +
+                        "(year)-[:FIRST]->(month:Month {value:4})," +
+                        "(year)-[:CHILD]->(month)," +
+                        "(year)-[:LAST]->(month)," +
+                        "(month)-[:FIRST]->(day:Day {value:5})," +
+                        "(month)-[:CHILD]->(day)," +
+                        "(month)-[:LAST]->(day)," +
+                        "(day)<-[:AT_TIME]-(event)"
         );
     }
 

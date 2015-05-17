@@ -205,6 +205,18 @@ com.graphaware.module.TT.autoAttach=true
 For more information on the `com.graphaware.module.TT.event` setting, i.e. how to write expressions that define which
 nodes should be attached to the tree, please refer to [Inclusion Policies](https://github.com/graphaware/neo4j-framework/tree/master/common#inclusion-policies).
 
+Examples of relevant expressions that can be used:
+
+* `hasProperty('propertyName')` - returns boolean. Example: `hasProperty('name')`
+* `getProperty('propertyName','defaultValue')` - returns Object. Example: `getProperty('name','unknown') == 'Michal'`
+* `getDegree()` or `degree` - returns int. Examples: `degree > 1`
+* `getDegree('typeOrDirection')` - returns int. Examples: `getDegree('OUTGOING') == 0` or `getDegree('FRIEND_OF') > 1000`
+* `getDegree('type', 'direction')` - returns int. Examples: `getDegree('FRIEND_OF','OUTGOING') > 0`
+* `hasLabel('label')` - returns boolean. Example: `hasLabel('Person')`
+
+Of course, the expressions can be combined with logical operators, for instance:
+* `hasLabel('Event') || hasProperty('startDate') || getProperty('significance', 0) > 20`
+
 ### Java API
 
 Java API has the same functionality as the rest API. Please refer to <a href="http://graphaware.com/site/timetree/latest/apidocs/" target="_blank">its Javadoc</a> (look at the `TimeTree` and `TimedEvents` interfaces).

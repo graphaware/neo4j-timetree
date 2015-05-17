@@ -48,13 +48,11 @@ public class TimeTreeModule extends BaseTxDrivenModule<Void> {
 
     private final TimeTreeConfiguration configuration;
     private final TimedEvents timedEvents;
-    private GraphDatabaseService database;
 
     public TimeTreeModule(String moduleId, TimeTreeConfiguration configuration, GraphDatabaseService database) {
         super(moduleId);
         this.configuration = configuration;
         this.timedEvents = new TimeTreeBackedEvents(new SingleTimeTree(database));
-        this.database = database;
     }
 
     /**
@@ -132,7 +130,7 @@ public class TimeTreeModule extends BaseTxDrivenModule<Void> {
 
         TimedEvents timedEventsToUse;
         if (configuration.getCustomTimeTreeRootProperty() != null && created.hasProperty(configuration.getCustomTimeTreeRootProperty())) {
-            timedEventsToUse = new TimeTreeBackedEvents(new CustomRootTimeTree(database.getNodeById(getLong(created, configuration.getCustomTimeTreeRootProperty()))));
+            timedEventsToUse = new TimeTreeBackedEvents(new CustomRootTimeTree(created.getGraphDatabase().getNodeById(getLong(created, configuration.getCustomTimeTreeRootProperty()))));
         } else {
             timedEventsToUse = timedEvents;
         }

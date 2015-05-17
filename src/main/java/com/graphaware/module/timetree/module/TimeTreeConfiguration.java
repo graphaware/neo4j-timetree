@@ -38,7 +38,7 @@ public class TimeTreeConfiguration extends BaseTxDrivenModuleConfiguration<TimeT
     private static final Resolution DEFAULT_RESOLUTION = DAY;
     private static final DateTimeZone DEFAULT_TIME_ZONE = DateTimeZone.forTimeZone(TimeZone.getTimeZone("UTC"));
     private static final String DEFAULT_TIMESTAMP_PROPERTY = "timestamp";
-    private static final String DEFAULT_CUSTOM_TIMETREE_ROOT_PROPERTY = "timeTreeRootId";
+    private static final String DEFAULT_CUSTOM_TIMETREE_ROOT_PROPERTY = null;
     private static final RelationshipType DEFAULT_RELATIONSHIP_TYPE = DynamicRelationshipType.withName("AT_TIME");
     private static final boolean DEFAULT_AUTO_ATTACH = false;
 

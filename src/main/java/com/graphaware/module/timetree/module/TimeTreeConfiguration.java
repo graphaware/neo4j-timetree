@@ -60,21 +60,21 @@ public class TimeTreeConfiguration extends BaseTxDrivenModuleConfiguration<TimeT
     /**
      * Create a new configuration.
      *
-     * @param inclusionPolicies  for the event nodes. Only {@link com.graphaware.common.policy.NodeInclusionPolicy} and
-     *                           {@link com.graphaware.common.policy.NodePropertyInclusionPolicy} are interesting. The {@link com.graphaware.common.policy.NodeInclusionPolicy}
-     *                           should include the nodes that should be attached to the tree, and the {@link com.graphaware.common.policy.NodePropertyInclusionPolicy}
-     *                           must include the timestamp property of those nodes.
-     * @param timestampProperty  property of the event nodes that stores a <code>long</code> timestamp.
-     * @param CustomTimeTreeRootProperty property of the event nodes that stores a <code>long</code> representing their custom timetree root
-     * @param resolution         resolution of the tree, to which to attach events.
-     * @param timeZone           time zone which is used for representing timestamps in the tree.
-     * @param relationshipType   with which the events are attached to the tree.
-     * @param autoAttach         <code>true</code> iff events should be automatically attached upon first module run and when config changes.
+     * @param inclusionPolicies          for the event nodes. Only {@link com.graphaware.common.policy.NodeInclusionPolicy} and
+     *                                   {@link com.graphaware.common.policy.NodePropertyInclusionPolicy} are interesting. The {@link com.graphaware.common.policy.NodeInclusionPolicy}
+     *                                   should include the nodes that should be attached to the tree, and the {@link com.graphaware.common.policy.NodePropertyInclusionPolicy}
+     *                                   must include the timestamp property of those nodes.
+     * @param timestampProperty          property of the event nodes that stores a <code>long</code> timestamp.
+     * @param customTimeTreeRootProperty property of the event nodes that stores a <code>long</code> representing their custom timetree root node ID
+     * @param resolution                 resolution of the tree, to which to attach events.
+     * @param timeZone                   time zone which is used for representing timestamps in the tree.
+     * @param relationshipType           with which the events are attached to the tree.
+     * @param autoAttach                 <code>true</code> iff events should be automatically attached upon first module run and when config changes.
      */
-    protected TimeTreeConfiguration(InclusionPolicies inclusionPolicies, String timestampProperty, String CustomTimeTreeRootProperty, Resolution resolution, DateTimeZone timeZone, RelationshipType relationshipType, boolean autoAttach) {
+    protected TimeTreeConfiguration(InclusionPolicies inclusionPolicies, String timestampProperty, String customTimeTreeRootProperty, Resolution resolution, DateTimeZone timeZone, RelationshipType relationshipType, boolean autoAttach) {
         super(inclusionPolicies);
         this.timestampProperty = timestampProperty;
-        this.customTimeTreeRootProperty = CustomTimeTreeRootProperty;
+        this.customTimeTreeRootProperty = customTimeTreeRootProperty;
         this.resolution = resolution;
         this.timeZone = timeZone;
         this.relationshipType = relationshipType;
@@ -111,11 +111,11 @@ public class TimeTreeConfiguration extends BaseTxDrivenModuleConfiguration<TimeT
     /**
      * Create a new instance of this {@link TimeTreeConfiguration} with different customTimeTreeRootID property
      *
-     * @param CustomTimeTreeRootProperty
+     * @param customTimeTreeRootProperty
      * @return new instance
      */
-    public TimeTreeConfiguration withCustomTimeTreeRootProperty(final String CustomTimeTreeRootProperty) {
-        return new TimeTreeConfiguration(getInclusionPolicies().with(IncludeNodeProperties.all().with(CustomTimeTreeRootProperty)), getTimestampProperty(), CustomTimeTreeRootProperty, getResolution(), getTimeZone(), getRelationshipType(), isAutoAttach());
+    public TimeTreeConfiguration withCustomTimeTreeRootProperty(final String customTimeTreeRootProperty) {
+        return new TimeTreeConfiguration(getInclusionPolicies().with(IncludeNodeProperties.all().with(customTimeTreeRootProperty)), getTimestampProperty(), customTimeTreeRootProperty, getResolution(), getTimeZone(), getRelationshipType(), isAutoAttach());
     }
 
     /**
@@ -174,7 +174,9 @@ public class TimeTreeConfiguration extends BaseTxDrivenModuleConfiguration<TimeT
         return timestampProperty;
     }
 
-    public String getCustomTimeTreeRootProperty() { return customTimeTreeRootProperty; }
+    public String getCustomTimeTreeRootProperty() {
+        return customTimeTreeRootProperty;
+    }
 
     public Resolution getResolution() {
         return resolution;

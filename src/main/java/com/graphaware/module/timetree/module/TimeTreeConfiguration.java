@@ -16,7 +16,6 @@
 package com.graphaware.module.timetree.module;
 
 import com.graphaware.common.policy.InclusionPolicies;
-import com.graphaware.common.policy.fluent.IncludeNodeProperties;
 import com.graphaware.common.policy.fluent.IncludeNodes;
 import com.graphaware.common.policy.fluent.IncludeRelationships;
 import com.graphaware.module.timetree.domain.Resolution;
@@ -46,8 +45,6 @@ public class TimeTreeConfiguration extends BaseTxDrivenModuleConfiguration<TimeT
     private static final InclusionPolicies DEFAULT_INCLUSION_POLICIES =
             InclusionPoliciesFactory.allBusiness()
                     .with(IncludeNodes.all().with("Event"))
-                    .with(IncludeNodeProperties.all().with(DEFAULT_TIMESTAMP_PROPERTY))
-                    .with(IncludeNodeProperties.all().with(DEFAULT_CUSTOM_TIMETREE_ROOT_PROPERTY))
                     .with(IncludeRelationships.all().with(DEFAULT_RELATIONSHIP_TYPE));
 
     private String timestampProperty;
@@ -105,7 +102,7 @@ public class TimeTreeConfiguration extends BaseTxDrivenModuleConfiguration<TimeT
      * @return new instance.
      */
     public TimeTreeConfiguration withTimestampProperty(final String timestampProperty) {
-        return new TimeTreeConfiguration(getInclusionPolicies().with(IncludeNodeProperties.all().with(timestampProperty)), timestampProperty, getCustomTimeTreeRootProperty(), getResolution(), getTimeZone(), getRelationshipType(), isAutoAttach());
+        return new TimeTreeConfiguration(getInclusionPolicies(), timestampProperty, getCustomTimeTreeRootProperty(), getResolution(), getTimeZone(), getRelationshipType(), isAutoAttach());
     }
 
     /**
@@ -115,7 +112,7 @@ public class TimeTreeConfiguration extends BaseTxDrivenModuleConfiguration<TimeT
      * @return new instance
      */
     public TimeTreeConfiguration withCustomTimeTreeRootProperty(final String customTimeTreeRootProperty) {
-        return new TimeTreeConfiguration(getInclusionPolicies().with(IncludeNodeProperties.all().with(customTimeTreeRootProperty)), getTimestampProperty(), customTimeTreeRootProperty, getResolution(), getTimeZone(), getRelationshipType(), isAutoAttach());
+        return new TimeTreeConfiguration(getInclusionPolicies(), getTimestampProperty(), customTimeTreeRootProperty, getResolution(), getTimeZone(), getRelationshipType(), isAutoAttach());
     }
 
     /**
@@ -164,8 +161,6 @@ public class TimeTreeConfiguration extends BaseTxDrivenModuleConfiguration<TimeT
     @Override
     protected TimeTreeConfiguration newInstance(InclusionPolicies inclusionPolicies) {
         return new TimeTreeConfiguration(inclusionPolicies
-                .with(IncludeNodeProperties.all().with(getTimestampProperty()))
-                .with(IncludeNodeProperties.all().with(getCustomTimeTreeRootProperty()))
                 .with(IncludeRelationships.all().with(getRelationshipType())),
                 getTimestampProperty(), getCustomTimeTreeRootProperty(), getResolution(), getTimeZone(), getRelationshipType(), isAutoAttach());
     }

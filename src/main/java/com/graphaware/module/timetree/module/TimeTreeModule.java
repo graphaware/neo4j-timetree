@@ -37,6 +37,8 @@ import org.neo4j.tooling.GlobalGraphOperations;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import static com.graphaware.common.util.PropertyContainerUtils.getLong;
+
 /**
  * A {@link com.graphaware.runtime.module.TxDrivenModule} that automatically attaches events to a {@link com.graphaware.module.timetree.TimeTree}.
  */
@@ -46,13 +48,11 @@ public class TimeTreeModule extends BaseTxDrivenModule<Void> {
 
     private final TimeTreeConfiguration configuration;
     private final TimedEvents timedEvents;
-    private GraphDatabaseService database;
 
     public TimeTreeModule(String moduleId, TimeTreeConfiguration configuration, GraphDatabaseService database) {
         super(moduleId);
         this.configuration = configuration;
         this.timedEvents = new TimeTreeBackedEvents(new SingleTimeTree(database));
-        this.database = database;
     }
 
     /**
@@ -77,6 +77,7 @@ public class TimeTreeModule extends BaseTxDrivenModule<Void> {
                 deleteTimeTreeRelationship(change.getPrevious());
                 createTimeTreeRelationship(change.getCurrent());
             }
+
             if (transactionData.hasPropertyBeenChanged(change.getPrevious(), configuration.getCustomTimeTreeRootProperty())) {
                 deleteTimeTreeRelationship(change.getPrevious());
                 createTimeTreeRelationship(change.getCurrent());
@@ -126,21 +127,15 @@ public class TimeTreeModule extends BaseTxDrivenModule<Void> {
             LOG.warn("Created node with ID " + created.getId() + " does not have a valid timestamp property", throwable);
             return;
         }
-        if (null != configuration.getCustomTimeTreeRootProperty()) {
-            if (!created.hasProperty(configuration.getCustomTimeTreeRootProperty())) {
-                LOG.warn("Created node with ID " + created.getId() + " does not have a " + configuration.getCustomTimeTreeRootProperty() + " property");
-            }
-            if (created.hasProperty(configuration.getCustomTimeTreeRootProperty())){
-                Integer rootId = (Integer) created.getProperty(configuration.getCustomTimeTreeRootProperty());
-                Node root = database.getNodeById(rootId);
-                TimeTreeBackedEvents ev = new TimeTreeBackedEvents(new CustomRootTimeTree(root));
-                ev.attachEvent(created, configuration.getRelationshipType(), TimeInstant.instant(timestamp).with(configuration.getResolution()).with(configuration.getTimeZone()));
 
-                return;
-            }
+        TimedEvents timedEventsToUse;
+        if (configuration.getCustomTimeTreeRootProperty() != null && created.hasProperty(configuration.getCustomTimeTreeRootProperty())) {
+            timedEventsToUse = new TimeTreeBackedEvents(new CustomRootTimeTree(created.getGraphDatabase().getNodeById(getLong(created, configuration.getCustomTimeTreeRootProperty()))));
+        } else {
+            timedEventsToUse = timedEvents;
         }
 
-        timedEvents.attachEvent(created, configuration.getRelationshipType(), TimeInstant.instant(timestamp).with(configuration.getResolution()).with(configuration.getTimeZone()));
+        timedEventsToUse.attachEvent(created, configuration.getRelationshipType(), TimeInstant.instant(timestamp).with(configuration.getResolution()).with(configuration.getTimeZone()));
     }
 
     private void deleteTimeTreeRelationship(Node changed) {

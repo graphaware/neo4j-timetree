@@ -185,7 +185,7 @@ public class TimeTreeConfiguration extends BaseTxDrivenModuleConfiguration<TimeT
         TimeTreeConfiguration that = (TimeTreeConfiguration) o;
 
         if (autoAttach != that.autoAttach) return false;
-        if (!relationshipType.equals(that.relationshipType)) return false;
+        if (!relationshipType.name().equals(that.relationshipType.name())) return false;
         if (resolution != that.resolution) return false;
         if (!timeZone.equals(that.timeZone)) return false;
         if (!timestampProperty.equals(that.timestampProperty)) return false;
@@ -202,7 +202,7 @@ public class TimeTreeConfiguration extends BaseTxDrivenModuleConfiguration<TimeT
         result = 31 * result + timestampProperty.hashCode();
         result = 31 * result + resolution.hashCode();
         result = 31 * result + timeZone.hashCode();
-        result = 31 * result + relationshipType.hashCode();
+        result = 31 * result + relationshipType.name().hashCode();
         result = 31 * result + (autoAttach ? 1 : 0);
         return result;
     }

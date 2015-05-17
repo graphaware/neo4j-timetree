@@ -192,6 +192,9 @@ com.graphaware.module.TT.timestamp=time
 # Optionally, a resolution can be specified (defaults to DAY)
 com.graphaware.module.TT.resolution=HOUR
 
+# Optionally, a property on the event nodes that represents their TimeTreeRoot id (will create one CustomTimeTreeRoot per different passed ids)
+com.graphaware.module.TT.customTimeTreeRootProperty=customTimeTreeRootId
+
 # Optionally, a time zone can be specified (defaults to UTC)
 com.graphaware.module.TT.timezone=GMT+1
 

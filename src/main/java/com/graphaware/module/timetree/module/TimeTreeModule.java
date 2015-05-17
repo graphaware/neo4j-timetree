@@ -16,6 +16,7 @@
 
 package com.graphaware.module.timetree.module;
 
+import com.graphaware.module.timetree.CustomRootTimeTree;
 import com.graphaware.module.timetree.SingleTimeTree;
 import com.graphaware.module.timetree.TimeTreeBackedEvents;
 import com.graphaware.module.timetree.TimedEvents;
@@ -35,6 +36,8 @@ import org.neo4j.graphdb.Relationship;
 import org.neo4j.tooling.GlobalGraphOperations;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+
+import static com.graphaware.common.util.PropertyContainerUtils.getLong;
 
 /**
  * A {@link com.graphaware.runtime.module.TxDrivenModule} that automatically attaches events to a {@link com.graphaware.module.timetree.TimeTree}.
@@ -71,6 +74,11 @@ public class TimeTreeModule extends BaseTxDrivenModule<Void> {
 
         for (Change<Node> change : transactionData.getAllChangedNodes()) {
             if (transactionData.hasPropertyBeenChanged(change.getPrevious(), configuration.getTimestampProperty())) {
+                deleteTimeTreeRelationship(change.getPrevious());
+                createTimeTreeRelationship(change.getCurrent());
+            }
+
+            if (transactionData.hasPropertyBeenChanged(change.getPrevious(), configuration.getCustomTimeTreeRootProperty())) {
                 deleteTimeTreeRelationship(change.getPrevious());
                 createTimeTreeRelationship(change.getCurrent());
             }
@@ -120,7 +128,14 @@ public class TimeTreeModule extends BaseTxDrivenModule<Void> {
             return;
         }
 
-        timedEvents.attachEvent(created, configuration.getRelationshipType(), TimeInstant.instant(timestamp).with(configuration.getResolution()).with(configuration.getTimeZone()));
+        TimedEvents timedEventsToUse;
+        if (configuration.getCustomTimeTreeRootProperty() != null && created.hasProperty(configuration.getCustomTimeTreeRootProperty())) {
+            timedEventsToUse = new TimeTreeBackedEvents(new CustomRootTimeTree(created.getGraphDatabase().getNodeById(getLong(created, configuration.getCustomTimeTreeRootProperty()))));
+        } else {
+            timedEventsToUse = timedEvents;
+        }
+
+        timedEventsToUse.attachEvent(created, configuration.getRelationshipType(), TimeInstant.instant(timestamp).with(configuration.getResolution()).with(configuration.getTimeZone()));
     }
 
     private void deleteTimeTreeRelationship(Node changed) {

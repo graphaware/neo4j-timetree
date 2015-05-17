@@ -16,6 +16,7 @@
 
 package com.graphaware.module.timetree.module;
 
+import com.graphaware.module.timetree.CustomRootTimeTree;
 import com.graphaware.module.timetree.SingleTimeTree;
 import com.graphaware.module.timetree.TimeTreeBackedEvents;
 import com.graphaware.module.timetree.TimedEvents;
@@ -45,11 +46,13 @@ public class TimeTreeModule extends BaseTxDrivenModule<Void> {
 
     private final TimeTreeConfiguration configuration;
     private final TimedEvents timedEvents;
+    private GraphDatabaseService database;
 
     public TimeTreeModule(String moduleId, TimeTreeConfiguration configuration, GraphDatabaseService database) {
         super(moduleId);
         this.configuration = configuration;
         this.timedEvents = new TimeTreeBackedEvents(new SingleTimeTree(database));
+        this.database = database;
     }
 
     /**
@@ -71,6 +74,10 @@ public class TimeTreeModule extends BaseTxDrivenModule<Void> {
 
         for (Change<Node> change : transactionData.getAllChangedNodes()) {
             if (transactionData.hasPropertyBeenChanged(change.getPrevious(), configuration.getTimestampProperty())) {
+                deleteTimeTreeRelationship(change.getPrevious());
+                createTimeTreeRelationship(change.getCurrent());
+            }
+            if (transactionData.hasPropertyBeenChanged(change.getPrevious(), configuration.getCustomTimeTreeRootProperty())) {
                 deleteTimeTreeRelationship(change.getPrevious());
                 createTimeTreeRelationship(change.getCurrent());
             }
@@ -117,6 +124,17 @@ public class TimeTreeModule extends BaseTxDrivenModule<Void> {
             timestamp = (Long) created.getProperty(configuration.getTimestampProperty());
         } catch (Throwable throwable) {
             LOG.warn("Created node with ID " + created.getId() + " does not have a valid timestamp property", throwable);
+            return;
+        }
+        if (!created.hasProperty(configuration.getCustomTimeTreeRootProperty())) {
+            LOG.warn("Created node with ID " + created.getId() + " does not have a " + configuration.getCustomTimeTreeRootProperty() + " property");
+        }
+        if (created.hasProperty(configuration.getCustomTimeTreeRootProperty())){
+            Integer rootId = (Integer) created.getProperty(configuration.getCustomTimeTreeRootProperty());
+            Node root = database.getNodeById(rootId);
+            TimeTreeBackedEvents ev = new TimeTreeBackedEvents(new CustomRootTimeTree(root));
+            ev.attachEvent(created, configuration.getRelationshipType(), TimeInstant.instant(timestamp).with(configuration.getResolution()).with(configuration.getTimeZone()));
+
             return;
         }
 

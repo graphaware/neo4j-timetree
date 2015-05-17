@@ -40,6 +40,7 @@ public class TimeTreeModuleBootstrapper implements RuntimeModuleBootstrapper {
 
     private static final String EVENT = "event";
     private static final String TIMESTAMP_PROPERTY = "timestamp";
+    private static final String CUSTOM_TIMETREE_ROOT_PROPERTY = "customTimeTreeRootProperty";
     private static final String RESOLUTION = "resolution";
     private static final String TIME_ZONE = "timezone";
     private static final String RELATIONSHIP = "relationship";
@@ -62,6 +63,12 @@ public class TimeTreeModuleBootstrapper implements RuntimeModuleBootstrapper {
             String timestampProperty = config.get(TIMESTAMP_PROPERTY);
             LOG.info("Timestamp Property set to {}", timestampProperty);
             configuration = configuration.withTimestampProperty(timestampProperty);
+        }
+
+        if (config.get(CUSTOM_TIMETREE_ROOT_PROPERTY) != null) {
+            String customTimeTreeRootProperty = config.get(CUSTOM_TIMETREE_ROOT_PROPERTY);
+            LOG.info("Custom TimeTree Root Property set to {}", customTimeTreeRootProperty);
+            configuration = configuration.withCustomTimeTreeRootProperty(customTimeTreeRootProperty);
         }
 
         if (config.get(RESOLUTION) != null) {

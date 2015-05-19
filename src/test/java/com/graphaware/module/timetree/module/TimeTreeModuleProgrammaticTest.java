@@ -35,6 +35,8 @@ import java.util.TimeZone;
 
 import static com.graphaware.test.unit.GraphUnit.assertSameGraph;
 
+//todo test weird things: removing timestamp prop, all different custom tree scenarios
+
 /**
  * Test for {@link com.graphaware.module.timetree.module.TimeTreeModule} set up programatically.
  */

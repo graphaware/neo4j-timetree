@@ -39,8 +39,6 @@ import static com.graphaware.module.timetree.domain.Resolution.MINUTE;
 import static com.graphaware.module.timetree.domain.Resolution.MONTH;
 import static com.graphaware.test.unit.GraphUnit.assertSameGraph;
 
-//todo test weird things: removing timestamp prop, all different custom tree scenarios
-
 /**
  * Test for {@link com.graphaware.module.timetree.module.TimeTreeModule} set up programatically.
  */
@@ -247,6 +245,41 @@ public class TimeTreeModuleSingleRootProgrammaticTest extends DatabaseIntegratio
                         "(month3)-[:LAST]->(day13)," +
                         "(day5)<-[:NEXT]-(day13)," +
                         "(day5)<-[:AT_TIME]-(event)"
+        );
+    }
+
+    @Test
+    public void shouldUnAttachEventWithRemovedTimestamp() {
+        GraphAwareRuntime runtime = GraphAwareRuntimeFactory.createRuntime(getDatabase());
+        runtime.registerModule(new TimeTreeModule("timetree", TimeTreeConfiguration.defaultConfiguration(), getDatabase()));
+        runtime.start();
+
+        long eventId;
+        try (Transaction tx = getDatabase().beginTx()) {
+            Node node = getDatabase().createNode(Event);
+            node.setProperty("subject", "Neo4j");
+            node.setProperty("timestamp", TIMESTAMP);
+            eventId = node.getId();
+            tx.success();
+        }
+
+        try (Transaction tx = getDatabase().beginTx()) {
+            getDatabase().getNodeById(eventId).removeProperty("timestamp");
+            tx.success();
+        }
+
+        assertSameGraph(getDatabase(), "CREATE " +
+                        "(event:Event {subject:'Neo4j'})," +
+                        "(root:TimeTreeRoot)," +
+                        "(root)-[:FIRST]->(year:Year {value:2015})," +
+                        "(root)-[:CHILD]->(year)," +
+                        "(root)-[:LAST]->(year)," +
+                        "(year)-[:FIRST]->(month:Month {value:4})," +
+                        "(year)-[:CHILD]->(month)," +
+                        "(year)-[:LAST]->(month)," +
+                        "(month)-[:FIRST]->(day:Day {value:5})," +
+                        "(month)-[:CHILD]->(day)," +
+                        "(month)-[:LAST]->(day)"
         );
     }
 

@@ -82,6 +82,14 @@ public class TimeTreeModule extends BaseTxDrivenModule<Void> {
                 deleteTimeTreeRelationship(change.getPrevious());
                 createTimeTreeRelationship(change.getCurrent());
             }
+
+            if (transactionData.hasPropertyBeenDeleted(change.getPrevious(), configuration.getTimestampProperty())) {
+                deleteTimeTreeRelationship(change.getPrevious());
+            }
+
+            if (transactionData.hasPropertyBeenDeleted(change.getPrevious(), configuration.getCustomTimeTreeRootProperty())) {
+                deleteTimeTreeRelationship(change.getPrevious());
+            }
         }
 
         return null;

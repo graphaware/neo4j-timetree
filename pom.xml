@@ -55,6 +55,11 @@
             <name>Luanne Misquitta</name>
             <email>luanne@graphaware.com</email>
         </developer>
+        <developer>
+            <id>ikwattro</id>
+            <name>Christophe Willemsen</name>
+            <email>christophe@graphaware.com</email>
+        </developer>
     </developers>
 
     <ciManagement>

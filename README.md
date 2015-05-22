@@ -189,6 +189,9 @@ com.graphaware.module.TT.event=hasLabel('Email')
 # Optionally, a property on the event nodes that represents the the time (long) at which the event took place must be specified (defaults to "timestamp")
 com.graphaware.module.TT.timestamp=time
 
+# Optionally, a property on the event nodes that represents the node ID (long) of the root node for the tree, to which the event should be attached (defaults to "timeTreeRootId")
+com.graphaware.module.TT.customTimeTreeRootProperty=rootId
+
 # Optionally, a resolution can be specified (defaults to DAY)
 com.graphaware.module.TT.resolution=HOUR
 
@@ -216,6 +219,9 @@ Examples of relevant expressions that can be used:
 
 Of course, the expressions can be combined with logical operators, for instance:
 * `hasLabel('Event') || hasProperty('startDate') || getProperty('significance', 0) > 20`
+
+By default, events are attached to a single tree, unless the events have a `timeTreeRootId` (or its equivalent changed in config) property, in
+ which case a tree rooted at the node with the specified ID will be used to attach the event.
 
 ### Java API
 

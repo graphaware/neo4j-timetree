@@ -108,6 +108,7 @@ public class TimeTreeModule extends BaseTxDrivenModule<Void> {
                     LOG.info("Attaching existing events to TimeTree in batch " + batchNumber);
                 }
                 if (configuration.getInclusionPolicies().getNodeInclusionPolicy().include(input)) {
+                    deleteTimeTreeRelationship(input);
                     createTimeTreeRelationship(input);
                 }
             }

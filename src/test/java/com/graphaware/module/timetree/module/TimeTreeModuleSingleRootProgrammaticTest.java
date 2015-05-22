@@ -21,18 +21,22 @@ import com.graphaware.common.kv.KeyValueStore;
 import com.graphaware.common.policy.NodeInclusionPolicy;
 import com.graphaware.common.policy.NodePropertyInclusionPolicy;
 import com.graphaware.common.serialize.Serializer;
-import com.graphaware.module.timetree.domain.Resolution;
 import com.graphaware.runtime.GraphAwareRuntime;
 import com.graphaware.runtime.GraphAwareRuntimeFactory;
 import com.graphaware.runtime.metadata.DefaultTxDrivenModuleMetadata;
 import com.graphaware.test.integration.DatabaseIntegrationTest;
 import org.joda.time.DateTimeZone;
 import org.junit.Test;
+import org.junit.rules.TemporaryFolder;
 import org.neo4j.graphdb.*;
+import org.neo4j.graphdb.factory.GraphDatabaseFactory;
 
+import java.io.IOException;
 import java.util.Calendar;
 import java.util.TimeZone;
 
+import static com.graphaware.module.timetree.domain.Resolution.MINUTE;
+import static com.graphaware.module.timetree.domain.Resolution.MONTH;
 import static com.graphaware.test.unit.GraphUnit.assertSameGraph;
 
 //todo test weird things: removing timestamp prop, all different custom tree scenarios
@@ -40,11 +44,10 @@ import static com.graphaware.test.unit.GraphUnit.assertSameGraph;
 /**
  * Test for {@link com.graphaware.module.timetree.module.TimeTreeModule} set up programatically.
  */
-public class TimeTreeModuleProgrammaticTest extends DatabaseIntegrationTest {
+public class TimeTreeModuleSingleRootProgrammaticTest extends DatabaseIntegrationTest {
 
     private static final Label Email = DynamicLabel.label("Email");
     private static final Label Event = DynamicLabel.label("Event");
-    private static final Label CustomRoot = DynamicLabel.label("CustomRoot");
     private static final long TIMESTAMP;
 
     static {
@@ -127,36 +130,6 @@ public class TimeTreeModuleProgrammaticTest extends DatabaseIntegrationTest {
     }
 
     @Test
-    public void shouldAttachEventForCustomRootWithDefaultConfig() {
-        GraphAwareRuntime runtime = GraphAwareRuntimeFactory.createRuntime(getDatabase());
-        runtime.registerModule(new TimeTreeModule("timetree", TimeTreeConfiguration.defaultConfiguration(), getDatabase()));
-        runtime.start();
-
-        Long customRootId;
-        try (Transaction tx = getDatabase().beginTx()) {
-            Node node = getDatabase().createNode(CustomRoot);
-            customRootId = node.getId();
-            tx.success();
-        }
-        createEventWithRootIdProperty(customRootId, Event);
-
-        assertSameGraph(getDatabase(), "CREATE " +
-                        "(event:Event {subject:'Neo4j', timestamp:" + TIMESTAMP + ", timeTreeRootId:" + customRootId + "})," +
-                        "(root:CustomRoot)," +
-                        "(root)-[:FIRST]->(year:Year {value:2015})," +
-                        "(root)-[:CHILD]->(year)," +
-                        "(root)-[:LAST]->(year)," +
-                        "(year)-[:FIRST]->(month:Month {value:4})," +
-                        "(year)-[:CHILD]->(month)," +
-                        "(year)-[:LAST]->(month)," +
-                        "(month)-[:FIRST]->(day:Day {value:5})," +
-                        "(month)-[:CHILD]->(day)," +
-                        "(month)-[:LAST]->(day)," +
-                        "(day)<-[:AT_TIME]-(event)"
-        );
-    }
-
-    @Test
     public void shouldAttachEventWithMultipleLabels() {
         GraphAwareRuntime runtime = GraphAwareRuntimeFactory.createRuntime(getDatabase());
         runtime.registerModule(new TimeTreeModule("timetree", TimeTreeConfiguration.defaultConfiguration(), getDatabase()));
@@ -201,7 +174,7 @@ public class TimeTreeModuleProgrammaticTest extends DatabaseIntegrationTest {
                         .withRelationshipType(DynamicRelationshipType.withName("SENT_AT"))
                         .withTimeZone(DateTimeZone.forTimeZone(TimeZone.getTimeZone("GMT+1")))
                         .withTimestampProperty("time")
-                        .withResolution(Resolution.MINUTE)
+                        .withResolution(MINUTE)
                 ,
                 getDatabase()));
         runtime.start();
@@ -372,6 +345,73 @@ public class TimeTreeModuleProgrammaticTest extends DatabaseIntegrationTest {
         assertSameGraph(getDatabase(), "CREATE (:Event {subject:'Neo4j', timestamp:" + TIMESTAMP + "})");
     }
 
+    //issue #29
+    @Test
+    public void shouldRecreateTreeWhenResolutionChanges() throws IOException {
+        getDatabase().shutdown();
+
+        TemporaryFolder temporaryFolder = new TemporaryFolder();
+        temporaryFolder.create();
+        temporaryFolder.getRoot().deleteOnExit();
+
+        GraphDatabaseService database = new GraphDatabaseFactory().newEmbeddedDatabase(temporaryFolder.getRoot().getAbsolutePath());
+
+        GraphAwareRuntime runtime = GraphAwareRuntimeFactory.createRuntime(database);
+        runtime.registerModule(new TimeTreeModule("timetree", TimeTreeConfiguration.defaultConfiguration().withAutoAttach(true), database));
+        runtime.start();
+        runtime.waitUntilStarted();
+
+        try (Transaction tx = database.beginTx()) {
+            Node node = database.createNode(Event);
+            node.setProperty("subject", "Neo4j");
+            node.setProperty("timestamp", TIMESTAMP);
+            tx.success();
+        }
+
+        assertSameGraph(database, "CREATE " +
+                        "(event:Event {subject:'Neo4j', timestamp:" + TIMESTAMP + "})," +
+                        "(root:TimeTreeRoot)," +
+                        "(root)-[:FIRST]->(year:Year {value:2015})," +
+                        "(root)-[:CHILD]->(year)," +
+                        "(root)-[:LAST]->(year)," +
+                        "(year)-[:FIRST]->(month:Month {value:4})," +
+                        "(year)-[:CHILD]->(month)," +
+                        "(year)-[:LAST]->(month)," +
+                        "(month)-[:FIRST]->(day:Day {value:5})," +
+                        "(month)-[:CHILD]->(day)," +
+                        "(month)-[:LAST]->(day)," +
+                        "(day)<-[:AT_TIME]-(event)"
+        );
+
+        database.shutdown();
+
+        database = new GraphDatabaseFactory().newEmbeddedDatabase(temporaryFolder.getRoot().getAbsolutePath());
+
+        runtime = GraphAwareRuntimeFactory.createRuntime(database);
+        runtime.registerModule(new TimeTreeModule("timetree", TimeTreeConfiguration.defaultConfiguration().withResolution(MONTH).withAutoAttach(true), database));
+        runtime.start();
+        runtime.waitUntilStarted();
+
+        assertSameGraph(database, "CREATE " +
+                        "(event:Event {subject:'Neo4j', timestamp:" + TIMESTAMP + "})," +
+                        "(root:TimeTreeRoot)," +
+                        "(root)-[:FIRST]->(year:Year {value:2015})," +
+                        "(root)-[:CHILD]->(year)," +
+                        "(root)-[:LAST]->(year)," +
+                        "(year)-[:FIRST]->(month:Month {value:4})," +
+                        "(year)-[:CHILD]->(month)," +
+                        "(year)-[:LAST]->(month)," +
+                        "(month)-[:FIRST]->(day:Day {value:5})," +
+                        "(month)-[:CHILD]->(day)," +
+                        "(month)-[:LAST]->(day)," +
+                        "(month)<-[:AT_TIME]-(event)"
+        );
+
+        database.shutdown();
+
+        temporaryFolder.delete();
+    }
+
     private void createEvent() {
         createEvent(Event);
     }
@@ -381,16 +421,6 @@ public class TimeTreeModuleProgrammaticTest extends DatabaseIntegrationTest {
             Node node = getDatabase().createNode(labels);
             node.setProperty("subject", "Neo4j");
             node.setProperty("timestamp", TIMESTAMP);
-            tx.success();
-        }
-    }
-
-    private void createEventWithRootIdProperty(Long rootId, Label... labels) {
-        try (Transaction tx = getDatabase().beginTx()) {
-            Node node = getDatabase().createNode(labels);
-            node.setProperty("subject", "Neo4j");
-            node.setProperty("timestamp", TIMESTAMP);
-            node.setProperty("timeTreeRootId", rootId);
             tx.success();
         }
     }

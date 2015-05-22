@@ -73,22 +73,13 @@ public class TimeTreeModule extends BaseTxDrivenModule<Void> {
         }
 
         for (Change<Node> change : transactionData.getAllChangedNodes()) {
-            if (transactionData.hasPropertyBeenChanged(change.getPrevious(), configuration.getTimestampProperty())) {
+            if (transactionData.hasPropertyBeenChanged(change.getPrevious(), configuration.getTimestampProperty())
+                    || transactionData.hasPropertyBeenChanged(change.getPrevious(), configuration.getCustomTimeTreeRootProperty())
+                    || transactionData.hasPropertyBeenDeleted(change.getPrevious(), configuration.getTimestampProperty())
+                    || transactionData.hasPropertyBeenDeleted(change.getPrevious(), configuration.getCustomTimeTreeRootProperty())) {
+
                 deleteTimeTreeRelationship(change.getPrevious());
                 createTimeTreeRelationship(change.getCurrent());
-            }
-
-            if (transactionData.hasPropertyBeenChanged(change.getPrevious(), configuration.getCustomTimeTreeRootProperty())) {
-                deleteTimeTreeRelationship(change.getPrevious());
-                createTimeTreeRelationship(change.getCurrent());
-            }
-
-            if (transactionData.hasPropertyBeenDeleted(change.getPrevious(), configuration.getTimestampProperty())) {
-                deleteTimeTreeRelationship(change.getPrevious());
-            }
-
-            if (transactionData.hasPropertyBeenDeleted(change.getPrevious(), configuration.getCustomTimeTreeRootProperty())) {
-                deleteTimeTreeRelationship(change.getPrevious());
             }
         }
 

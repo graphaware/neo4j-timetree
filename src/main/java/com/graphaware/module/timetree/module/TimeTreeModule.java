@@ -73,7 +73,11 @@ public class TimeTreeModule extends BaseTxDrivenModule<Void> {
         }
 
         for (Change<Node> change : transactionData.getAllChangedNodes()) {
-            if (transactionData.hasPropertyBeenChanged(change.getPrevious(), configuration.getTimestampProperty())) {
+            if (transactionData.hasPropertyBeenChanged(change.getPrevious(), configuration.getTimestampProperty())
+                    || transactionData.hasPropertyBeenChanged(change.getPrevious(), configuration.getCustomTimeTreeRootProperty())
+                    || transactionData.hasPropertyBeenDeleted(change.getPrevious(), configuration.getTimestampProperty())
+                    || transactionData.hasPropertyBeenDeleted(change.getPrevious(), configuration.getCustomTimeTreeRootProperty())) {
+
                 deleteTimeTreeRelationship(change.getPrevious());
                 createTimeTreeRelationship(change.getCurrent());
             }
@@ -108,6 +112,7 @@ public class TimeTreeModule extends BaseTxDrivenModule<Void> {
                     LOG.info("Attaching existing events to TimeTree in batch " + batchNumber);
                 }
                 if (configuration.getInclusionPolicies().getNodeInclusionPolicy().include(input)) {
+                    deleteTimeTreeRelationship(input);
                     createTimeTreeRelationship(input);
                 }
             }

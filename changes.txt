@@ -1,8 +1,10 @@
-2.2.1.30.23:
-    - fixed issue #28
-
-2.2.1.30.22:
+2.2.2.31.23:
+    - upgraded to Neo4j 2.2.2 and GraphAware Framework 2.2.2.31
+    - fixed issue #28 (TimeTree being rebuilt after restart, even when unnecessary)
     - querying for events now takes a set of relationship types, rather than a single one (issue #22)
+    - auto-attachment supporting multiple tree roots (#26)
+    - events with deleted timestamps are automatically detached
+    - events are reattached after restart if configuration changes (issue #29)
 
 2.2.1.30.21:
     - fixed occasionally failing tests due to incorrect fix of issue #20

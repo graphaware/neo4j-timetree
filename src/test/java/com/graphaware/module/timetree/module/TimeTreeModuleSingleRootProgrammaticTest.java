@@ -21,24 +21,28 @@ import com.graphaware.common.kv.KeyValueStore;
 import com.graphaware.common.policy.NodeInclusionPolicy;
 import com.graphaware.common.policy.NodePropertyInclusionPolicy;
 import com.graphaware.common.serialize.Serializer;
-import com.graphaware.module.timetree.domain.Resolution;
 import com.graphaware.runtime.GraphAwareRuntime;
 import com.graphaware.runtime.GraphAwareRuntimeFactory;
 import com.graphaware.runtime.metadata.DefaultTxDrivenModuleMetadata;
 import com.graphaware.test.integration.DatabaseIntegrationTest;
 import org.joda.time.DateTimeZone;
 import org.junit.Test;
+import org.junit.rules.TemporaryFolder;
 import org.neo4j.graphdb.*;
+import org.neo4j.graphdb.factory.GraphDatabaseFactory;
 
+import java.io.IOException;
 import java.util.Calendar;
 import java.util.TimeZone;
 
+import static com.graphaware.module.timetree.domain.Resolution.MINUTE;
+import static com.graphaware.module.timetree.domain.Resolution.MONTH;
 import static com.graphaware.test.unit.GraphUnit.assertSameGraph;
 
 /**
  * Test for {@link com.graphaware.module.timetree.module.TimeTreeModule} set up programatically.
  */
-public class TimeTreeModuleProgrammaticTest extends DatabaseIntegrationTest {
+public class TimeTreeModuleSingleRootProgrammaticTest extends DatabaseIntegrationTest {
 
     private static final Label Email = DynamicLabel.label("Email");
     private static final Label Event = DynamicLabel.label("Event");
@@ -184,22 +188,17 @@ public class TimeTreeModuleProgrammaticTest extends DatabaseIntegrationTest {
         runtime.registerModule(new TimeTreeModule("timetree",
                 TimeTreeConfiguration
                         .defaultConfiguration()
+                        .withTimestampProperty("time")
                         .with(new NodeInclusionPolicy() {
                             @Override
                             public boolean include(Node node) {
                                 return node.hasLabel(Email);
                             }
                         })
-                        .with(new NodePropertyInclusionPolicy() {
-                            @Override
-                            public boolean include(String key, Node propertyContainer) {
-                                return "time".equals(key);
-                            }
-                        })
                         .withRelationshipType(DynamicRelationshipType.withName("SENT_AT"))
                         .withTimeZone(DateTimeZone.forTimeZone(TimeZone.getTimeZone("GMT+1")))
                         .withTimestampProperty("time")
-                        .withResolution(Resolution.MINUTE)
+                        .withResolution(MINUTE)
                 ,
                 getDatabase()));
         runtime.start();
@@ -272,6 +271,41 @@ public class TimeTreeModuleProgrammaticTest extends DatabaseIntegrationTest {
                         "(month3)-[:LAST]->(day13)," +
                         "(day5)<-[:NEXT]-(day13)," +
                         "(day5)<-[:AT_TIME]-(event)"
+        );
+    }
+
+    @Test
+    public void shouldUnAttachEventWithRemovedTimestamp() {
+        GraphAwareRuntime runtime = GraphAwareRuntimeFactory.createRuntime(getDatabase());
+        runtime.registerModule(new TimeTreeModule("timetree", TimeTreeConfiguration.defaultConfiguration(), getDatabase()));
+        runtime.start();
+
+        long eventId;
+        try (Transaction tx = getDatabase().beginTx()) {
+            Node node = getDatabase().createNode(Event);
+            node.setProperty("subject", "Neo4j");
+            node.setProperty("timestamp", TIMESTAMP);
+            eventId = node.getId();
+            tx.success();
+        }
+
+        try (Transaction tx = getDatabase().beginTx()) {
+            getDatabase().getNodeById(eventId).removeProperty("timestamp");
+            tx.success();
+        }
+
+        assertSameGraph(getDatabase(), "CREATE " +
+                        "(event:Event {subject:'Neo4j'})," +
+                        "(root:TimeTreeRoot)," +
+                        "(root)-[:FIRST]->(year:Year {value:2015})," +
+                        "(root)-[:CHILD]->(year)," +
+                        "(root)-[:LAST]->(year)," +
+                        "(year)-[:FIRST]->(month:Month {value:4})," +
+                        "(year)-[:CHILD]->(month)," +
+                        "(year)-[:LAST]->(month)," +
+                        "(month)-[:FIRST]->(day:Day {value:5})," +
+                        "(month)-[:CHILD]->(day)," +
+                        "(month)-[:LAST]->(day)"
         );
     }
 
@@ -368,6 +402,73 @@ public class TimeTreeModuleProgrammaticTest extends DatabaseIntegrationTest {
         runtime.start();
 
         assertSameGraph(getDatabase(), "CREATE (:Event {subject:'Neo4j', timestamp:" + TIMESTAMP + "})");
+    }
+
+    //issue #29
+    @Test
+    public void shouldRecreateTreeWhenResolutionChanges() throws IOException {
+        getDatabase().shutdown();
+
+        TemporaryFolder temporaryFolder = new TemporaryFolder();
+        temporaryFolder.create();
+        temporaryFolder.getRoot().deleteOnExit();
+
+        GraphDatabaseService database = new GraphDatabaseFactory().newEmbeddedDatabase(temporaryFolder.getRoot().getAbsolutePath());
+
+        GraphAwareRuntime runtime = GraphAwareRuntimeFactory.createRuntime(database);
+        runtime.registerModule(new TimeTreeModule("timetree", TimeTreeConfiguration.defaultConfiguration().withAutoAttach(true), database));
+        runtime.start();
+        runtime.waitUntilStarted();
+
+        try (Transaction tx = database.beginTx()) {
+            Node node = database.createNode(Event);
+            node.setProperty("subject", "Neo4j");
+            node.setProperty("timestamp", TIMESTAMP);
+            tx.success();
+        }
+
+        assertSameGraph(database, "CREATE " +
+                        "(event:Event {subject:'Neo4j', timestamp:" + TIMESTAMP + "})," +
+                        "(root:TimeTreeRoot)," +
+                        "(root)-[:FIRST]->(year:Year {value:2015})," +
+                        "(root)-[:CHILD]->(year)," +
+                        "(root)-[:LAST]->(year)," +
+                        "(year)-[:FIRST]->(month:Month {value:4})," +
+                        "(year)-[:CHILD]->(month)," +
+                        "(year)-[:LAST]->(month)," +
+                        "(month)-[:FIRST]->(day:Day {value:5})," +
+                        "(month)-[:CHILD]->(day)," +
+                        "(month)-[:LAST]->(day)," +
+                        "(day)<-[:AT_TIME]-(event)"
+        );
+
+        database.shutdown();
+
+        database = new GraphDatabaseFactory().newEmbeddedDatabase(temporaryFolder.getRoot().getAbsolutePath());
+
+        runtime = GraphAwareRuntimeFactory.createRuntime(database);
+        runtime.registerModule(new TimeTreeModule("timetree", TimeTreeConfiguration.defaultConfiguration().withResolution(MONTH).withAutoAttach(true), database));
+        runtime.start();
+        runtime.waitUntilStarted();
+
+        assertSameGraph(database, "CREATE " +
+                        "(event:Event {subject:'Neo4j', timestamp:" + TIMESTAMP + "})," +
+                        "(root:TimeTreeRoot)," +
+                        "(root)-[:FIRST]->(year:Year {value:2015})," +
+                        "(root)-[:CHILD]->(year)," +
+                        "(root)-[:LAST]->(year)," +
+                        "(year)-[:FIRST]->(month:Month {value:4})," +
+                        "(year)-[:CHILD]->(month)," +
+                        "(year)-[:LAST]->(month)," +
+                        "(month)-[:FIRST]->(day:Day {value:5})," +
+                        "(month)-[:CHILD]->(day)," +
+                        "(month)-[:LAST]->(day)," +
+                        "(month)<-[:AT_TIME]-(event)"
+        );
+
+        database.shutdown();
+
+        temporaryFolder.delete();
     }
 
     private void createEvent() {

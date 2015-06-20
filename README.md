@@ -1,12 +1,12 @@
 GraphAware Neo4j TimeTree
 =========================
 
-[![Build Status](https://travis-ci.org/graphaware/neo4j-timetree.png)](https://travis-ci.org/graphaware/neo4j-timetree) | <a href="http://graphaware.com/downloads/" target="_blank">Downloads</a> | <a href="http://graphaware.com/site/timetree/latest/apidocs/" target="_blank">Javadoc</a> | Latest Release: 2.2.1.30.21
+[![Build Status](https://travis-ci.org/graphaware/neo4j-timetree.png)](https://travis-ci.org/graphaware/neo4j-timetree) | <a href="http://graphaware.com/downloads/" target="_blank">Downloads</a> | <a href="http://graphaware.com/site/timetree/latest/apidocs/" target="_blank">Javadoc</a> | Latest Release: 2.2.2.31.22
 
 GraphAware TimeTree is a simple library for representing time in Neo4j as a tree of time instants. The tree is built on-demand,
 supports resolutions of one year down to one millisecond and has time zone support. It also supports attaching event nodes to time instants (created on demand).
 
-**Please note that the API for GETting events changed subtly in 2.2.1.30.22. Provide `relationshipTypes` instead of `relationshipType` as an optional request parameter.**
+**Please note that the API for GETting events changed subtly in 2.2.1.30.21. Provide `relationshipTypes` instead of `relationshipType` as an optional request parameter.**
 
 Getting the Software
 --------------------
@@ -33,7 +33,7 @@ Releases are synced to <a href="http://search.maven.org/#search%7Cga%7C1%7Ca%3A%
         <dependency>
             <groupId>com.graphaware.neo4j</groupId>
             <artifactId>timetree</artifactId>
-            <version>2.2.1.30.21</version>
+            <version>2.2.2.31.22</version>
         </dependency>
         ...
     </dependencies>
@@ -41,7 +41,7 @@ Releases are synced to <a href="http://search.maven.org/#search%7Cga%7C1%7Ca%3A%
 #### Snapshots
 
 To use the latest development version, just clone this repository, run `mvn clean install` and change the version in the
-dependency above to 2.2.1.30.22-SNAPSHOT.
+dependency above to 2.2.2.31.23-SNAPSHOT.
 
 #### Note on Versioning Scheme
 
@@ -189,6 +189,9 @@ com.graphaware.module.TT.event=hasLabel('Email')
 # Optionally, a property on the event nodes that represents the the time (long) at which the event took place must be specified (defaults to "timestamp")
 com.graphaware.module.TT.timestamp=time
 
+# Optionally, a property on the event nodes that represents the node ID (long) of the root node for the tree, to which the event should be attached (defaults to "timeTreeRootId")
+com.graphaware.module.TT.customTimeTreeRootProperty=rootId
+
 # Optionally, a resolution can be specified (defaults to DAY)
 com.graphaware.module.TT.resolution=HOUR
 
@@ -216,6 +219,9 @@ Examples of relevant expressions that can be used:
 
 Of course, the expressions can be combined with logical operators, for instance:
 * `hasLabel('Event') || hasProperty('startDate') || getProperty('significance', 0) > 20`
+
+By default, events are attached to a single tree, unless the events have a `timeTreeRootId` (or its equivalent changed in config) property, in
+ which case a tree rooted at the node with the specified ID will be used to attach the event.
 
 ### Java API
 

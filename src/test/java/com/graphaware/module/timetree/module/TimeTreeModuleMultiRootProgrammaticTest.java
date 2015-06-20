@@ -201,7 +201,8 @@ public class TimeTreeModuleMultiRootProgrammaticTest extends DatabaseIntegration
                                 return node.hasLabel(Email);
                             }
                         })
-                        .withRelationshipType(DynamicRelationshipType.withName("SENT_AT"))
+                        .withRelationshipType(DynamicRelationshipType.withName("ATTACHED_EVENT"))
+                        .withRelationshipDirection(Direction.INCOMING)
                         .withTimeZone(DateTimeZone.forTimeZone(TimeZone.getTimeZone("GMT+1")))
                         .withTimestampProperty("time")
                         .withResolution(Resolution.MINUTE)
@@ -235,7 +236,7 @@ public class TimeTreeModuleMultiRootProgrammaticTest extends DatabaseIntegration
                         "(hour)-[:FIRST]->(minute:Minute {value:55})," +
                         "(hour)-[:CHILD]->(minute)," +
                         "(hour)-[:LAST]->(minute)," +
-                        "(minute)<-[:SENT_AT]-(event)"
+                        "(minute)-[:ATTACHED_EVENT]->(event)"
         );
     }
 

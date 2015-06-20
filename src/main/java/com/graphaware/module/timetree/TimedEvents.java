@@ -20,6 +20,7 @@ import com.graphaware.module.timetree.domain.Event;
 import com.graphaware.module.timetree.domain.TimeInstant;
 import org.neo4j.graphdb.Node;
 import org.neo4j.graphdb.RelationshipType;
+import org.neo4j.graphdb.Direction;
 
 import java.util.List;
 import java.util.Set;
@@ -30,7 +31,7 @@ import java.util.Set;
 public interface TimedEvents {
 
     /**
-     * Attach an event to a node representing a specific time instant. If the time instant doesn't exist, it will be created.
+     * Attach an event to a node representing a specific time instant with default relationshipDirection. If the time instant doesn't exist, it will be created.
      *
      * @param event            event node to be associated with the specified time instant.
      * @param relationshipType type of the relationship between the event node and the time instant node.
@@ -38,6 +39,17 @@ public interface TimedEvents {
      * @return <code>true</code> iff the event was attached, <code>false</code> iff it was already attached.
      */
     boolean attachEvent(Node event, RelationshipType relationshipType, TimeInstant timeInstant);
+
+    /**
+     * Attach an event to a node representing a specific time instant with defined relationshipDirection. If the time instant doesn't exist, it will be created.
+     *
+     * @param event            event node to be associated with the specified time instant.
+     * @param relationshipType type of the relationship between the event node and the time instant node.
+     * @param relationshipDirection direction of the relationship between the event node and the time instant node
+     * @param timeInstant      specific time instant to attach the event to.
+     * @return <code>true</code> iff the event was attached, <code>false</code> iff it was already attached.
+     */
+    boolean attachEvent(Node event, RelationshipType relationshipType, Direction relationshipDirection, TimeInstant timeInstant);
 
     /**
      * Get events attached (using any incoming relationship) to a specific time instant and all its children.

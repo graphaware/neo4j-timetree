@@ -22,6 +22,7 @@ import com.graphaware.module.timetree.domain.Resolution;
 import com.graphaware.runtime.config.BaseTxDrivenModuleConfiguration;
 import com.graphaware.runtime.policy.InclusionPoliciesFactory;
 import org.joda.time.DateTimeZone;
+import org.neo4j.graphdb.Direction;
 import org.neo4j.graphdb.DynamicRelationshipType;
 import org.neo4j.graphdb.RelationshipType;
 
@@ -40,18 +41,21 @@ public class TimeTreeConfiguration extends BaseTxDrivenModuleConfiguration<TimeT
     private static final String DEFAULT_TIMESTAMP_PROPERTY = "timestamp";
     private static final String DEFAULT_CUSTOM_TIMETREE_ROOT_PROPERTY = "timeTreeRootId";
     private static final RelationshipType DEFAULT_RELATIONSHIP_TYPE = DynamicRelationshipType.withName("AT_TIME");
+    private static final Direction DEFAULT_RELATIONSHIP_DIRECTION = Direction.OUTGOING;
     private static final boolean DEFAULT_AUTO_ATTACH = false;
 
     private static final InclusionPolicies DEFAULT_INCLUSION_POLICIES =
             InclusionPoliciesFactory.allBusiness()
                     .with(IncludeNodes.all().with("Event"))
-                    .with(IncludeRelationships.all().with(DEFAULT_RELATIONSHIP_TYPE));
+                    .with(IncludeRelationships.all().with(DEFAULT_RELATIONSHIP_TYPE))
+                    .with(IncludeRelationships.all().with(DEFAULT_RELATIONSHIP_DIRECTION));
 
     private String timestampProperty;
     private String customTimeTreeRootProperty;
     private Resolution resolution;
     private DateTimeZone timeZone;
     private RelationshipType relationshipType;
+    private Direction relationshipDirection;
     private boolean autoAttach;
 
     /**
@@ -66,15 +70,17 @@ public class TimeTreeConfiguration extends BaseTxDrivenModuleConfiguration<TimeT
      * @param resolution                 resolution of the tree, to which to attach events.
      * @param timeZone                   time zone which is used for representing timestamps in the tree.
      * @param relationshipType           with which the events are attached to the tree.
+     * @param relationshipDirection     direction of the relationship between the time node and the event node
      * @param autoAttach                 <code>true</code> iff events should be automatically attached upon first module run and when config changes.
      */
-    protected TimeTreeConfiguration(InclusionPolicies inclusionPolicies, String timestampProperty, String customTimeTreeRootProperty, Resolution resolution, DateTimeZone timeZone, RelationshipType relationshipType, boolean autoAttach) {
+    protected TimeTreeConfiguration(InclusionPolicies inclusionPolicies, String timestampProperty, String customTimeTreeRootProperty, Resolution resolution, DateTimeZone timeZone, RelationshipType relationshipType, Direction relationshipDirection, boolean autoAttach) {
         super(inclusionPolicies);
         this.timestampProperty = timestampProperty;
         this.customTimeTreeRootProperty = customTimeTreeRootProperty;
         this.resolution = resolution;
         this.timeZone = timeZone;
         this.relationshipType = relationshipType;
+        this.relationshipDirection = relationshipDirection;
         this.autoAttach = autoAttach;
     }
 
@@ -92,7 +98,7 @@ public class TimeTreeConfiguration extends BaseTxDrivenModuleConfiguration<TimeT
      * @return default config.
      */
     public static TimeTreeConfiguration defaultConfiguration() {
-        return new TimeTreeConfiguration(DEFAULT_INCLUSION_POLICIES, DEFAULT_TIMESTAMP_PROPERTY, DEFAULT_CUSTOM_TIMETREE_ROOT_PROPERTY, DEFAULT_RESOLUTION, DEFAULT_TIME_ZONE, DEFAULT_RELATIONSHIP_TYPE, DEFAULT_AUTO_ATTACH);
+        return new TimeTreeConfiguration(DEFAULT_INCLUSION_POLICIES, DEFAULT_TIMESTAMP_PROPERTY, DEFAULT_CUSTOM_TIMETREE_ROOT_PROPERTY, DEFAULT_RESOLUTION, DEFAULT_TIME_ZONE, DEFAULT_RELATIONSHIP_TYPE, DEFAULT_RELATIONSHIP_DIRECTION, DEFAULT_AUTO_ATTACH);
     }
 
     /**
@@ -102,7 +108,7 @@ public class TimeTreeConfiguration extends BaseTxDrivenModuleConfiguration<TimeT
      * @return new instance.
      */
     public TimeTreeConfiguration withTimestampProperty(final String timestampProperty) {
-        return new TimeTreeConfiguration(getInclusionPolicies(), timestampProperty, getCustomTimeTreeRootProperty(), getResolution(), getTimeZone(), getRelationshipType(), isAutoAttach());
+        return new TimeTreeConfiguration(getInclusionPolicies(), timestampProperty, getCustomTimeTreeRootProperty(), getResolution(), getTimeZone(), getRelationshipType(), getRelationshipDirection(), isAutoAttach());
     }
 
     /**
@@ -112,7 +118,7 @@ public class TimeTreeConfiguration extends BaseTxDrivenModuleConfiguration<TimeT
      * @return new instance
      */
     public TimeTreeConfiguration withCustomTimeTreeRootProperty(final String customTimeTreeRootProperty) {
-        return new TimeTreeConfiguration(getInclusionPolicies(), getTimestampProperty(), customTimeTreeRootProperty, getResolution(), getTimeZone(), getRelationshipType(), isAutoAttach());
+        return new TimeTreeConfiguration(getInclusionPolicies(), getTimestampProperty(), customTimeTreeRootProperty, getResolution(), getTimeZone(), getRelationshipType(), getRelationshipDirection(), isAutoAttach());
     }
 
     /**
@@ -122,7 +128,7 @@ public class TimeTreeConfiguration extends BaseTxDrivenModuleConfiguration<TimeT
      * @return new instance.
      */
     public TimeTreeConfiguration withResolution(Resolution resolution) {
-        return new TimeTreeConfiguration(getInclusionPolicies(), getTimestampProperty(), getCustomTimeTreeRootProperty(), resolution, getTimeZone(), getRelationshipType(), isAutoAttach());
+        return new TimeTreeConfiguration(getInclusionPolicies(), getTimestampProperty(), getCustomTimeTreeRootProperty(), resolution, getTimeZone(), getRelationshipType(), getRelationshipDirection(), isAutoAttach());
     }
 
     /**
@@ -132,7 +138,7 @@ public class TimeTreeConfiguration extends BaseTxDrivenModuleConfiguration<TimeT
      * @return new instance.
      */
     public TimeTreeConfiguration withTimeZone(DateTimeZone timeZone) {
-        return new TimeTreeConfiguration(getInclusionPolicies(), getTimestampProperty(), getCustomTimeTreeRootProperty(), getResolution(), timeZone, getRelationshipType(), isAutoAttach());
+        return new TimeTreeConfiguration(getInclusionPolicies(), getTimestampProperty(), getCustomTimeTreeRootProperty(), getResolution(), timeZone, getRelationshipType(), getRelationshipDirection(), isAutoAttach());
     }
 
     /**
@@ -142,7 +148,11 @@ public class TimeTreeConfiguration extends BaseTxDrivenModuleConfiguration<TimeT
      * @return new instance.
      */
     public TimeTreeConfiguration withRelationshipType(final RelationshipType relationshipType) {
-        return new TimeTreeConfiguration(getInclusionPolicies().with(IncludeRelationships.all().with(relationshipType)), getTimestampProperty(), getCustomTimeTreeRootProperty(), getResolution(), getTimeZone(), relationshipType, isAutoAttach());
+        return new TimeTreeConfiguration(getInclusionPolicies().with(IncludeRelationships.all().with(relationshipType)), getTimestampProperty(), getCustomTimeTreeRootProperty(), getResolution(), getTimeZone(), relationshipType, getRelationshipDirection(), isAutoAttach());
+    }
+
+    public TimeTreeConfiguration withRelationshipDirection(final Direction relationshipDirection) {
+        return new TimeTreeConfiguration(getInclusionPolicies().with(IncludeRelationships.all().with(relationshipDirection)), getTimestampProperty(), getCustomTimeTreeRootProperty(), getResolution(), getTimeZone(), getRelationshipType(), relationshipDirection, isAutoAttach());
     }
 
     /**
@@ -152,7 +162,7 @@ public class TimeTreeConfiguration extends BaseTxDrivenModuleConfiguration<TimeT
      * @return new instance.
      */
     public TimeTreeConfiguration withAutoAttach(final boolean autoAttach) {
-        return new TimeTreeConfiguration(getInclusionPolicies(), getTimestampProperty(), getCustomTimeTreeRootProperty(), getResolution(), getTimeZone(), getRelationshipType(), autoAttach);
+        return new TimeTreeConfiguration(getInclusionPolicies(), getTimestampProperty(), getCustomTimeTreeRootProperty(), getResolution(), getTimeZone(), getRelationshipType(), getRelationshipDirection(), autoAttach);
     }
 
     /**
@@ -162,7 +172,7 @@ public class TimeTreeConfiguration extends BaseTxDrivenModuleConfiguration<TimeT
     protected TimeTreeConfiguration newInstance(InclusionPolicies inclusionPolicies) {
         return new TimeTreeConfiguration(inclusionPolicies
                 .with(IncludeRelationships.all().with(getRelationshipType())),
-                getTimestampProperty(), getCustomTimeTreeRootProperty(), getResolution(), getTimeZone(), getRelationshipType(), isAutoAttach());
+                getTimestampProperty(), getCustomTimeTreeRootProperty(), getResolution(), getTimeZone(), getRelationshipType(), getRelationshipDirection(), isAutoAttach());
     }
 
     public String getTimestampProperty() {
@@ -185,6 +195,8 @@ public class TimeTreeConfiguration extends BaseTxDrivenModuleConfiguration<TimeT
         return relationshipType;
     }
 
+    public Direction getRelationshipDirection() { return relationshipDirection; }
+
     public boolean isAutoAttach() {
         return autoAttach;
     }
@@ -202,6 +214,7 @@ public class TimeTreeConfiguration extends BaseTxDrivenModuleConfiguration<TimeT
 
         if (autoAttach != that.autoAttach) return false;
         if (!relationshipType.name().equals(that.relationshipType.name())) return false;
+        if (!relationshipDirection.name().equals(that.relationshipDirection.name())) return false;
         if (resolution != that.resolution) return false;
         if (!timeZone.equals(that.timeZone)) return false;
         if (!timestampProperty.equals(that.timestampProperty)) return false;
@@ -221,6 +234,7 @@ public class TimeTreeConfiguration extends BaseTxDrivenModuleConfiguration<TimeT
         result = 31 * result + resolution.hashCode();
         result = 31 * result + timeZone.hashCode();
         result = 31 * result + relationshipType.name().hashCode();
+        result = 31 * result + relationshipDirection.name().hashCode();
         result = 31 * result + (autoAttach ? 1 : 0);
         return result;
     }

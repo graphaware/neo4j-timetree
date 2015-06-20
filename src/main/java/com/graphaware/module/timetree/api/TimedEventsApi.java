@@ -78,6 +78,7 @@ public class TimedEventsApi {
             boolean attached = timedEvents.attachEvent(
                     eventNode,
                     DynamicRelationshipType.withName(event.getEvent().getRelationshipType()),
+                    Direction.OUTGOING,
                     TimeInstant.fromValueObject(event.getTimeInstant()));
 
             if (attached) {

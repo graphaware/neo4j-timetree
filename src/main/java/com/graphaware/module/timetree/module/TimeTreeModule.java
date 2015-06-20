@@ -29,7 +29,6 @@ import com.graphaware.tx.event.improved.api.ImprovedTransactionData;
 import com.graphaware.tx.executor.batch.IterableInputBatchTransactionExecutor;
 import com.graphaware.tx.executor.batch.UnitOfWork;
 import com.graphaware.tx.executor.single.TransactionCallback;
-import org.neo4j.graphdb.Direction;
 import org.neo4j.graphdb.GraphDatabaseService;
 import org.neo4j.graphdb.Node;
 import org.neo4j.graphdb.Relationship;
@@ -140,11 +139,11 @@ public class TimeTreeModule extends BaseTxDrivenModule<Void> {
             timedEventsToUse = timedEvents;
         }
 
-        timedEventsToUse.attachEvent(created, configuration.getRelationshipType(), TimeInstant.instant(timestamp).with(configuration.getResolution()).with(configuration.getTimeZone()));
+        timedEventsToUse.attachEvent(created, configuration.getRelationshipType(), configuration.getRelationshipDirection(), TimeInstant.instant(timestamp).with(configuration.getResolution()).with(configuration.getTimeZone()));
     }
 
     private void deleteTimeTreeRelationship(Node changed) {
-        for (Relationship r : changed.getRelationships(Direction.OUTGOING, configuration.getRelationshipType())) {
+        for (Relationship r : changed.getRelationships(configuration.getRelationshipDirection(), configuration.getRelationshipType())) {
             r.delete();
         }
     }

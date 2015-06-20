@@ -2,6 +2,7 @@ package com.graphaware.module.timetree;
 
 import com.graphaware.module.timetree.domain.Event;
 import com.graphaware.module.timetree.domain.TimeInstant;
+import org.neo4j.graphdb.Direction;
 import org.neo4j.graphdb.Node;
 import org.neo4j.graphdb.Relationship;
 import org.neo4j.graphdb.RelationshipType;
@@ -11,7 +12,6 @@ import java.util.*;
 import static com.graphaware.module.timetree.SingleTimeTree.parent;
 import static com.graphaware.module.timetree.domain.TimeTreeRelationshipTypes.*;
 import static com.graphaware.module.timetree.domain.ValidationUtils.validateRange;
-import static org.neo4j.graphdb.Direction.INCOMING;
 import static org.neo4j.graphdb.Direction.OUTGOING;
 
 /**
@@ -28,19 +28,33 @@ public class TimeTreeBackedEvents implements TimedEvents {
     }
 
     /**
+     *
      * {@inheritDoc}
      */
     @Override
     public boolean attachEvent(Node event, RelationshipType relationshipType, TimeInstant timeInstant) {
+
+        return attachEvent(event, relationshipType, Direction.OUTGOING, timeInstant);
+    }
+
+    /**
+     * {@inheritDoc}
+     */
+    @Override
+    public boolean attachEvent(Node event, RelationshipType relationshipType, Direction relationshipDirection, TimeInstant timeInstant) {
         Node instant = timeTree.getOrCreateInstant(timeInstant);
 
-        for (Relationship existing : event.getRelationships(OUTGOING, relationshipType)) {
+        for (Relationship existing : event.getRelationships(relationshipDirection, relationshipType)) {
             if (existing.getEndNode().getId() == instant.getId()) {
                 return false;
             }
         }
 
-        event.createRelationshipTo(instant, relationshipType);
+        if (OUTGOING == relationshipDirection) {
+            event.createRelationshipTo(instant, relationshipType);
+        } else {
+            instant.createRelationshipTo(event, relationshipType);
+        }
         return true;
     }
 
@@ -141,7 +155,7 @@ public class TimeTreeBackedEvents implements TimedEvents {
     private List<Event> getEventsAttachedToNode(Node node, Set<RelationshipType> types) {
         List<Event> result = new LinkedList<>();
 
-        for (Relationship rel : node.getRelationships(INCOMING)) {
+        for (Relationship rel : node.getRelationships()) {
             if (!timeTreeRelationships.contains(rel.getType().name())) {
                 if (types == null || contains(types, rel.getType())) {
                     result.add(new Event(rel.getOtherNode(node), rel.getType()));

@@ -1,4 +1,7 @@
-2.2.2.31.23:
+2.2.2.32.22:
+    - no changes
+
+2.2.2.31.22:
     - upgraded to Neo4j 2.2.2 and GraphAware Framework 2.2.2.31
     - fixed issue #28 (TimeTree being rebuilt after restart, even when unnecessary)
     - querying for events now takes a set of relationship types, rather than a single one (issue #22)

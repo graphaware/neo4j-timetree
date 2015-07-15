@@ -20,9 +20,6 @@ import com.graphaware.test.integration.NeoServerIntegrationTest;
 import org.apache.http.HttpStatus;
 import org.junit.Test;
 
-/**
- * Created by bachmanm on 15/07/2015.
- */
 public class Issue36Test extends NeoServerIntegrationTest {
 
     @Override

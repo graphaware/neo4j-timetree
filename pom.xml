@@ -98,6 +98,13 @@
         </dependency>
 
         <dependency>
+            <groupId>com.graphaware.neo4j</groupId>
+            <artifactId>resttest</artifactId>
+            <scope>test</scope>
+            <version>2.2.2.32.13</version>
+        </dependency>
+
+        <dependency>
             <groupId>joda-time</groupId>
             <artifactId>joda-time</artifactId>
             <version>2.3</version>

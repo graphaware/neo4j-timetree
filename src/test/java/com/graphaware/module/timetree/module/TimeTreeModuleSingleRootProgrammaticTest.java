@@ -243,6 +243,41 @@ public class TimeTreeModuleSingleRootProgrammaticTest extends DatabaseIntegratio
         );
     }
 
+    @Test //issue #38
+    public void shouldReAttachEventWithCreatedTimestamp() {
+        GraphAwareRuntime runtime = GraphAwareRuntimeFactory.createRuntime(getDatabase());
+        runtime.registerModule(new TimeTreeModule("timetree", TimeTreeConfiguration.defaultConfiguration(), getDatabase()));
+        runtime.start();
+
+        long eventId;
+        try (Transaction tx = getDatabase().beginTx()) {
+            Node node = getDatabase().createNode(Event);
+            node.setProperty("subject", "Neo4j");
+            eventId = node.getId();
+            tx.success();
+        }
+
+        try (Transaction tx = getDatabase().beginTx()) {
+            getDatabase().getNodeById(eventId).setProperty("timestamp", TIMESTAMP);
+            tx.success();
+        }
+
+        assertSameGraph(getDatabase(), "CREATE " +
+                        "(event:Event {subject:'Neo4j', timestamp:" + TIMESTAMP + "})," +
+                        "(root:TimeTreeRoot)," +
+                        "(root)-[:FIRST]->(year:Year {value:2015})," +
+                        "(root)-[:CHILD]->(year)," +
+                        "(root)-[:LAST]->(year)," +
+                        "(year)-[:CHILD]->(month4:Month {value:4})," +
+                        "(year)-[:FIRST]->(month4)," +
+                        "(year)-[:LAST]->(month4)," +
+                        "(month4)-[:FIRST]->(day5:Day {value:5})," +
+                        "(month4)-[:CHILD]->(day5)," +
+                        "(month4)-[:LAST]->(day5)," +
+                        "(day5)<-[:AT_TIME]-(event)"
+        );
+    }
+
     @Test
     public void shouldUnAttachEventWithRemovedTimestamp() {
         GraphAwareRuntime runtime = GraphAwareRuntimeFactory.createRuntime(getDatabase());

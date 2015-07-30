@@ -37,12 +37,12 @@ public class Issue38Test extends NeoServerIntegrationTest{
                 "(d)-[:NEXT]->(h2)," +
                 "(d)-[:CHILD]->(h)," +
                 "(d)-[:CHILD]->(h2)," +
-                "(d)-[:LAST]->(minute)," +
-                "(d)-[:FIRST]->(minute)," +
-                "(d)-[:CHILD]->(minute)," +
-                "(d2)-[:LAST]->(minute2)," +
-                "(d2)-[:FIRST]->(minute2)," +
-                "(d2)-[:CHILD]->(minute2)," +
+                "(h)-[:LAST]->(minute)," +
+                "(h)-[:FIRST]->(minute)," +
+                "(h)-[:CHILD]->(minute)," +
+                "(h2)-[:LAST]->(minute2)," +
+                "(h2)-[:FIRST]->(minute2)," +
+                "(h2)-[:CHILD]->(minute2)," +
                 "(minute)-[:NEXT]->(minute2)," +
                 "(minute)-[:LAST]->(second)," +
                 "(minute)-[:FIRST]->(second)," +

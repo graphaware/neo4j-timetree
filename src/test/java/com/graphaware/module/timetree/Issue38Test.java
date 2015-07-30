@@ -51,7 +51,8 @@ public class Issue38Test extends NeoServerIntegrationTest{
                 "(minute2)-[:FIRST]->(second2)," +
                 "(minute2)-[:CHILD]->(second2)," +
                 "(second)-[:NEXT]->(second2)," +
-                "(second)<-[:Created]-(:Item {uid: '123-fff-456-ggg', created: 1438248945000 , modified: 1438259108000, name: 'test'})";
+                "(second)<-[:Created]-(item:Item {uid: '123-fff-456-ggg', created: 1438248945000 , modified: 1438259108000, name: 'test'})," +
+                "(item)-[:Modified]->(second2)";
 
         httpClient.post(baseUrl() + "/graphaware/resttest/assertSameGraph", "{\"cypher\":\"" + cypher + "\"}", HttpStatus.SC_OK);
 

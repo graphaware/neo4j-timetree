@@ -29,12 +29,10 @@ import com.graphaware.tx.event.improved.api.ImprovedTransactionData;
 import com.graphaware.tx.executor.batch.IterableInputBatchTransactionExecutor;
 import com.graphaware.tx.executor.batch.UnitOfWork;
 import com.graphaware.tx.executor.input.AllNodes;
-import com.graphaware.tx.executor.single.TransactionCallback;
 import org.neo4j.graphdb.Direction;
 import org.neo4j.graphdb.GraphDatabaseService;
 import org.neo4j.graphdb.Node;
 import org.neo4j.graphdb.Relationship;
-import org.neo4j.tooling.GlobalGraphOperations;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -74,17 +72,22 @@ public class TimeTreeModule extends BaseTxDrivenModule<Void> {
         }
 
         for (Change<Node> change : transactionData.getAllChangedNodes()) {
-            if (transactionData.hasPropertyBeenChanged(change.getPrevious(), configuration.getTimestampProperty())
-                    || transactionData.hasPropertyBeenChanged(change.getPrevious(), configuration.getCustomTimeTreeRootProperty())
-                    || transactionData.hasPropertyBeenDeleted(change.getPrevious(), configuration.getTimestampProperty())
-                    || transactionData.hasPropertyBeenDeleted(change.getPrevious(), configuration.getCustomTimeTreeRootProperty())) {
-
+            if (shouldReattach(transactionData, change)) {
                 deleteTimeTreeRelationship(change.getPrevious());
                 createTimeTreeRelationship(change.getCurrent());
             }
         }
 
         return null;
+    }
+
+    private boolean shouldReattach(ImprovedTransactionData transactionData, Change<Node> change) {
+        return transactionData.hasPropertyBeenCreated(change.getCurrent(), configuration.getTimestampProperty())
+                || transactionData.hasPropertyBeenCreated(change.getCurrent(), configuration.getCustomTimeTreeRootProperty())
+                || transactionData.hasPropertyBeenChanged(change.getPrevious(), configuration.getTimestampProperty())
+                || transactionData.hasPropertyBeenChanged(change.getPrevious(), configuration.getCustomTimeTreeRootProperty())
+                || transactionData.hasPropertyBeenDeleted(change.getPrevious(), configuration.getTimestampProperty())
+                || transactionData.hasPropertyBeenDeleted(change.getPrevious(), configuration.getCustomTimeTreeRootProperty());
     }
 
     /**

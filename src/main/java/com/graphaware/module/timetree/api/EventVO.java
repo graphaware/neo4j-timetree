@@ -15,28 +15,30 @@
  */
 package com.graphaware.module.timetree.api;
 
+import com.graphaware.api.JsonNode;
+
 /**
  * Representation of an event.
  */
 public class EventVO {
 
-    private long nodeId = -1;
+    private JsonNode node;
     private String relationshipType;
 
     public EventVO() {
     }
 
-    public EventVO(long nodeId, String relationshipType) {
-        this.nodeId = nodeId;
+    public EventVO(JsonNode node, String relationshipType) {
+        this.node = node;
         this.relationshipType = relationshipType;
     }
 
-    public long getNodeId() {
-        return nodeId;
+    public JsonNode getNode() {
+        return node;
     }
 
-    public void setNodeId(long nodeId) {
-        this.nodeId = nodeId;
+    public void setNode(JsonNode node) {
+        this.node = node;
     }
 
     public String getRelationshipType() {
@@ -48,10 +50,9 @@ public class EventVO {
     }
 
     public void validate() {
-        if (nodeId < 0) {
+        if (node == null) {
             throw new IllegalArgumentException("Event node must be specified");
         }
-
         if (relationshipType == null) {
             throw new IllegalArgumentException("Relationship type for event must not be null");
         }

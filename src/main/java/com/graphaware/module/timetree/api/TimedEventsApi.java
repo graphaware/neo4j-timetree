@@ -73,7 +73,7 @@ public class TimedEventsApi {
         event.validate();
 
         try (Transaction tx = database.beginTx()) {
-            Node eventNode = database.getNodeById(event.getEvent().getNodeId());
+            Node eventNode = event.getEvent().getNode().producePropertyContainer(database);
 
             boolean attached = timedEvents.attachEvent(
                     eventNode,
@@ -160,22 +160,26 @@ public class TimedEventsApi {
     }
 
     @RequestMapping(value = "{rootNodeId}/single/event", method = RequestMethod.POST)
-    @ResponseStatus(HttpStatus.CREATED)
-    public void attachEvent(@RequestBody TimedEventVO event, @PathVariable long rootNodeId) {
+    public void attachEvent(@RequestBody TimedEventVO event, @PathVariable long rootNodeId, HttpServletResponse response) {
         event.validate();
 
         try (Transaction tx = database.beginTx()) {
-            Node eventNode = database.getNodeById(event.getEvent().getNodeId());
+            Node eventNode = event.getEvent().getNode().producePropertyContainer(database);
             CustomRootTimeTree timeTree = new CustomRootTimeTree(database.getNodeById(rootNodeId));
 
-            new TimeTreeBackedEvents(timeTree).attachEvent(
+            boolean attached = new TimeTreeBackedEvents(timeTree).attachEvent(
                     eventNode,
                     DynamicRelationshipType.withName(event.getEvent().getRelationshipType()),
                     TimeInstant.fromValueObject(event.getTimeInstant()));
 
+            if (attached) {
+                response.setStatus(HttpStatus.CREATED.value());
+            } else {
+                response.setStatus(HttpStatus.OK.value());
+            }
+
             tx.success();
         }
-
     }
 
     private Set<RelationshipType> getRelationshipTypes(Set<String> strings) {
@@ -202,6 +206,14 @@ public class TimedEventsApi {
     @ResponseStatus(HttpStatus.BAD_REQUEST)
     @ResponseBody
     public Map<String, String> handleIllegalArgument(IllegalArgumentException e) {
+        LOG.warn("Bad Request: " + e.getMessage(), e);
+        return Collections.singletonMap("message", e.getMessage());
+    }
+
+    @ExceptionHandler(IllegalStateException.class)
+    @ResponseStatus(HttpStatus.BAD_REQUEST)
+    @ResponseBody
+    public Map<String, String> handleIllegalState(IllegalStateException e) {
         LOG.warn("Bad Request: " + e.getMessage(), e);
         return Collections.singletonMap("message", e.getMessage());
     }

@@ -1,12 +1,10 @@
 GraphAware Neo4j TimeTree
 =========================
 
-[![Build Status](https://travis-ci.org/graphaware/neo4j-timetree.png)](https://travis-ci.org/graphaware/neo4j-timetree) | <a href="http://graphaware.com/downloads/" target="_blank">Downloads</a> | <a href="http://graphaware.com/site/timetree/latest/apidocs/" target="_blank">Javadoc</a> | Latest Release: 2.2.2.32.22
+[![Build Status](https://travis-ci.org/graphaware/neo4j-timetree.png)](https://travis-ci.org/graphaware/neo4j-timetree) | <a href="http://graphaware.com/downloads/" target="_blank">Downloads</a> | <a href="http://graphaware.com/site/timetree/latest/apidocs/" target="_blank">Javadoc</a> | Latest Release: 2.2.2.33.23
 
 GraphAware TimeTree is a simple library for representing time in Neo4j as a tree of time instants. The tree is built on-demand,
 supports resolutions of one year down to one millisecond and has time zone support. It also supports attaching event nodes to time instants (created on demand).
-
-**Please note that the API for GETting events changed subtly in 2.2.1.30.21. Provide `relationshipTypes` instead of `relationshipType` as an optional request parameter.**
 
 Getting the Software
 --------------------
@@ -33,7 +31,7 @@ Releases are synced to <a href="http://search.maven.org/#search%7Cga%7C1%7Ca%3A%
         <dependency>
             <groupId>com.graphaware.neo4j</groupId>
             <artifactId>timetree</artifactId>
-            <version>2.2.2.32.22</version>
+            <version>2.2.2.33.23</version>
         </dependency>
         ...
     </dependencies>
@@ -41,7 +39,7 @@ Releases are synced to <a href="http://search.maven.org/#search%7Cga%7C1%7Ca%3A%
 #### Snapshots
 
 To use the latest development version, just clone this repository, run `mvn clean install` and change the version in the
-dependency above to 2.2.2.32.23-SNAPSHOT.
+dependency above to 2.2.2.33.24-SNAPSHOT.
 
 #### Note on Versioning Scheme
 
@@ -126,23 +124,47 @@ The default is all relationships, which is useful if you have different kinds of
 
       GET http://your-server-address:7474/graphaware/timetree/single/1396706182123?resolution=Hour&timezone=GMT%2B1
 
-  on an empty database will result in the following graph being generated. The response body will contain the Neo4j node ID
-  of the node representing the hour. You can then use it in order to link to it.
+  on an empty database will result in the following graph being generated. The response body will contain the Neo4j node
+  of the node representing the hour. You can then use it in order to link to it. Example response:
 
-  ![GraphAware TimeTree generated time tree](https://github.com/graphaware/neo4j-timetree/raw/master/docs/image4.jpg)
+```json
+{
+  "id": 4,
+  "properties": {
+    "value": 14
+  },
+  "labels": [
+    "Hour"
+  ]
+}
+```
+
+![GraphAware TimeTree generated time tree](https://github.com/graphaware/neo4j-timetree/raw/master/docs/image4.jpg)
 
 The response to calls returning events contain a list of events with relationship names attaching these to instants, e.g.:
 
 ```json
 [
-      {
-             "nodeId": 99,
-             "relationshipType": "STARTED_ON_DAY",
+  {
+    "node": {
+      "id": 99,
+      "properties": {
+        "name": "eventA"
       },
-      {
-             "nodeId": 100,
-             "relationshipType": "ENDED_ON_DAY",
-      }
+      "labels": ["Event"]
+    },
+    "relationshipType": "STARTED_ON_DAY"
+  },
+  {
+    "node": {
+      "id": 100,
+      "properties": {
+        "name": "eventB"
+      },
+      "labels": ["Event"]
+    },
+    "relationshipType": "ENDED_ON_DAY"
+  }
 ]
 ```
 
@@ -154,22 +176,42 @@ Attaching an event to a time instant requires a POST request to:
 The POST body resembles:
 
 ```json
-     {
-            "nodeId": 99,
-            "relationshipType": "HAS_EVENT",
-            "timezone": "UTC",
-            "resolution": "DAY",
-            "time": 1403506278000
-     }
+{
+  "node": {
+    "id": 99
+  },
+  "relationshipType": "HAS_EVENT",
+  "timezone": "UTC",
+  "resolution": "DAY",
+  "time": 1403506278000
+}
 ```
 
 where
 
-* `nodeId` is the node ID of an existing event node
+* `node.id` is the node ID of an existing event node
 * `relationshipType` is the name of the relationship type that should be used to attach the event to the time instant. The relationship is directed from the event to the time instant.
 * `timezone` is a String representation of any `java.util.TimeZone` (optional)
 * `resolution` as described above (optional)
 * `time` is a number representing the number of milliseconds since 1/1/1970
+
+It is also possible to attach a brand new event that does not exist yet. In this case, specify `node.labels` and `node.properties`
+instead if `node.id`. the body of the POST should resemble:
+
+```json
+{
+  "node": {
+    "properties": {
+      "name": "eventA"
+    },
+    "labels": ["Event"]
+  },
+  "relationshipType": "HAS_EVENT",
+  "timezone": "UTC",
+  "resolution": "DAY",
+  "time": 1403506278000
+}
+```
 
 ### Automatic Event Attachment
 

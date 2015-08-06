@@ -16,6 +16,7 @@
 
 package com.graphaware.module.timetree.api;
 
+import com.graphaware.api.JsonNode;
 import com.graphaware.module.timetree.*;
 import com.graphaware.module.timetree.domain.TimeInstant;
 import org.neo4j.graphdb.*;
@@ -27,6 +28,8 @@ import org.springframework.stereotype.Controller;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.Collections;
+import java.util.LinkedList;
+import java.util.List;
 import java.util.Map;
 
 import static com.graphaware.common.util.PropertyContainerUtils.ids;
@@ -50,90 +53,90 @@ public class TimeTreeApi {
 
     @RequestMapping(value = "/single/{time}", method = RequestMethod.GET)
     @ResponseBody
-    public long getInstant(
+    public JsonNode getInstant(
             @PathVariable long time,
             @RequestParam(required = false) String resolution,
             @RequestParam(required = false) String timezone) {
 
-        long id;
+        JsonNode result;
 
         TimeInstant timeInstant = TimeInstant.fromValueObject(new TimeInstantVO(time, resolution, timezone));
 
         try (Transaction tx = database.beginTx()) {
-            id = timeTree.getOrCreateInstant(timeInstant).getId();
+            result = new JsonNode(timeTree.getOrCreateInstant(timeInstant));
             tx.success();
         }
 
-        return id;
+        return result;
     }
 
     @RequestMapping(value = "/range/{startTime}/{endTime}", method = RequestMethod.GET)
     @ResponseBody
-    public Long[] getInstants(
+    public JsonNode[] getInstants(
             @PathVariable long startTime,
             @PathVariable long endTime,
             @RequestParam(required = false) String resolution,
             @RequestParam(required = false) String timezone) {
 
-        Long[] ids;
+        JsonNode[] result;
 
         TimeInstant startTimeInstant = TimeInstant.fromValueObject(new TimeInstantVO(startTime, resolution, timezone));
         TimeInstant endTimeInstant = TimeInstant.fromValueObject(new TimeInstantVO(endTime, resolution, timezone));
 
         try (Transaction tx = database.beginTx()) {
-            ids = ids(timeTree.getOrCreateInstants(startTimeInstant, endTimeInstant));
+            result = jsonNodes(timeTree.getOrCreateInstants(startTimeInstant, endTimeInstant));
             tx.success();
         }
 
-        return ids;
+        return result;
     }
 
     @RequestMapping(value = "/{rootNodeId}/single/{time}", method = RequestMethod.GET)
     @ResponseBody
-    public long getInstantWithCustomRoot(
+    public JsonNode getInstantWithCustomRoot(
             @PathVariable long rootNodeId,
             @PathVariable long time,
             @RequestParam(required = false) String resolution,
             @RequestParam(required = false) String timezone) {
 
-        long id;
+        JsonNode result;
 
         TimeInstant timeInstant = TimeInstant.fromValueObject(new TimeInstantVO(time, resolution, timezone));
 
         try (Transaction tx = database.beginTx()) {
-            id = new CustomRootTimeTree(database.getNodeById(rootNodeId)).getOrCreateInstant(timeInstant).getId();
+            result = new JsonNode(new CustomRootTimeTree(database.getNodeById(rootNodeId)).getOrCreateInstant(timeInstant));
             tx.success();
         }
 
-        return id;
+        return result;
     }
 
 
     @RequestMapping(value = "/{rootNodeId}/range/{startTime}/{endTime}", method = RequestMethod.GET)
     @ResponseBody
-    public Long[] getInstantsWithCustomRoot(
+    public JsonNode[] getInstantsWithCustomRoot(
             @PathVariable long rootNodeId,
             @PathVariable long startTime,
             @PathVariable long endTime,
             @RequestParam(required = false) String resolution,
             @RequestParam(required = false) String timezone) {
 
-        Long[] ids;
+        JsonNode[] result;
 
         TimeInstant startTimeInstant = TimeInstant.fromValueObject(new TimeInstantVO(startTime, resolution, timezone));
         TimeInstant endTimeInstant = TimeInstant.fromValueObject(new TimeInstantVO(endTime, resolution, timezone));
 
         try (Transaction tx = database.beginTx()) {
-            ids = ids(new CustomRootTimeTree(database.getNodeById(rootNodeId)).getOrCreateInstants(startTimeInstant, endTimeInstant));
+            result = jsonNodes(new CustomRootTimeTree(database.getNodeById(rootNodeId)).getOrCreateInstants(startTimeInstant, endTimeInstant));
             tx.success();
         }
 
-        return ids;
+        return result;
     }
 
     @RequestMapping(value = "/now", method = RequestMethod.GET)
     @ResponseBody
-    public long getNow(
+    public JsonNode getNow(
             @RequestParam(required = false) String resolution,
             @RequestParam(required = false) String timezone) {
 
@@ -143,7 +146,7 @@ public class TimeTreeApi {
 
     @RequestMapping(value = "/{rootNodeId}/now", method = RequestMethod.GET)
     @ResponseBody
-    public long getNowWithCustomRoot(
+    public JsonNode getNowWithCustomRoot(
             @PathVariable long rootNodeId,
             @RequestParam(required = false) String resolution,
             @RequestParam(required = false) String timezone) {
@@ -165,5 +168,13 @@ public class TimeTreeApi {
     public Map<String, String> handleNotFound(NotFoundException e) {
         LOG.warn("Not Found: "+e.getMessage(), e);
         return Collections.singletonMap("message", e.getMessage());
+    }
+
+    private JsonNode[] jsonNodes(List<Node> nodes) {
+        List<JsonNode> result = new LinkedList<>();
+        for (Node node : nodes) {
+            result.add(new JsonNode(node));
+        }
+        return result.toArray(new JsonNode[result.size()]);
     }
 }

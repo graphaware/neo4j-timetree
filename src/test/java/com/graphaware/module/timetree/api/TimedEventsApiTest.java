@@ -57,7 +57,7 @@ public class TimedEventsApiTest extends GraphAwareApiTest {
         httpClient.post(getUrl() + "single/event", eventJson, HttpStatus.SC_BAD_REQUEST);
 
         eventJson = "{" +
-                "        \"nodeId\":0," +
+                "        \"node\": {\"id\":0}," +
                 "        \"relationshipType\": \"AT_TIME\"," +
                 "        \"time\": " + System.currentTimeMillis() +
                 "    }";
@@ -65,7 +65,15 @@ public class TimedEventsApiTest extends GraphAwareApiTest {
         httpClient.post(getUrl() + "single/event", eventJson, HttpStatus.SC_CREATED);
 
         eventJson = "{" +
-                "        \"nodeId\":100," +
+                "        \"node\": {\"id\":0, \"labels\":[\"L1\"]}," +
+                "        \"relationshipType\": \"AT_TIME\"," +
+                "        \"time\": " + System.currentTimeMillis() +
+                "    }";
+
+        httpClient.post(getUrl() + "single/event", eventJson, HttpStatus.SC_BAD_REQUEST);
+
+        eventJson = "{" +
+                "        \"node\": {\"id\":100}," +
                 "        \"relationshipType\": \"AT_TIME\"," +
                 "        \"time\": " + System.currentTimeMillis() +
                 "    }";
@@ -73,7 +81,7 @@ public class TimedEventsApiTest extends GraphAwareApiTest {
         httpClient.post(getUrl() + "single/event", eventJson, HttpStatus.SC_NOT_FOUND);
 
         eventJson = "{" +
-                "        \"nodeId\":0," +
+                "        \"node\": {\"id\":0}," +
                 "        \"relationshipType\": \"AT_TIME\"," +
                 "        \"timezone\": \"UTC\"," +
                 "        \"resolution\": \"DAY\"" +
@@ -82,7 +90,7 @@ public class TimedEventsApiTest extends GraphAwareApiTest {
         httpClient.post(getUrl() + "single/event", eventJson, HttpStatus.SC_BAD_REQUEST);
 
         eventJson = "{" +
-                "        \"nodeId\":0," +
+                "        \"node\": {\"id\":0}," +
                 "        \"timezone\": \"UTC\"," +
                 "        \"resolution\": \"DAY\"," +
                 "        \"time\": " + System.currentTimeMillis() +
@@ -91,7 +99,7 @@ public class TimedEventsApiTest extends GraphAwareApiTest {
         httpClient.post(getUrl() + "single/event", eventJson, HttpStatus.SC_BAD_REQUEST);
 
         eventJson = "{" +
-                "        \"nodeId\":0," +
+                "        \"node\": {\"id\":0}," +
                 "        \"timezone\": \"UTC\"," +
                 "        \"resolution\": \"ILLEGAL\"," +
                 "        \"relationshipType\": \"AT_TIME\"," +
@@ -101,7 +109,17 @@ public class TimedEventsApiTest extends GraphAwareApiTest {
         httpClient.post(getUrl() + "single/event", eventJson, HttpStatus.SC_BAD_REQUEST);
 
         eventJson = "{" +
-                "        \"nodeId\":0," +
+                "        \"node\": {\"id\":123}," +
+                "        \"timezone\": \"UTC\"," +
+                "        \"resolution\": \"DAY\"," +
+                "        \"relationshipType\": \"AT_TIME\"," +
+                "        \"time\": " + System.currentTimeMillis() +
+                "    }";
+
+        httpClient.post(getUrl() + "single/event", eventJson, HttpStatus.SC_NOT_FOUND);
+
+        eventJson = "{" +
+                "        \"node\": {\"id\":0}," +
                 "        \"timezone\": \"ILLEGAL\"," +
                 "        \"resolution\": \"DAY\"," +
                 "        \"relationshipType\": \"AT_TIME\"," +
@@ -144,7 +162,7 @@ public class TimedEventsApiTest extends GraphAwareApiTest {
 
         //When
         String eventJson1 = "{" +
-                "        \"nodeId\": " + eventId1 + "," +
+                "        \"node\": {\"id\":" + eventId1 + "}," +
                 "        \"relationshipType\": \"AT_TIME\"," +
                 "        \"timezone\": \"UTC\"," +
                 "        \"resolution\": \"DAY\"," +
@@ -152,7 +170,7 @@ public class TimedEventsApiTest extends GraphAwareApiTest {
                 "    }";
 
         String eventJson2 = "{" +
-                "        \"nodeId\": " + eventId2 + "," +
+                "        \"node\": {\"id\":" + eventId2 + "}," +
                 "        \"relationshipType\": \"AT_OTHER_TIME\"," +
                 "        \"timezone\": \"UTC\"," +
                 "        \"resolution\": \"DAY\"," +
@@ -161,7 +179,7 @@ public class TimedEventsApiTest extends GraphAwareApiTest {
 
 
         String eventJson3 = "{" +
-                "        \"nodeId\": " + eventId3 + "," +
+                "        \"node\": {\"id\":" + eventId3 + "}," +
                 "        \"relationshipType\": \"AT_BAD_TIME\"," +
                 "        \"timezone\": \"UTC\"," +
                 "        \"resolution\": \"DAY\"," +
@@ -190,9 +208,82 @@ public class TimedEventsApiTest extends GraphAwareApiTest {
                 "(day)<-[:AT_OTHER_TIME]-(event2 {name:'eventB'})," +
                 "(day)<-[:AT_BAD_TIME]-(event3 {name:'eventC'})");
 
-        assertEquals("[{\"nodeId\":0,\"relationshipType\":\"AT_TIME\"}]", getResult);
-        assertEquals("[{\"nodeId\":0,\"relationshipType\":\"AT_TIME\"},{\"nodeId\":1,\"relationshipType\":\"AT_OTHER_TIME\"}]",
-                getMultipleResult);
+        assertEquals("[{\"node\":{\"id\":0,\"properties\":{\"name\":\"eventA\"},\"labels\":[]},\"relationshipType\":\"AT_TIME\"}]", getResult);
+        assertEquals("[{\"node\":{\"id\":0,\"properties\":{\"name\":\"eventA\"},\"labels\":[]},\"relationshipType\":\"AT_TIME\"}," +
+                "{\"node\":{\"id\":1,\"properties\":{\"name\":\"eventB\"},\"labels\":[]},\"relationshipType\":\"AT_OTHER_TIME\"}]", getMultipleResult);
+    }
+
+    @Test
+    public void eventAndTimeInstantShouldBeCreatedWhenEventIsCreatedFromScratch() throws IOException {
+        //Given
+        DateTime now = DateTime.now(DateTimeZone.UTC);
+        TimeInstant timeInstant = TimeInstant
+                .now()
+                .with(DateTimeZone.UTC)
+                .with(Resolution.DAY);
+
+        //When
+        String eventJson1 = "{" +
+                "        \"node\": {\"labels\":[\"Event\",\"Email\"], \"properties\":{\"name\":\"eventA\"}}," +
+                "        \"relationshipType\": \"AT_TIME\"," +
+                "        \"timezone\": \"UTC\"," +
+                "        \"resolution\": \"DAY\"," +
+                "        \"time\": " + timeInstant.getTime() +
+                "    }";
+
+        String eventJson2 = "{" +
+                "        \"node\": {\"labels\":[\"Event\"], \"properties\":{\"name\":\"eventB\"}}," +
+                "        \"relationshipType\": \"AT_OTHER_TIME\"," +
+                "        \"timezone\": \"UTC\"," +
+                "        \"resolution\": \"DAY\"," +
+                "        \"time\": " + timeInstant.getTime() +
+                "    }";
+
+
+        String eventJson3 = "{" +
+                "        \"node\": {\"labels\":[], \"properties\":{\"name\":\"eventC\"}}," +
+                "        \"relationshipType\": \"AT_BAD_TIME\"," +
+                "        \"timezone\": \"UTC\"," +
+                "        \"resolution\": \"DAY\"," +
+                "        \"time\": " + timeInstant.getTime() +
+                "    }";
+
+        String eventJson4 = "{" +
+                "        \"node\": {\"properties\":{\"name\":\"eventD\",\"value\":1}}," +
+                "        \"relationshipType\": \"AT_TIME\"," +
+                "        \"timezone\": \"UTC\"," +
+                "        \"resolution\": \"DAY\"," +
+                "        \"time\": " + timeInstant.getTime() +
+                "    }";
+
+        httpClient.post(getUrl() + "single/event", eventJson1, HttpStatus.SC_CREATED);
+        httpClient.post(getUrl() + "single/event", eventJson2, HttpStatus.SC_CREATED);
+        httpClient.post(getUrl() + "single/event", eventJson3, HttpStatus.SC_CREATED);
+        httpClient.post(getUrl() + "single/event", eventJson4, HttpStatus.SC_CREATED);
+
+        String getResult = httpClient.get(getUrl() + "single/" + timeInstant.getTime() + "/events", HttpStatus.SC_OK);
+
+        //Then
+        assertSameGraph(getDatabase(), "CREATE" +
+                "(root:TimeTreeRoot)," +
+                "(root)-[:FIRST]->(year:Year {value:" + now.getYear() + "})," +
+                "(root)-[:CHILD]->(year)," +
+                "(root)-[:LAST]->(year)," +
+                "(year)-[:FIRST]->(month:Month {value:" + now.getMonthOfYear() + "})," +
+                "(year)-[:CHILD]->(month)," +
+                "(year)-[:LAST]->(month)," +
+                "(month)-[:FIRST]->(day:Day {value:" + now.getDayOfMonth() + "})," +
+                "(month)-[:CHILD]->(day)," +
+                "(month)-[:LAST]->(day)," +
+                "(day)<-[:AT_TIME]-(event:Event:Email {name:'eventA'})," +
+                "(day)<-[:AT_TIME]-(event4 {name:'eventD',value:1})," +
+                "(day)<-[:AT_OTHER_TIME]-(event2:Event {name:'eventB'})," +
+                "(day)<-[:AT_BAD_TIME]-(event3 {name:'eventC'})");
+
+        assertEquals("[{\"node\":{\"id\":7,\"properties\":{\"name\":\"eventD\",\"value\":1},\"labels\":[]},\"relationshipType\":\"AT_TIME\"}," +
+                "{\"node\":{\"id\":0,\"properties\":{\"name\":\"eventA\"},\"labels\":[\"Event\",\"Email\"]},\"relationshipType\":\"AT_TIME\"}," +
+                "{\"node\":{\"id\":5,\"properties\":{\"name\":\"eventB\"},\"labels\":[\"Event\"]},\"relationshipType\":\"AT_OTHER_TIME\"}," +
+                "{\"node\":{\"id\":6,\"properties\":{\"name\":\"eventC\"},\"labels\":[]},\"relationshipType\":\"AT_BAD_TIME\"}]", getResult);
     }
 
     @Test
@@ -216,7 +307,7 @@ public class TimedEventsApiTest extends GraphAwareApiTest {
 
         //When
         String eventJson = "{" +
-                "        \"nodeId\": " + eventId + "," +
+                "        \"node\": {\"id\":" + eventId + "}," +
                 "        \"relationshipType\": \"AT_TIME\"," +
                 "        \"timezone\": \"UTC\"," +
                 "        \"resolution\": \"DAY\"," +
@@ -243,7 +334,7 @@ public class TimedEventsApiTest extends GraphAwareApiTest {
                 "(month)-[:LAST]->(day)," +
                 "(day)<-[:AT_TIME]-(event {name:'eventA'})");
 
-        assertEquals("[{\"nodeId\":0,\"relationshipType\":\"AT_TIME\"}]", getResult);
+        assertEquals("[{\"node\":{\"id\":0,\"properties\":{\"name\":\"eventA\"},\"labels\":[]},\"relationshipType\":\"AT_TIME\"}]", getResult);
     }
 
 
@@ -264,7 +355,7 @@ public class TimedEventsApiTest extends GraphAwareApiTest {
         }
 
         try (Transaction tx = getDatabase().beginTx()) {
-            event = getDatabase().createNode();
+            event = getDatabase().createNode(DynamicLabel.label("Event"));
             event.setProperty("name", "eventA");
             eventId = event.getId();
             tx.success();
@@ -272,7 +363,54 @@ public class TimedEventsApiTest extends GraphAwareApiTest {
 
         //When
         String eventJson = "{" +
-                "        \"nodeId\": " + eventId + "," +
+                "        \"node\": {\"id\":" + eventId + "}," +
+                "        \"relationshipType\": \"AT_TIME\"," +
+                "        \"timezone\": \"UTC\"," +
+                "        \"resolution\": \"DAY\"," +
+                "        \"time\": " + timeInstant.getTime() +
+                "    }";
+
+        httpClient.post(getUrl() + "0/single/event", eventJson, HttpStatus.SC_CREATED);
+        httpClient.post(getUrl() + "0/single/event", eventJson, HttpStatus.SC_OK);
+
+        String getResult = httpClient.get(getUrl() + "0/single/" + timeInstant.getTime() + "/events", HttpStatus.SC_OK);
+
+        //Then
+        assertSameGraph(getDatabase(), "CREATE" +
+                "(root:CustomRoot)," +
+                "(root)-[:FIRST]->(year:Year {value:" + now.getYear() + "})," +
+                "(root)-[:CHILD]->(year)," +
+                "(root)-[:LAST]->(year)," +
+                "(year)-[:FIRST]->(month:Month {value:" + now.getMonthOfYear() + "})," +
+                "(year)-[:CHILD]->(month)," +
+                "(year)-[:LAST]->(month)," +
+                "(month)-[:FIRST]->(day:Day {value:" + now.getDayOfMonth() + "})," +
+                "(month)-[:CHILD]->(day)," +
+                "(month)-[:LAST]->(day)," +
+                "(day)<-[:AT_TIME]-(event:Event {name:'eventA'})");
+
+        assertEquals("[{\"node\":{\"id\":1,\"properties\":{\"name\":\"eventA\"},\"labels\":[\"Event\"]},\"relationshipType\":\"AT_TIME\"}]", getResult);
+    }
+
+    @Test
+    public void eventAndTimeInstantAtCustomRootShouldBeCreatedWhenEventIsCreatedFromScratch() {
+        //Given
+        DateTime now = DateTime.now(DateTimeZone.UTC);
+        TimeInstant timeInstant = TimeInstant
+                .now()
+                .with(DateTimeZone.UTC)
+                .with(Resolution.DAY);
+
+        Node event;
+        long eventId;
+        try (Transaction tx = getDatabase().beginTx()) {
+            getDatabase().createNode(DynamicLabel.label("CustomRoot"));
+            tx.success();
+        }
+
+        //When
+        String eventJson = "{" +
+                "        \"node\": {\"labels\":[\"Event\"], \"properties\":{\"name\":\"eventA\"}}," +
                 "        \"relationshipType\": \"AT_TIME\"," +
                 "        \"timezone\": \"UTC\"," +
                 "        \"resolution\": \"DAY\"," +
@@ -295,11 +433,10 @@ public class TimedEventsApiTest extends GraphAwareApiTest {
                 "(month)-[:FIRST]->(day:Day {value:" + now.getDayOfMonth() + "})," +
                 "(month)-[:CHILD]->(day)," +
                 "(month)-[:LAST]->(day)," +
-                "(day)<-[:AT_TIME]-(event {name:'eventA'})");
+                "(day)<-[:AT_TIME]-(event:Event {name:'eventA'})");
 
-        assertEquals("[{\"nodeId\":1,\"relationshipType\":\"AT_TIME\"}]", getResult);
+        assertEquals("[{\"node\":{\"id\":1,\"properties\":{\"name\":\"eventA\"},\"labels\":[\"Event\"]},\"relationshipType\":\"AT_TIME\"}]", getResult);
     }
-
 
     @Test
     public void multipleEventsAndTimeInstantsShouldBeCreatedWhenEventsAreAttached() {
@@ -324,14 +461,14 @@ public class TimedEventsApiTest extends GraphAwareApiTest {
 
         //When
         String eventJson1 = "{" +
-                "        \"nodeId\": " + eventId1 + "," +
+                "        \"node\": {\"id\":" + eventId1 + "}," +
                 "        \"relationshipType\": \"AT_TIME\"," +
                 "        \"timezone\": \"UTC\"," +
                 "        \"resolution\": \"DAY\"," +
                 "        \"time\": " + timeInstant1.getTime() +
                 "    }";
         String eventJson2 = "{" +
-                "        \"nodeId\": " + eventId2 + "," +
+                "        \"node\": {\"id\":" + eventId2 + "}," +
                 "        \"relationshipType\": \"AT_TIME\"," +
                 "        \"timezone\": \"UTC\"," +
                 "        \"resolution\": \"DAY\"," +
@@ -361,8 +498,8 @@ public class TimedEventsApiTest extends GraphAwareApiTest {
 
         String getResult = httpClient.get(getUrl() + "range/" + timeInstant1.getTime() + "/" + timeInstant2.getTime() + "/events", HttpStatus.SC_OK);
 
-        assertEquals("[{\"nodeId\":0,\"relationshipType\":\"AT_TIME\"}," +
-                "{\"nodeId\":1,\"relationshipType\":\"AT_TIME\"}]", getResult);
+        assertEquals("[{\"node\":{\"id\":0,\"properties\":{\"name\":\"eventA\"},\"labels\":[]},\"relationshipType\":\"AT_TIME\"}," +
+                "{\"node\":{\"id\":1,\"properties\":{\"name\":\"eventB\"},\"labels\":[]},\"relationshipType\":\"AT_TIME\"}]", getResult);
     }
 
 
@@ -394,14 +531,14 @@ public class TimedEventsApiTest extends GraphAwareApiTest {
 
         //When
         String eventJson1 = "{" +
-                "        \"nodeId\": " + eventId1 + "," +
+                "        \"node\": {\"id\":" + eventId1 + "}," +
                 "        \"relationshipType\": \"AT_TIME\"," +
                 "        \"timezone\": \"UTC\"," +
                 "        \"resolution\": \"DAY\"," +
                 "        \"time\": " + timeInstant1.getTime() +
                 "    }";
         String eventJson2 = "{" +
-                "        \"nodeId\": " + eventId2 + "," +
+                "        \"node\": {\"id\":" + eventId2 + "}," +
                 "        \"relationshipType\": \"AT_TIME\"," +
                 "        \"timezone\": \"UTC\"," +
                 "        \"resolution\": \"DAY\"," +
@@ -431,8 +568,8 @@ public class TimedEventsApiTest extends GraphAwareApiTest {
 
         String getResult = httpClient.get(getUrl() + "0/range/" + timeInstant1.getTime() + "/" + timeInstant2.getTime() + "/events", HttpStatus.SC_OK);
 
-        assertEquals("[{\"nodeId\":1,\"relationshipType\":\"AT_TIME\"}," +
-                "{\"nodeId\":2,\"relationshipType\":\"AT_TIME\"}]", getResult);
+        assertEquals("[{\"node\":{\"id\":1,\"properties\":{\"name\":\"eventA\"},\"labels\":[]},\"relationshipType\":\"AT_TIME\"}," +
+                "{\"node\":{\"id\":2,\"properties\":{\"name\":\"eventB\"},\"labels\":[]},\"relationshipType\":\"AT_TIME\"}]", getResult);
     }
 
     @Test //issue https://github.com/graphaware/neo4j-timetree/issues/12
@@ -450,7 +587,7 @@ public class TimedEventsApiTest extends GraphAwareApiTest {
 
         //When
         String eventJson1 = "{" +
-                "        \"nodeId\": " + 0 + "," +
+                "        \"node\": {\"id\":0}," +
                 "        \"relationshipType\": \"AT_TIME\"," +
                 "        \"timezone\": \"UTC\"," +
                 "        \"resolution\": \"DAY\"," +
@@ -459,7 +596,7 @@ public class TimedEventsApiTest extends GraphAwareApiTest {
 
         //we should parse out the tx id, but we know it's 1 on a new database:
 
-        httpClient.post(getUrl() + "single/event", eventJson1, Collections.singletonMap("_GA_TX_ID","1"), HttpStatus.SC_CREATED);
+        httpClient.post(getUrl() + "single/event", eventJson1, Collections.singletonMap("_GA_TX_ID", "1"), HttpStatus.SC_CREATED);
 
         httpClient.post(baseNeoUrl() + "/db/data/transaction/1/commit", HttpStatus.SC_OK);
 

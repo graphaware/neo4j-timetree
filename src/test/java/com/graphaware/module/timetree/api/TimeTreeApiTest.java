@@ -56,7 +56,7 @@ public class TimeTreeApiTest extends GraphAwareApiTest {
                 "(month)-[:CHILD]->(day)," +
                 "(month)-[:LAST]->(day)");
 
-        assertEquals("3", result);
+        assertEquals("{\"id\":3,\"properties\":{\"value\":4},\"labels\":[\"Day\"]}", result);
     }
 
     @Test
@@ -88,7 +88,7 @@ public class TimeTreeApiTest extends GraphAwareApiTest {
                 "(day5)-[:NEXT]->(day6)," +
                 "(day6)-[:NEXT]->(day7)");
 
-        assertEquals("[3,4,5,6]", result);
+        assertEquals("[{\"id\":3,\"properties\":{\"value\":4},\"labels\":[\"Day\"]},{\"id\":4,\"properties\":{\"value\":5},\"labels\":[\"Day\"]},{\"id\":5,\"properties\":{\"value\":6},\"labels\":[\"Day\"]},{\"id\":6,\"properties\":{\"value\":7},\"labels\":[\"Day\"]}]", result);
     }
 
     @Test
@@ -117,7 +117,7 @@ public class TimeTreeApiTest extends GraphAwareApiTest {
                 "(month)-[:CHILD]->(day)," +
                 "(month)-[:LAST]->(day)");
 
-        assertEquals("3", result);
+        assertEquals("{\"id\":3,\"properties\":{\"value\":4},\"labels\":[\"Day\"]}", result);
     }
 
     @Test
@@ -154,7 +154,7 @@ public class TimeTreeApiTest extends GraphAwareApiTest {
                 "(day5)-[:NEXT]->(day6)," +
                 "(day6)-[:NEXT]->(day7)");
 
-        assertEquals("[3,4,5,6]", result);
+        assertEquals("[{\"id\":3,\"properties\":{\"value\":4},\"labels\":[\"Day\"]},{\"id\":4,\"properties\":{\"value\":5},\"labels\":[\"Day\"]},{\"id\":5,\"properties\":{\"value\":6},\"labels\":[\"Day\"]},{\"id\":6,\"properties\":{\"value\":7},\"labels\":[\"Day\"]}]", result);
     }
 
     @Test
@@ -190,7 +190,7 @@ public class TimeTreeApiTest extends GraphAwareApiTest {
                 "(second)-[:CHILD]->(milli)," +
                 "(second)-[:LAST]->(milli)");
 
-        assertEquals("7", result);
+        assertEquals("{\"id\":7,\"properties\":{\"value\":123},\"labels\":[\"Millisecond\"]}", result);
     }
 
     @Test
@@ -214,7 +214,7 @@ public class TimeTreeApiTest extends GraphAwareApiTest {
                 "(month)-[:CHILD]->(day)," +
                 "(month)-[:LAST]->(day)");
 
-        assertEquals("3", result);
+        assertEquals("{\"id\":3,\"properties\":{\"value\":6},\"labels\":[\"Day\"]}", result);
     }
 
     @Test
@@ -243,7 +243,7 @@ public class TimeTreeApiTest extends GraphAwareApiTest {
                 "(month)-[:CHILD]->(day)," +
                 "(month)-[:LAST]->(day)");
 
-        assertEquals("3", result);
+        assertEquals("{\"id\":3,\"properties\":{\"value\":6},\"labels\":[\"Day\"]}", result);
     }
 
     @Test
@@ -251,7 +251,7 @@ public class TimeTreeApiTest extends GraphAwareApiTest {
         //Given
         long dateInMillis = dateToMillis(2013, 5, 4);
         String result = httpClient.get(getUrl() + "single/" + dateInMillis, HttpStatus.SC_OK);
-        assertEquals("3", result);
+        assertEquals("{\"id\":3,\"properties\":{\"value\":4},\"labels\":[\"Day\"]}", result);
 
         //When
         try (Transaction tx = getDatabase().beginTx()) {
@@ -276,7 +276,7 @@ public class TimeTreeApiTest extends GraphAwareApiTest {
                 "(month)-[:CHILD]->(day)," +
                 "(month)-[:LAST]->(day)");
 
-        assertEquals("7", result);
+        assertEquals("{\"id\":7,\"properties\":{\"value\":4},\"labels\":[\"Day\"]}", result);
     }
 
     @Test
@@ -289,7 +289,7 @@ public class TimeTreeApiTest extends GraphAwareApiTest {
 
         long dateInMillis = dateToMillis(2013, 5, 4);
         String result = httpClient.get(getUrl() + "0/single/" + dateInMillis, HttpStatus.SC_OK);
-        assertEquals("3", result);
+        assertEquals("{\"id\":3,\"properties\":{\"value\":4},\"labels\":[\"Day\"]}", result);
 
         //When
         try (Transaction tx = getDatabase().beginTx()) {
@@ -332,7 +332,7 @@ public class TimeTreeApiTest extends GraphAwareApiTest {
                 "(hour)-[:LAST]->(minute)"
         );
 
-        assertEquals("5", result);
+        assertEquals("{\"id\":5,\"properties\":{\"value\":36},\"labels\":[\"Minute\"]}", result);
     }
 
     @Test
@@ -364,7 +364,7 @@ public class TimeTreeApiTest extends GraphAwareApiTest {
                 "(hour)-[:LAST]->(minute)"
         );
 
-        assertEquals("5", result);
+        assertEquals("{\"id\":5,\"properties\":{\"value\":9},\"labels\":[\"Minute\"]}", result);
     }
 
     @Test
@@ -388,7 +388,7 @@ public class TimeTreeApiTest extends GraphAwareApiTest {
                 "(month)-[:CHILD]->(day)," +
                 "(month)-[:LAST]->(day)");
 
-        assertEquals("3", result);
+        assertEquals("{\"id\":3,\"properties\":{\"value\":5},\"labels\":[\"Day\"]}", result);
     }
 
     private long dateToMillis(int year, int month, int day) {

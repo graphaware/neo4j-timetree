@@ -23,7 +23,7 @@
     <parent>
         <groupId>com.graphaware.neo4j</groupId>
         <artifactId>module-parent</artifactId>
-        <version>2.2.2.33-SNAPSHOT</version>
+        <version>2.2.2.33</version>
     </parent>
 
     <name>GraphAware TimeTree Module</name>
@@ -101,7 +101,7 @@
             <groupId>com.graphaware.neo4j</groupId>
             <artifactId>resttest</artifactId>
             <scope>test</scope>
-            <version>2.2.2.32.13</version>
+            <version>2.2.2.33.13</version>
         </dependency>
 
         <dependency>

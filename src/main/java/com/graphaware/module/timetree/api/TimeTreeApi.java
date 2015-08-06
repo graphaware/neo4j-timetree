@@ -58,12 +58,19 @@ public class TimeTreeApi {
             @RequestParam(required = false) String resolution,
             @RequestParam(required = false) String timezone) {
 
-        JsonNode result;
-
         TimeInstant timeInstant = TimeInstant.fromValueObject(new TimeInstantVO(time, resolution, timezone));
 
+        long id;
+
         try (Transaction tx = database.beginTx()) {
-            result = new JsonNode(timeTree.getOrCreateInstant(timeInstant));
+            id = timeTree.getOrCreateInstant(timeInstant).getId();
+            tx.success();
+        }
+
+        JsonNode result;
+
+        try (Transaction tx = database.beginTx()) {
+            result = new JsonNode(database.getNodeById(id));
             tx.success();
         }
 
@@ -78,13 +85,19 @@ public class TimeTreeApi {
             @RequestParam(required = false) String resolution,
             @RequestParam(required = false) String timezone) {
 
-        JsonNode[] result;
 
         TimeInstant startTimeInstant = TimeInstant.fromValueObject(new TimeInstantVO(startTime, resolution, timezone));
         TimeInstant endTimeInstant = TimeInstant.fromValueObject(new TimeInstantVO(endTime, resolution, timezone));
 
+        List<Node> nodes;
         try (Transaction tx = database.beginTx()) {
-            result = jsonNodes(timeTree.getOrCreateInstants(startTimeInstant, endTimeInstant));
+            nodes = timeTree.getOrCreateInstants(startTimeInstant, endTimeInstant);
+            tx.success();
+        }
+
+        JsonNode[] result;
+        try (Transaction tx = database.beginTx()) {
+            result = jsonNodes(nodes);
             tx.success();
         }
 
@@ -99,12 +112,17 @@ public class TimeTreeApi {
             @RequestParam(required = false) String resolution,
             @RequestParam(required = false) String timezone) {
 
-        JsonNode result;
-
         TimeInstant timeInstant = TimeInstant.fromValueObject(new TimeInstantVO(time, resolution, timezone));
 
+        long id;
         try (Transaction tx = database.beginTx()) {
-            result = new JsonNode(new CustomRootTimeTree(database.getNodeById(rootNodeId)).getOrCreateInstant(timeInstant));
+            id = new CustomRootTimeTree(database.getNodeById(rootNodeId)).getOrCreateInstant(timeInstant).getId();
+            tx.success();
+        }
+
+        JsonNode result;
+        try (Transaction tx = database.beginTx()) {
+            result = new JsonNode(database.getNodeById(id));
             tx.success();
         }
 
@@ -121,13 +139,19 @@ public class TimeTreeApi {
             @RequestParam(required = false) String resolution,
             @RequestParam(required = false) String timezone) {
 
-        JsonNode[] result;
 
         TimeInstant startTimeInstant = TimeInstant.fromValueObject(new TimeInstantVO(startTime, resolution, timezone));
         TimeInstant endTimeInstant = TimeInstant.fromValueObject(new TimeInstantVO(endTime, resolution, timezone));
 
+        List<Node> nodes;
         try (Transaction tx = database.beginTx()) {
-            result = jsonNodes(new CustomRootTimeTree(database.getNodeById(rootNodeId)).getOrCreateInstants(startTimeInstant, endTimeInstant));
+            nodes = new CustomRootTimeTree(database.getNodeById(rootNodeId)).getOrCreateInstants(startTimeInstant, endTimeInstant);
+            tx.success();
+        }
+
+        JsonNode[] result;
+        try (Transaction tx = database.beginTx()) {
+            result = jsonNodes(nodes);
             tx.success();
         }
 

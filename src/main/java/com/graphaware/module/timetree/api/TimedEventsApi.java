@@ -16,6 +16,7 @@
 
 package com.graphaware.module.timetree.api;
 
+import com.graphaware.api.JsonNode;
 import com.graphaware.module.timetree.*;
 import com.graphaware.module.timetree.domain.Event;
 import com.graphaware.module.timetree.domain.TimeInstant;
@@ -56,24 +57,32 @@ public class TimedEventsApi {
             @RequestParam(required = false) String timezone,
             @RequestParam(required = false) Set<String> relationshipTypes) {
 
-        List<EventVO> events;
-
         TimeInstant timeInstant = TimeInstant.fromValueObject(new TimeInstantVO(time, resolution, timezone));
 
+        List<Event> events;
         try (Transaction tx = database.beginTx()) {
-            events = convertEvents(timedEvents.getEvents(timeInstant, getRelationshipTypes(relationshipTypes)));
+            events = timedEvents.getEvents(timeInstant, getRelationshipTypes(relationshipTypes));
             tx.success();
         }
 
-        return events;
+        List<EventVO> result;
+        try (Transaction tx = database.beginTx()) {
+            result = convertEvents(events);
+            tx.success();
+        }
+
+        return result;
     }
 
     @RequestMapping(value = "/single/event", method = RequestMethod.POST)
-    public void attachEvent(@RequestBody TimedEventVO event, HttpServletResponse response) {
+    @ResponseBody
+    public JsonNode attachEvent(@RequestBody TimedEventVO event, HttpServletResponse response) {
         event.validate();
 
+        long id;
         try (Transaction tx = database.beginTx()) {
             Node eventNode = event.getEvent().getNode().producePropertyContainer(database);
+            id = eventNode.getId();
 
             boolean attached = timedEvents.attachEvent(
                     eventNode,
@@ -88,6 +97,14 @@ public class TimedEventsApi {
 
             tx.success();
         }
+
+        JsonNode result;
+        try (Transaction tx = database.beginTx()) {
+            result = new JsonNode(database.getNodeById(id));
+            tx.success();
+        }
+
+        return result;
     }
 
 
@@ -100,17 +117,23 @@ public class TimedEventsApi {
             @RequestParam(required = false) String timezone,
             @RequestParam(required = false) Set<String> relationshipTypes) {
 
-        List<EventVO> events;
 
         TimeInstant startTimeInstant = TimeInstant.fromValueObject(new TimeInstantVO(startTime, resolution, timezone));
         TimeInstant endTimeInstant = TimeInstant.fromValueObject(new TimeInstantVO(endTime, resolution, timezone));
 
+        List<Event> events;
         try (Transaction tx = database.beginTx()) {
-            events = convertEvents(timedEvents.getEvents(startTimeInstant, endTimeInstant, getRelationshipTypes(relationshipTypes)));
+            events = timedEvents.getEvents(startTimeInstant, endTimeInstant, getRelationshipTypes(relationshipTypes));
             tx.success();
         }
 
-        return events;
+        List<EventVO> result;
+        try (Transaction tx = database.beginTx()) {
+            result = convertEvents(events);
+            tx.success();
+        }
+
+        return result;
     }
 
     @RequestMapping(value = "/{rootNodeId}/single/{time}/events", method = RequestMethod.GET)
@@ -122,17 +145,23 @@ public class TimedEventsApi {
             @RequestParam(required = false) String timezone,
             @RequestParam(required = false) Set<String> relationshipTypes) {
 
-        List<EventVO> events;
 
         TimeInstant timeInstant = TimeInstant.fromValueObject(new TimeInstantVO(time, resolution, timezone));
 
+        List<Event> events;
         try (Transaction tx = database.beginTx()) {
             CustomRootTimeTree timeTree = new CustomRootTimeTree(database.getNodeById(rootNodeId));
-            events = convertEvents(new TimeTreeBackedEvents(timeTree).getEvents(timeInstant, getRelationshipTypes(relationshipTypes)));
+            events = new TimeTreeBackedEvents(timeTree).getEvents(timeInstant, getRelationshipTypes(relationshipTypes));
             tx.success();
         }
 
-        return events;
+        List<EventVO> result;
+        try (Transaction tx = database.beginTx()) {
+            result = convertEvents(events);
+            tx.success();
+        }
+
+        return result;
     }
 
     @RequestMapping(value = "/{rootNodeId}/range/{startTime}/{endTime}/events", method = RequestMethod.GET)
@@ -145,26 +174,35 @@ public class TimedEventsApi {
             @RequestParam(required = false) String timezone,
             @RequestParam(required = false) Set<String> relationshipTypes) {
 
-        List<EventVO> events;
-
         TimeInstant startTimeInstant = TimeInstant.fromValueObject(new TimeInstantVO(startTime, resolution, timezone));
         TimeInstant endTimeInstant = TimeInstant.fromValueObject(new TimeInstantVO(endTime, resolution, timezone));
 
+        List<Event> events;
         try (Transaction tx = database.beginTx()) {
             CustomRootTimeTree timeTree = new CustomRootTimeTree(database.getNodeById(rootNodeId));
-            events = convertEvents(new TimeTreeBackedEvents(timeTree).getEvents(startTimeInstant, endTimeInstant, getRelationshipTypes(relationshipTypes)));
+            events = new TimeTreeBackedEvents(timeTree).getEvents(startTimeInstant, endTimeInstant, getRelationshipTypes(relationshipTypes));
             tx.success();
         }
 
-        return events;
+        List<EventVO> result;
+        try (Transaction tx = database.beginTx()) {
+            result = convertEvents(events);
+            tx.success();
+        }
+
+        return result;
     }
 
     @RequestMapping(value = "{rootNodeId}/single/event", method = RequestMethod.POST)
-    public void attachEvent(@RequestBody TimedEventVO event, @PathVariable long rootNodeId, HttpServletResponse response) {
+    @ResponseBody
+    public JsonNode attachEvent(@RequestBody TimedEventVO event, @PathVariable long rootNodeId, HttpServletResponse response) {
         event.validate();
 
+        long id;
         try (Transaction tx = database.beginTx()) {
             Node eventNode = event.getEvent().getNode().producePropertyContainer(database);
+            id = eventNode.getId();
+
             CustomRootTimeTree timeTree = new CustomRootTimeTree(database.getNodeById(rootNodeId));
 
             boolean attached = new TimeTreeBackedEvents(timeTree).attachEvent(
@@ -180,6 +218,14 @@ public class TimedEventsApi {
 
             tx.success();
         }
+
+        JsonNode result;
+        try (Transaction tx = database.beginTx()) {
+            result = new JsonNode(database.getNodeById(id));
+            tx.success();
+        }
+
+        return result;
     }
 
     private Set<RelationshipType> getRelationshipTypes(Set<String> strings) {

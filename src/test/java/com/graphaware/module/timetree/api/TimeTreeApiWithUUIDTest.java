@@ -213,7 +213,7 @@ public class TimeTreeApiWithUUIDTest extends GraphAwareApiTest {
                 "(month)-[:CHILD]->(day)," +
                 "(month)-[:LAST]->(day)", ignoreUuid);
 
-        assertEquals("{\"id\":3,\"properties\":{\"value\":6,\"uuid\":\"test-uuid-4\"},\"labels\":[\"Day\"]}", result);
+        assertEquals("{\"id\":3,\"properties\":{\"value\":" + now.getDayOfMonth() + ",\"uuid\":\"test-uuid-4\"},\"labels\":[\"Day\"]}", result);
     }
 
     @Test
@@ -242,7 +242,7 @@ public class TimeTreeApiWithUUIDTest extends GraphAwareApiTest {
                 "(month)-[:CHILD]->(day)," +
                 "(month)-[:LAST]->(day)", ignoreUuid);
 
-        assertEquals("{\"id\":3,\"properties\":{\"value\":6,\"uuid\":\"test-uuid-4\"},\"labels\":[\"Day\"]}", result);
+        assertEquals("{\"id\":3,\"properties\":{\"value\":" + now.getDayOfMonth() + ",\"uuid\":\"test-uuid-4\"},\"labels\":[\"Day\"]}", result);
     }
 
     private long dateToMillis(int year, int month, int day) {

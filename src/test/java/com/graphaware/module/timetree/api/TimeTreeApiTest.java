@@ -214,7 +214,7 @@ public class TimeTreeApiTest extends GraphAwareApiTest {
                 "(month)-[:CHILD]->(day)," +
                 "(month)-[:LAST]->(day)");
 
-        assertEquals("{\"id\":3,\"properties\":{\"value\":6},\"labels\":[\"Day\"]}", result);
+        assertEquals("{\"id\":3,\"properties\":{\"value\":" + now.getDayOfMonth() + "},\"labels\":[\"Day\"]}", result);
     }
 
     @Test
@@ -243,7 +243,7 @@ public class TimeTreeApiTest extends GraphAwareApiTest {
                 "(month)-[:CHILD]->(day)," +
                 "(month)-[:LAST]->(day)");
 
-        assertEquals("{\"id\":3,\"properties\":{\"value\":6},\"labels\":[\"Day\"]}", result);
+        assertEquals("{\"id\":3,\"properties\":{\"value\":" + now.getDayOfMonth() + "},\"labels\":[\"Day\"]}", result);
     }
 
     @Test
@@ -314,22 +314,22 @@ public class TimeTreeApiTest extends GraphAwareApiTest {
 
         //Then
         assertSameGraph(getDatabase(), "CREATE" +
-                "(root:TimeTreeRoot)," +
-                "(root)-[:FIRST]->(year:Year {value:2014})," +
-                "(root)-[:CHILD]->(year)," +
-                "(root)-[:LAST]->(year)," +
-                "(year)-[:FIRST]->(month:Month {value:10})," +
-                "(year)-[:CHILD]->(month)," +
-                "(year)-[:LAST]->(month)," +
-                "(month)-[:FIRST]->(day:Day {value:24})," +
-                "(month)-[:CHILD]->(day)," +
-                "(month)-[:LAST]->(day)," +
-                "(day)-[:CHILD]->(hour:Hour{value:23})," +
-                "(day)-[:FIRST]->(hour)," +
-                "(day)-[:LAST]->(hour)," +
-                "(hour)-[:CHILD]->(minute:Minute{value:36})," +
-                "(hour)-[:FIRST]->(minute)," +
-                "(hour)-[:LAST]->(minute)"
+                        "(root:TimeTreeRoot)," +
+                        "(root)-[:FIRST]->(year:Year {value:2014})," +
+                        "(root)-[:CHILD]->(year)," +
+                        "(root)-[:LAST]->(year)," +
+                        "(year)-[:FIRST]->(month:Month {value:10})," +
+                        "(year)-[:CHILD]->(month)," +
+                        "(year)-[:LAST]->(month)," +
+                        "(month)-[:FIRST]->(day:Day {value:24})," +
+                        "(month)-[:CHILD]->(day)," +
+                        "(month)-[:LAST]->(day)," +
+                        "(day)-[:CHILD]->(hour:Hour{value:23})," +
+                        "(day)-[:FIRST]->(hour)," +
+                        "(day)-[:LAST]->(hour)," +
+                        "(hour)-[:CHILD]->(minute:Minute{value:36})," +
+                        "(hour)-[:FIRST]->(minute)," +
+                        "(hour)-[:LAST]->(minute)"
         );
 
         assertEquals("{\"id\":5,\"properties\":{\"value\":36},\"labels\":[\"Minute\"]}", result);
@@ -346,22 +346,22 @@ public class TimeTreeApiTest extends GraphAwareApiTest {
 
         //Then
         assertSameGraph(getDatabase(), "CREATE" +
-                "(root:TimeTreeRoot)," +
-                "(root)-[:FIRST]->(year:Year {value:2014})," +
-                "(root)-[:CHILD]->(year)," +
-                "(root)-[:LAST]->(year)," +
-                "(year)-[:FIRST]->(month:Month {value:10})," +
-                "(year)-[:CHILD]->(month)," +
-                "(year)-[:LAST]->(month)," +
-                "(month)-[:FIRST]->(day:Day {value:25})," +
-                "(month)-[:CHILD]->(day)," +
-                "(month)-[:LAST]->(day)," +
-                "(day)-[:CHILD]->(hour:Hour{value:12})," +
-                "(day)-[:FIRST]->(hour)," +
-                "(day)-[:LAST]->(hour)," +
-                "(hour)-[:CHILD]->(minute:Minute{value:9})," +
-                "(hour)-[:FIRST]->(minute)," +
-                "(hour)-[:LAST]->(minute)"
+                        "(root:TimeTreeRoot)," +
+                        "(root)-[:FIRST]->(year:Year {value:2014})," +
+                        "(root)-[:CHILD]->(year)," +
+                        "(root)-[:LAST]->(year)," +
+                        "(year)-[:FIRST]->(month:Month {value:10})," +
+                        "(year)-[:CHILD]->(month)," +
+                        "(year)-[:LAST]->(month)," +
+                        "(month)-[:FIRST]->(day:Day {value:25})," +
+                        "(month)-[:CHILD]->(day)," +
+                        "(month)-[:LAST]->(day)," +
+                        "(day)-[:CHILD]->(hour:Hour{value:12})," +
+                        "(day)-[:FIRST]->(hour)," +
+                        "(day)-[:LAST]->(hour)," +
+                        "(hour)-[:CHILD]->(minute:Minute{value:9})," +
+                        "(hour)-[:FIRST]->(minute)," +
+                        "(hour)-[:LAST]->(minute)"
         );
 
         assertEquals("{\"id\":5,\"properties\":{\"value\":9},\"labels\":[\"Minute\"]}", result);

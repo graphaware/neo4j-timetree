@@ -629,6 +629,28 @@ public class TimedEventsApiTest extends GraphAwareApiTest {
                 "(e)-[:AT_TIME]->(d)");
     }
 
+    @Test //issue https://github.com/graphaware/neo4j-timetree/issues/41
+    public void shouldGetEventsInRangeWithEqualOrLowerResolution() {
+        String eventJson = "{" +
+                "        \"node\": {\"labels\":[\"Event\"]}," +
+                "        \"relationshipType\": \"AT_TIME\"," +
+                "        \"timezone\": \"UTC\"," +
+                "        \"resolution\": \"HOUR\"," +
+                "        \"time\": 123343242132" +
+                "    }";
+
+        httpClient.post(getUrl() + "single/event", eventJson, HttpStatus.SC_CREATED);
+
+        assertEquals("[{\"node\":{\"id\":0,\"labels\":[\"Event\"]},\"relationshipType\":\"AT_TIME\"}]", httpClient.get(getUrl() + "range/122343242132/124343242132/events", HttpStatus.SC_OK));
+        assertEquals("[]", httpClient.get(getUrl() + "range/122343242132/124343242132/events?resolution=millisecond", HttpStatus.SC_OK));
+        assertEquals("[]", httpClient.get(getUrl() + "range/122343242132/124343242132/events?resolution=second", HttpStatus.SC_OK));
+        assertEquals("[]", httpClient.get(getUrl() + "range/122343242132/124343242132/events?resolution=minute", HttpStatus.SC_OK));
+        assertEquals("[{\"node\":{\"id\":0,\"labels\":[\"Event\"]},\"relationshipType\":\"AT_TIME\"}]", httpClient.get(getUrl() + "range/122343242132/124343242132/events?resolution=hour", HttpStatus.SC_OK));
+        assertEquals("[{\"node\":{\"id\":0,\"labels\":[\"Event\"]},\"relationshipType\":\"AT_TIME\"}]", httpClient.get(getUrl() + "range/122343242132/124343242132/events?resolution=day", HttpStatus.SC_OK));
+        assertEquals("[{\"node\":{\"id\":0,\"labels\":[\"Event\"]},\"relationshipType\":\"AT_TIME\"}]", httpClient.get(getUrl() + "range/122343242132/124343242132/events?resolution=month", HttpStatus.SC_OK));
+        assertEquals("[{\"node\":{\"id\":0,\"labels\":[\"Event\"]},\"relationshipType\":\"AT_TIME\"}]", httpClient.get(getUrl() + "range/122343242132/124343242132/events?resolution=year", HttpStatus.SC_OK));
+    }
+
     private long dateToMillis(int year, int month, int day) {
         return dateToDateTime(year, month, day).getMillis();
     }

@@ -18,8 +18,7 @@ package com.graphaware.module.timetree.module;
 
 import com.graphaware.common.kv.GraphKeyValueStore;
 import com.graphaware.common.kv.KeyValueStore;
-import com.graphaware.common.policy.NodeInclusionPolicy;
-import com.graphaware.common.policy.NodePropertyInclusionPolicy;
+import com.graphaware.common.policy.BaseNodeInclusionPolicy;
 import com.graphaware.common.serialize.Serializer;
 import com.graphaware.runtime.GraphAwareRuntime;
 import com.graphaware.runtime.GraphAwareRuntimeFactory;
@@ -158,7 +157,7 @@ public class TimeTreeModuleSingleRootProgrammaticTest extends DatabaseIntegratio
                 TimeTreeConfiguration
                         .defaultConfiguration()
                         .withTimestampProperty("time")
-                        .with(new NodeInclusionPolicy() {
+                        .with(new BaseNodeInclusionPolicy() {
                             @Override
                             public boolean include(Node node) {
                                 return node.hasLabel(Email);

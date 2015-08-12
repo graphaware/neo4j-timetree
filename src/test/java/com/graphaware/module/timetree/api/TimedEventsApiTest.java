@@ -33,6 +33,7 @@ import java.util.Collections;
 
 import static com.graphaware.test.unit.GraphUnit.assertSameGraph;
 import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertNotEquals;
 
 /**
  * Integration test for {@link TimeTreeApi}.
@@ -649,6 +650,88 @@ public class TimedEventsApiTest extends GraphAwareApiTest {
         assertEquals("[{\"node\":{\"id\":0,\"labels\":[\"Event\"]},\"relationshipType\":\"AT_TIME\"}]", httpClient.get(getUrl() + "range/122343242132/124343242132/events?resolution=day", HttpStatus.SC_OK));
         assertEquals("[{\"node\":{\"id\":0,\"labels\":[\"Event\"]},\"relationshipType\":\"AT_TIME\"}]", httpClient.get(getUrl() + "range/122343242132/124343242132/events?resolution=month", HttpStatus.SC_OK));
         assertEquals("[{\"node\":{\"id\":0,\"labels\":[\"Event\"]},\"relationshipType\":\"AT_TIME\"}]", httpClient.get(getUrl() + "range/122343242132/124343242132/events?resolution=year", HttpStatus.SC_OK));
+    }
+
+    @Test //issue https://github.com/graphaware/neo4j-timetree/issues/41
+    public void shouldGetEventsDownToSeconds() {
+        String Cypher = "create (_294:`User` {`uid`:\"cib5wl02w00023l5kl0k65q2t\", `username`:\"Brett\"})\n" +
+                "create (_295:`User` {`uid`:\"cib5wlv1k00033l5kva7fmfba\", `username`:\"Julie\"})\n" +
+                "create (_296:`User` {`uid`:\"cib5wmki400043l5kkmzcjx5s\", `username`:\"Marc\"})\n" +
+                "create (_304:`TimeTreeRoot`)\n" +
+                "create (_305:`Item` {`content`:\"sdfasdf\", `created`:1439380520793, `modified`:1439380521090, `name`:\"Test\", `uid`:\"cid8pzxrx00053k5lmlz3661j\"})\n" +
+                "create (_306:`Year` {`value`:2015})\n" +
+                "create (_307:`Month` {`value`:8})\n" +
+                "create (_308:`Day` {`value`:12})\n" +
+                "create (_309:`Hour` {`value`:22})\n" +
+                "create (_310:`Minute` {`value`:55})\n" +
+                "create (_311:`Second` {`value`:20})\n" +
+                "create (_312:`Second` {`value`:21})\n" +
+                "create _304-[:`CHILD`]->_306\n" +
+                "create _304-[:`FIRST`]->_306\n" +
+                "create _304-[:`LAST`]->_306\n" +
+                "create _305-[:`ofType`]->_220\n" +
+                "create _305-[:`Created`]->_311\n" +
+                "create _305-[:`Modified`]->_312\n" +
+                "create _306-[:`CHILD`]->_307\n" +
+                "create _306-[:`FIRST`]->_307\n" +
+                "create _306-[:`LAST`]->_307\n" +
+                "create _307-[:`CHILD`]->_308\n" +
+                "create _307-[:`FIRST`]->_308\n" +
+                "create _307-[:`LAST`]->_308\n" +
+                "create _308-[:`CHILD`]->_309\n" +
+                "create _308-[:`FIRST`]->_309\n" +
+                "create _308-[:`LAST`]->_309\n" +
+                "create _309-[:`CHILD`]->_310\n" +
+                "create _309-[:`FIRST`]->_310\n" +
+                "create _309-[:`LAST`]->_310\n" +
+                "create _310-[:`CHILD`]->_312\n" +
+                "create _310-[:`CHILD`]->_311\n" +
+                "create _310-[:`FIRST`]->_311\n" +
+                "create _310-[:`LAST`]->_312\n" +
+                "create _311-[:`NEXT`]->_312";
+
+        try (Transaction tx = getDatabase().beginTx()) {
+            getDatabase().execute(Cypher);
+            tx.success();
+        }
+
+        String response = httpClient.get(getUrl() + "range/1439380520593/1439380521290/events?resolution=second", HttpStatus.SC_OK);
+        assertNotEquals("[]", response);
+        String expected = "[\n" +
+                "    {\n" +
+                "        \"node\": {\n" +
+                "            \"id\": 305,\n" +
+                "            \"labels\": [\n" +
+                "                \"Item\"\n" +
+                "            ],\n" +
+                "            \"properties\": {\n" +
+                "                \"content\": \"sdfasdf\",\n" +
+                "                \"created\": 1439380520793,\n" +
+                "                \"modified\": 1439380521090,\n" +
+                "                \"name\": \"Test\",\n" +
+                "                \"uid\": \"cid8pzxrx00053k5lmlz3661j\"\n" +
+                "            }\n" +
+                "        },\n" +
+                "        \"relationshipType\": \"Created\"\n" +
+                "    },\n" +
+                "    {\n" +
+                "        \"node\": {\n" +
+                "            \"id\": 305,\n" +
+                "            \"labels\": [\n" +
+                "                \"Item\"\n" +
+                "            ],\n" +
+                "            \"properties\": {\n" +
+                "                \"content\": \"sdfasdf\",\n" +
+                "                \"created\": 1439380520793,\n" +
+                "                \"modified\": 1439380521090,\n" +
+                "                \"name\": \"Test\",\n" +
+                "                \"uid\": \"cid8pzxrx00053k5lmlz3661j\"\n" +
+                "            }\n" +
+                "        },\n" +
+                "        \"relationshipType\": \"Modified\"\n" +
+                "    }\n" +
+                "]";
+        assertEquals(expected, response);
     }
 
     private long dateToMillis(int year, int month, int day) {

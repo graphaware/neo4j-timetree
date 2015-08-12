@@ -33,7 +33,6 @@ import java.util.Collections;
 
 import static com.graphaware.test.unit.GraphUnit.assertSameGraph;
 import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertNotEquals;
 
 /**
  * Integration test for {@link TimeTreeApi}.
@@ -694,44 +693,13 @@ public class TimedEventsApiTest extends GraphAwareApiTest {
             getDatabase().execute(Cypher);
             tx.success();
         }
+        String expected = "[{\"node\":{\"id\":4,\"properties\":{\"content\":\"sdfasdf\",\"uid\":\"cid8pzxrx00053k5lmlz3661j\",\"created\":1439380520793,\"name\":\"Test\",\"modified\":1439380521090},\"labels\":[\"Item\"]},\"relationshipType\":\"Created\"},{\"node\":{\"id\":4,\"properties\":{\"content\":\"sdfasdf\",\"uid\":\"cid8pzxrx00053k5lmlz3661j\",\"created\":1439380520793,\"name\":\"Test\",\"modified\":1439380521090},\"labels\":[\"Item\"]},\"relationshipType\":\"Modified\"}]";
+        String responseWithDayResolution = httpClient.get(getUrl() + "range/1439380520593/1439380521290/events?resolution=day", HttpStatus.SC_OK);
+        assertEquals(expected, responseWithDayResolution);
 
-        String response = httpClient.get(getUrl() + "range/1439380520593/1439380521290/events?resolution=second", HttpStatus.SC_OK);
-        assertNotEquals("[]", response);
-        String expected = "[\n" +
-                "    {\n" +
-                "        \"node\": {\n" +
-                "            \"id\": 305,\n" +
-                "            \"labels\": [\n" +
-                "                \"Item\"\n" +
-                "            ],\n" +
-                "            \"properties\": {\n" +
-                "                \"content\": \"sdfasdf\",\n" +
-                "                \"created\": 1439380520793,\n" +
-                "                \"modified\": 1439380521090,\n" +
-                "                \"name\": \"Test\",\n" +
-                "                \"uid\": \"cid8pzxrx00053k5lmlz3661j\"\n" +
-                "            }\n" +
-                "        },\n" +
-                "        \"relationshipType\": \"Created\"\n" +
-                "    },\n" +
-                "    {\n" +
-                "        \"node\": {\n" +
-                "            \"id\": 305,\n" +
-                "            \"labels\": [\n" +
-                "                \"Item\"\n" +
-                "            ],\n" +
-                "            \"properties\": {\n" +
-                "                \"content\": \"sdfasdf\",\n" +
-                "                \"created\": 1439380520793,\n" +
-                "                \"modified\": 1439380521090,\n" +
-                "                \"name\": \"Test\",\n" +
-                "                \"uid\": \"cid8pzxrx00053k5lmlz3661j\"\n" +
-                "            }\n" +
-                "        },\n" +
-                "        \"relationshipType\": \"Modified\"\n" +
-                "    }\n" +
-                "]";
-        assertEquals(expected, response);
+        String responseWithSecondResolution = httpClient.get(getUrl() + "range/1439380520593/1439380521290/events?resolution=second", HttpStatus.SC_OK);
+        assertEquals(expected, responseWithSecondResolution);
+
     }
 
     private long dateToMillis(int year, int month, int day) {

@@ -1,7 +1,9 @@
 package com.graphaware.module.timetree;
 
+import com.graphaware.common.util.DirectionUtils;
 import com.graphaware.module.timetree.domain.Event;
 import com.graphaware.module.timetree.domain.TimeInstant;
+import org.neo4j.graphdb.Direction;
 import org.neo4j.graphdb.Node;
 import org.neo4j.graphdb.Relationship;
 import org.neo4j.graphdb.RelationshipType;
@@ -11,6 +13,7 @@ import java.util.*;
 import static com.graphaware.module.timetree.SingleTimeTree.parent;
 import static com.graphaware.module.timetree.domain.TimeTreeRelationshipTypes.*;
 import static com.graphaware.module.timetree.domain.ValidationUtils.validateRange;
+import static org.neo4j.graphdb.Direction.BOTH;
 import static org.neo4j.graphdb.Direction.INCOMING;
 import static org.neo4j.graphdb.Direction.OUTGOING;
 
@@ -32,16 +35,37 @@ public class TimeTreeBackedEvents implements TimedEvents {
      */
     @Override
     public boolean attachEvent(Node event, RelationshipType relationshipType, TimeInstant timeInstant) {
+        return attachEvent(event, relationshipType, INCOMING, timeInstant);
+    }
+
+    /**
+     * {@inheritDoc}
+     */
+    @Override
+    public boolean attachEvent(Node event, RelationshipType relationshipType, Direction direction, TimeInstant timeInstant) {
+        if (!INCOMING.equals(direction) && !OUTGOING.equals(direction)) {
+            throw new IllegalArgumentException("Direction must be INCOMING or OUTGOING!");
+        }
+
         Node instant = timeTree.getOrCreateInstant(timeInstant);
 
-        for (Relationship existing : event.getRelationships(OUTGOING, relationshipType)) {
+        for (Relationship existing : event.getRelationships(DirectionUtils.reverse(direction), relationshipType)) {
             if (existing.getEndNode().getId() == instant.getId()) {
                 return false;
             }
         }
 
-        event.createRelationshipTo(instant, relationshipType);
-        return true;
+        if (INCOMING.equals(direction)) {
+            event.createRelationshipTo(instant, relationshipType);
+            return true;
+        }
+
+        if (OUTGOING.equals(direction)) {
+            instant.createRelationshipTo(event, relationshipType);
+            return true;
+        }
+
+        throw new IllegalStateException("This must never happen - it is a bug");
     }
 
     /**
@@ -49,7 +73,15 @@ public class TimeTreeBackedEvents implements TimedEvents {
      */
     @Override
     public List<Event> getEvents(TimeInstant timeInstant) {
-        return getEvents(timeInstant, (Set<RelationshipType>) null);
+        return getEvents(timeInstant, INCOMING);
+    }
+
+    /**
+     * {@inheritDoc}
+     */
+    @Override
+    public List<Event> getEvents(TimeInstant timeInstant, Direction direction) {
+        return getEvents(timeInstant, (Set<RelationshipType>) null, direction);
     }
 
     /**
@@ -57,7 +89,15 @@ public class TimeTreeBackedEvents implements TimedEvents {
      */
     @Override
     public List<Event> getEvents(TimeInstant startTime, TimeInstant endTime) {
-        return getEvents(startTime, endTime, null);
+        return getEvents(startTime, endTime, INCOMING);
+    }
+
+    /**
+     * {@inheritDoc}
+     */
+    @Override
+    public List<Event> getEvents(TimeInstant startTime, TimeInstant endTime, Direction direction) {
+        return getEvents(startTime, endTime, null, INCOMING);
     }
 
     /**
@@ -65,20 +105,36 @@ public class TimeTreeBackedEvents implements TimedEvents {
      */
     @Override
     public List<Event> getEvents(TimeInstant timeInstant, Set<RelationshipType> types) {
-        Node instantNode = timeTree.getInstant(timeInstant);
-
-        if (instantNode == null) {
-            return Collections.emptyList();
-        }
-
-        return getEventsAttachedToNodeAndChildren(instantNode, types);
+        return getEvents(timeInstant, types, INCOMING);
     }
 
     /**
      * {@inheritDoc}
      */
     @Override
-    public List<Event> getEvents(TimeInstant startTime, TimeInstant endTime, Set<RelationshipType> types) {
+    public List<Event> getEvents(TimeInstant timeInstant, Set<RelationshipType> types, Direction direction) {
+        Node instantNode = timeTree.getInstant(timeInstant);
+
+        if (instantNode == null) {
+            return Collections.emptyList();
+        }
+
+        return getEventsAttachedToNodeAndChildren(instantNode, types, direction);
+    }
+
+    /**
+     * {@inheritDoc}
+     */
+    @Override
+    public List<Event> getEvents(TimeInstant startTime, TimeInstant endTime, Set<RelationshipType> relationshipTypes) {
+        return getEvents(startTime, endTime, relationshipTypes, INCOMING);
+    }
+
+    /**
+     * {@inheritDoc}
+     */
+    @Override
+    public List<Event> getEvents(TimeInstant startTime, TimeInstant endTime, Set<RelationshipType> types, Direction direction) {
         validateRange(startTime, endTime);
 
         List<Event> events = new LinkedList<>();
@@ -90,7 +146,7 @@ public class TimeTreeBackedEvents implements TimedEvents {
             return events;
         }
 
-        events.addAll(getEventsAttachedToNodeAndChildren(startTimeNode, types));
+        events.addAll(getEventsAttachedToNodeAndChildren(startTimeNode, types, direction));
 
         if (startTimeNode.getId() == endTimeNode.getId()) {
             return events;
@@ -99,20 +155,20 @@ public class TimeTreeBackedEvents implements TimedEvents {
         Relationship next = startTimeNode.getSingleRelationship(NEXT, OUTGOING);
         while (next != null && !(next.getEndNode().equals(endTimeNode))) {
             Node timeInstant = next.getEndNode();
-            events.addAll(getEventsAttachedToNodeAndChildren(timeInstant, types));
+            events.addAll(getEventsAttachedToNodeAndChildren(timeInstant, types, direction));
             next = timeInstant.getSingleRelationship(NEXT, OUTGOING);
         }
-        events.addAll(getEventsAttachedToNodeAndChildren(endTimeNode, types));
+        events.addAll(getEventsAttachedToNodeAndChildren(endTimeNode, types, direction));
 
         return events;
     }
 
-    private List<Event> getEventsAttachedToNodeAndChildren(Node parent, Set<RelationshipType> types) {
+    private List<Event> getEventsAttachedToNodeAndChildren(Node parent, Set<RelationshipType> types, Direction direction) {
         List<Event> result = new ArrayList<>();
 
         Relationship firstRelationship = parent.getSingleRelationship(FIRST, OUTGOING);
         if (firstRelationship == null) {
-            return getEventsAttachedToNode(parent, types);
+            return getEventsAttachedToNode(parent, types, direction);
         }
 
         Node child = null;
@@ -130,18 +186,18 @@ public class TimeTreeBackedEvents implements TimedEvents {
                 child = nextRelationship.getEndNode();
             }
 
-            result.addAll(getEventsAttachedToNodeAndChildren(child, types));
+            result.addAll(getEventsAttachedToNodeAndChildren(child, types, direction));
         }
 
-        result.addAll(getEventsAttachedToNode(parent, types));
+        result.addAll(getEventsAttachedToNode(parent, types, direction));
 
         return result;
     }
 
-    private List<Event> getEventsAttachedToNode(Node node, Set<RelationshipType> types) {
+    private List<Event> getEventsAttachedToNode(Node node, Set<RelationshipType> types, Direction direction) {
         List<Event> result = new LinkedList<>();
 
-        for (Relationship rel : node.getRelationships(INCOMING)) {
+        for (Relationship rel : node.getRelationships(direction)) {
             if (!timeTreeRelationships.contains(rel.getType().name())) {
                 if (types == null || contains(types, rel.getType())) {
                     result.add(new Event(rel.getOtherNode(node), rel.getType()));

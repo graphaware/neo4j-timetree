@@ -35,6 +35,8 @@ import static com.graphaware.module.timetree.domain.Resolution.MONTH;
 import static com.graphaware.module.timetree.domain.Resolution.YEAR;
 import static com.graphaware.test.unit.GraphUnit.assertSameGraph;
 import static org.junit.Assert.*;
+import static org.neo4j.graphdb.Direction.BOTH;
+import static org.neo4j.graphdb.Direction.INCOMING;
 import static org.neo4j.graphdb.Direction.OUTGOING;
 import static org.neo4j.graphdb.DynamicRelationshipType.withName;
 import static org.neo4j.helpers.collection.Iterables.count;
@@ -90,6 +92,60 @@ public class TimeTreeBackedEventsTest extends DatabaseIntegrationTest {
                 "(month)-[:CHILD]->(day)," +
                 "(month)-[:LAST]->(day)," +
                 "(day)<-[:AT_TIME]-(event {name:'eventA'})");
+    }
+
+    @Test
+    public void eventAndTimeInstantShouldBeCreatedWhenEventIsAttachedInOppositeDirection() {
+        //Given
+        DateTime now = DateTime.now(UTC);
+        TimeInstant timeInstant = TimeInstant.now();
+        Node event;
+
+        try (Transaction tx = getDatabase().beginTx()) {
+            event = getDatabase().createNode();
+            event.setProperty("name", "eventA");
+            tx.success();
+        }
+
+        //When
+        try (Transaction tx = getDatabase().beginTx()) {
+            timedEvents.attachEvent(event, AT_TIME, OUTGOING, timeInstant);
+            tx.success();
+        }
+
+        //Then
+        assertSameGraph(getDatabase(), "CREATE" +
+                "(root:TimeTreeRoot)," +
+                "(root)-[:FIRST]->(year:Year {value:" + now.getYear() + "})," +
+                "(root)-[:CHILD]->(year)," +
+                "(root)-[:LAST]->(year)," +
+                "(year)-[:FIRST]->(month:Month {value:" + now.getMonthOfYear() + "})," +
+                "(year)-[:CHILD]->(month)," +
+                "(year)-[:LAST]->(month)," +
+                "(month)-[:FIRST]->(day:Day {value:" + now.getDayOfMonth() + "})," +
+                "(month)-[:CHILD]->(day)," +
+                "(month)-[:LAST]->(day)," +
+                "(day)-[:AT_TIME]->(event {name:'eventA'})");
+    }
+
+    @Test(expected = IllegalArgumentException.class)
+    public void eventShouldNotBeAttachedWithDirectionBoth() {
+        //Given
+        DateTime now = DateTime.now(UTC);
+        TimeInstant timeInstant = TimeInstant.now();
+        Node event;
+
+        try (Transaction tx = getDatabase().beginTx()) {
+            event = getDatabase().createNode();
+            event.setProperty("name", "eventA");
+            tx.success();
+        }
+
+        //When
+        try (Transaction tx = getDatabase().beginTx()) {
+            timedEvents.attachEvent(event, AT_TIME, BOTH, timeInstant);
+            tx.success();
+        }
     }
 
     @Test //https://github.com/graphaware/neo4j-timetree/issues/13

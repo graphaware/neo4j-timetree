@@ -29,6 +29,8 @@ import com.graphaware.tx.event.improved.api.ImprovedTransactionData;
 import com.graphaware.tx.executor.batch.IterableInputBatchTransactionExecutor;
 import com.graphaware.tx.executor.batch.UnitOfWork;
 import com.graphaware.tx.executor.input.AllNodes;
+import com.graphaware.tx.executor.input.TransactionalInput;
+import com.graphaware.tx.executor.single.TransactionCallback;
 import org.neo4j.graphdb.Direction;
 import org.neo4j.graphdb.GraphDatabaseService;
 import org.neo4j.graphdb.Node;
@@ -100,7 +102,12 @@ public class TimeTreeModule extends BaseTxDrivenModule<Void> {
         }
 
         new IterableInputBatchTransactionExecutor<>(database, 1000,
-                new AllNodes(database, 1000),
+                new TransactionalInput<>(database, 1000, new TransactionCallback<Iterable<Node>>() {
+                    @Override
+                    public Iterable<Node> doInTransaction(GraphDatabaseService database) throws Exception {
+                        return configuration.getInclusionPolicies().getNodeInclusionPolicy().getAll(database);
+                    }
+                }),
                 new UnitOfWork<Node>() {
                     @Override
                     public void execute(GraphDatabaseService database, Node input, int batchNumber, int stepNumber) {

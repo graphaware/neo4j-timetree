@@ -32,6 +32,8 @@ import org.neo4j.graphdb.factory.GraphDatabaseFactory;
 
 import java.io.IOException;
 import java.util.Calendar;
+import java.util.HashMap;
+import java.util.Map;
 import java.util.TimeZone;
 
 import static com.graphaware.module.timetree.domain.Resolution.MINUTE;
@@ -335,6 +337,98 @@ public class TimeTreeModuleSingleRootProgrammaticTest extends DatabaseIntegratio
                         "(month)-[:CHILD]->(day)," +
                         "(month)-[:LAST]->(day)," +
                         "(day)<-[:AT_TIME]-(event)"
+        );
+    }
+
+    @Test
+    public void shouldAttachExistingEventsWhenModuleRegisteredForTheFirstTimeWithAutoAttachEnabled2() {
+        createEvent();
+
+        assertSameGraph(getDatabase(), "CREATE (:Event {subject:'Neo4j', timestamp:" + TIMESTAMP + "})");
+
+        GraphAwareRuntime runtime = GraphAwareRuntimeFactory.createRuntime(getDatabase());
+        runtime.registerModule(new TimeTreeModule("timetree",
+                TimeTreeConfiguration
+                        .defaultConfiguration()
+                        .with(IncludeEvents.getInstance())
+                        .withAutoAttach(true), getDatabase()));
+        runtime.start();
+
+        assertSameGraph(getDatabase(), "CREATE " +
+                        "(event:Event {subject:'Neo4j', timestamp:" + TIMESTAMP + "})," +
+                        "(root:TimeTreeRoot)," +
+                        "(root)-[:FIRST]->(year:Year {value:2015})," +
+                        "(root)-[:CHILD]->(year)," +
+                        "(root)-[:LAST]->(year)," +
+                        "(year)-[:FIRST]->(month:Month {value:4})," +
+                        "(year)-[:CHILD]->(month)," +
+                        "(year)-[:LAST]->(month)," +
+                        "(month)-[:FIRST]->(day:Day {value:5})," +
+                        "(month)-[:CHILD]->(day)," +
+                        "(month)-[:LAST]->(day)," +
+                        "(day)<-[:AT_TIME]-(event)"
+        );
+    }
+
+    @Test
+    public void shouldAttachExistingEventsWhenModuleRegisteredForTheFirstTimeWithAutoAttachEnabled3() {
+        createEvent();
+
+        assertSameGraph(getDatabase(), "CREATE (:Event {subject:'Neo4j', timestamp:" + TIMESTAMP + "})");
+
+        Map<String, String> config = new HashMap<>();
+        config.put("event", "hasLabel('Event')");
+        config.put("relationship", "SENT_ON");
+        config.put("autoAttach", "true");
+
+        GraphAwareRuntime runtime = GraphAwareRuntimeFactory.createRuntime(getDatabase());
+        runtime.registerModule(new TimeTreeModuleBootstrapper().bootstrapModule("timetree", config, getDatabase()));
+        runtime.start();
+
+        assertSameGraph(getDatabase(), "CREATE " +
+                        "(event:Event {subject:'Neo4j', timestamp:" + TIMESTAMP + "})," +
+                        "(root:TimeTreeRoot)," +
+                        "(root)-[:FIRST]->(year:Year {value:2015})," +
+                        "(root)-[:CHILD]->(year)," +
+                        "(root)-[:LAST]->(year)," +
+                        "(year)-[:FIRST]->(month:Month {value:4})," +
+                        "(year)-[:CHILD]->(month)," +
+                        "(year)-[:LAST]->(month)," +
+                        "(month)-[:FIRST]->(day:Day {value:5})," +
+                        "(month)-[:CHILD]->(day)," +
+                        "(month)-[:LAST]->(day)," +
+                        "(day)<-[:SENT_ON]-(event)"
+        );
+    }
+
+    @Test
+    public void shouldAttachExistingEventsWhenModuleRegisteredForTheFirstTimeWithAutoAttachEnabled4() {
+        createEvent();
+
+        assertSameGraph(getDatabase(), "CREATE (:Event {subject:'Neo4j', timestamp:" + TIMESTAMP + "})");
+
+        Map<String, String> config = new HashMap<>();
+        config.put("event", "com.graphaware.module.timetree.module.IncludeEvents");
+        config.put("relationship", "SENT_ON");
+        config.put("autoAttach", "true");
+
+        GraphAwareRuntime runtime = GraphAwareRuntimeFactory.createRuntime(getDatabase());
+        runtime.registerModule(new TimeTreeModuleBootstrapper().bootstrapModule("timetree", config, getDatabase()));
+        runtime.start();
+
+        assertSameGraph(getDatabase(), "CREATE " +
+                        "(event:Event {subject:'Neo4j', timestamp:" + TIMESTAMP + "})," +
+                        "(root:TimeTreeRoot)," +
+                        "(root)-[:FIRST]->(year:Year {value:2015})," +
+                        "(root)-[:CHILD]->(year)," +
+                        "(root)-[:LAST]->(year)," +
+                        "(year)-[:FIRST]->(month:Month {value:4})," +
+                        "(year)-[:CHILD]->(month)," +
+                        "(year)-[:LAST]->(month)," +
+                        "(month)-[:FIRST]->(day:Day {value:5})," +
+                        "(month)-[:CHILD]->(day)," +
+                        "(month)-[:LAST]->(day)," +
+                        "(day)<-[:SENT_ON]-(event)"
         );
     }
 

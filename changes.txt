@@ -1,4 +1,8 @@
-2.2.2.34.23:
+2.2.4.34.24:
+    - allow specifying relationship direction for event attachment (issue #31)
+    - allow speeding up initialisation (issue #35)
+
+2.2.4.34.23:
     - no changes
 
 2.2.2.33.23:

@@ -104,7 +104,7 @@ When deployed in server mode, there are the following URLs that you can issue GE
 * `http://your-server-address:7474/graphaware/timetree/{rootNodeId}/range/{startTime}/{endTime}/events` to get events that occurred between {startTime} and {endTime} (inclusive) and {rootNodeId} must be replaced by the ID of an existing node that should serve as the tree root. Defaults are the same as above.
 * `http://your-server-address:7474/graphaware/timetree/{rootNodeId}/now` to get a node representing now, where {rootNodeId} must be replaced by the ID of an existing node that should serve as the tree root. Defaults are the same as above.
 
-You have three query parameters:
+You have four query parameters:
 
 * `resolution`, which can take on the following values:
     * `Year`
@@ -126,6 +126,7 @@ The default is all relationships, which is useful if you have different kinds of
 
   on an empty database will result in the following graph being generated. The response body will contain the Neo4j node
   of the node representing the hour. You can then use it in order to link to it. Example response:
+* `direction`, which is a String representation of the `Direction`, with which the event is related to the time instant from the time instant's point of view. Defaults to `INCOMING`. Permitted values are `INCOMING`,`OUTGOING`,`BOTH`.
 
 ```json
 {
@@ -153,7 +154,8 @@ The response to calls returning events contain a list of events with relationshi
       },
       "labels": ["Event"]
     },
-    "relationshipType": "STARTED_ON_DAY"
+    "relationshipType": "STARTED_ON_DAY",
+    "direction": "INCOMING"
   },
   {
     "node": {
@@ -163,7 +165,8 @@ The response to calls returning events contain a list of events with relationshi
       },
       "labels": ["Event"]
     },
-    "relationshipType": "ENDED_ON_DAY"
+    "relationshipType": "ENDED_ON_DAY",
+    "direction": "INCOMING"
   }
 ]
 ```
@@ -181,6 +184,7 @@ The POST body resembles:
     "id": 99
   },
   "relationshipType": "HAS_EVENT",
+  "direction":"INCOMING",
   "timezone": "UTC",
   "resolution": "DAY",
   "time": 1403506278000
@@ -190,7 +194,8 @@ The POST body resembles:
 where
 
 * `node.id` is the node ID of an existing event node
-* `relationshipType` is the name of the relationship type that should be used to attach the event to the time instant. The relationship is directed from the event to the time instant.
+* `relationshipType` is the name of the relationship type that should be used to attach the event to the time instant.
+* `direction` (optional) is the name of the direction (`INCOMING` or `OUTGOING`) that should be used to attach the event to the time instant, *from the tree's point of view*. By default, it is `INCOMING`, i.e., the relationship is directed from the event to the time instant.
 * `timezone` is a String representation of any `java.util.TimeZone` (optional)
 * `resolution` as described above (optional)
 * `time` is a number representing the number of milliseconds since 1/1/1970
@@ -207,6 +212,7 @@ instead if `node.id`. the body of the POST should resemble:
     "labels": ["Event"]
   },
   "relationshipType": "HAS_EVENT",
+  "direction": "INCOMING",
   "timezone": "UTC",
   "resolution": "DAY",
   "time": 1403506278000
@@ -242,6 +248,9 @@ com.graphaware.module.TT.timezone=GMT+1
 
 # Optionally, a relationship type with which the events will be attached to the tree can be specified (defaults to AT_TIME)
 com.graphaware.module.TT.relationship=SENT_ON
+
+# Optionally, a relationship direction (from the tree's point of view), with which the events will be attached to the tree can be specified (defaults to INCOMING)
+com.graphaware.module.TT.direction=INCOMING
 
 # autoAttach must be set to true
 com.graphaware.module.TT.autoAttach=true

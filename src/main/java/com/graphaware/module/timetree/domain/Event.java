@@ -17,6 +17,7 @@ package com.graphaware.module.timetree.domain;
 
 import com.graphaware.api.JsonNode;
 import com.graphaware.module.timetree.api.EventVO;
+import org.neo4j.graphdb.Direction;
 import org.neo4j.graphdb.Node;
 import org.neo4j.graphdb.RelationshipType;
 
@@ -27,16 +28,19 @@ public class Event {
 
     private final Node node;
     private final RelationshipType relationshipType;
+    private final Direction direction;
 
     /**
      * Create a new event.
      *
      * @param node             representing the event.
      * @param relationshipType to use when attaching the event to the time tree.
+     * @param direction to use when attaching the event to the time tree.
      */
-    public Event(Node node, RelationshipType relationshipType) {
+    public Event(Node node, RelationshipType relationshipType, Direction direction) {
         this.node = node;
         this.relationshipType = relationshipType;
+        this.direction = direction;
     }
 
     /**
@@ -49,7 +53,7 @@ public class Event {
     }
 
     /**
-     * Get the relationship that between the event and the time instant.
+     * Get the relationship type between the event and the time instant.
      *
      * @return the relationship between the event and the time instant.
      */
@@ -58,11 +62,20 @@ public class Event {
     }
 
     /**
+     * Get the direction of the relationship between the time instant and the event from the time instant's point of view.
+     *
+     * @return the relationship direction between the time instant and the event.
+     */
+    public Direction getDirection() {
+        return direction;
+    }
+
+    /**
      * Convert this event to its corresponding value object.
      *
      * @return value object.
      */
     public EventVO toValueObject() {
-        return new EventVO(new JsonNode(node), getRelationshipType().name());
+        return new EventVO(new JsonNode(node), getRelationshipType().name(), getDirection().name());
     }
 }

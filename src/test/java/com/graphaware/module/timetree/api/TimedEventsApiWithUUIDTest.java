@@ -149,9 +149,9 @@ public class TimedEventsApiWithUUIDTest extends GraphAwareApiTest {
                 "(day)<-[:AT_BAD_TIME]-(event3 {name:'eventC'})", ignoreUuid);
 
         assertEquals("{\"id\":2,\"properties\":{\"name\":\"eventC\",\"uuid\":\"test-uuid-3\"},\"labels\":[]}", postResult);
-        assertEquals("[{\"node\":{\"id\":0,\"properties\":{\"name\":\"eventA\",\"uuid\":\"test-uuid-1\"},\"labels\":[]},\"relationshipType\":\"AT_TIME\"}]", getResult);
-        assertEquals("[{\"node\":{\"id\":0,\"properties\":{\"name\":\"eventA\",\"uuid\":\"test-uuid-1\"},\"labels\":[]},\"relationshipType\":\"AT_TIME\"}," +
-                "{\"node\":{\"id\":1,\"properties\":{\"name\":\"eventB\",\"uuid\":\"test-uuid-2\"},\"labels\":[]},\"relationshipType\":\"AT_OTHER_TIME\"}]", getMultipleResult);
+        assertEquals("[{\"node\":{\"id\":0,\"properties\":{\"name\":\"eventA\",\"uuid\":\"test-uuid-1\"},\"labels\":[]},\"relationshipType\":\"AT_TIME\",\"direction\":\"INCOMING\"}]", getResult);
+        assertEquals("[{\"node\":{\"id\":0,\"properties\":{\"name\":\"eventA\",\"uuid\":\"test-uuid-1\"},\"labels\":[]},\"relationshipType\":\"AT_TIME\",\"direction\":\"INCOMING\"}," +
+                "{\"node\":{\"id\":1,\"properties\":{\"name\":\"eventB\",\"uuid\":\"test-uuid-2\"},\"labels\":[]},\"relationshipType\":\"AT_OTHER_TIME\",\"direction\":\"INCOMING\"}]", getMultipleResult);
     }
 
     @Test
@@ -223,10 +223,10 @@ public class TimedEventsApiWithUUIDTest extends GraphAwareApiTest {
 
         assertEquals("{\"id\":0,\"properties\":{\"name\":\"eventA\",\"uuid\":\"test-uuid-1\"},\"labels\":[\"Event\",\"Email\"]}", postResult);
 
-        assertEquals("[{\"node\":{\"id\":7,\"properties\":{\"name\":\"eventD\",\"value\":1,\"uuid\":\"test-uuid-8\"},\"labels\":[]},\"relationshipType\":\"AT_TIME\"}," +
-                "{\"node\":{\"id\":0,\"properties\":{\"name\":\"eventA\",\"uuid\":\"test-uuid-1\"},\"labels\":[\"Event\",\"Email\"]},\"relationshipType\":\"AT_TIME\"}," +
-                "{\"node\":{\"id\":5,\"properties\":{\"name\":\"eventB\",\"uuid\":\"test-uuid-6\"},\"labels\":[\"Event\"]},\"relationshipType\":\"AT_OTHER_TIME\"}," +
-                "{\"node\":{\"id\":6,\"properties\":{\"name\":\"eventC\",\"uuid\":\"test-uuid-7\"},\"labels\":[]},\"relationshipType\":\"AT_BAD_TIME\"}]", getResult);
+        assertEquals("[{\"node\":{\"id\":7,\"properties\":{\"name\":\"eventD\",\"value\":1,\"uuid\":\"test-uuid-8\"},\"labels\":[]},\"relationshipType\":\"AT_TIME\",\"direction\":\"INCOMING\"}," +
+                "{\"node\":{\"id\":0,\"properties\":{\"name\":\"eventA\",\"uuid\":\"test-uuid-1\"},\"labels\":[\"Event\",\"Email\"]},\"relationshipType\":\"AT_TIME\",\"direction\":\"INCOMING\"}," +
+                "{\"node\":{\"id\":5,\"properties\":{\"name\":\"eventB\",\"uuid\":\"test-uuid-6\"},\"labels\":[\"Event\"]},\"relationshipType\":\"AT_OTHER_TIME\",\"direction\":\"INCOMING\"}," +
+                "{\"node\":{\"id\":6,\"properties\":{\"name\":\"eventC\",\"uuid\":\"test-uuid-7\"},\"labels\":[]},\"relationshipType\":\"AT_BAD_TIME\",\"direction\":\"INCOMING\"}]", getResult);
     }
 
     @Test
@@ -279,7 +279,7 @@ public class TimedEventsApiWithUUIDTest extends GraphAwareApiTest {
 
         assertEquals("{\"id\":0,\"properties\":{\"name\":\"eventA\",\"uuid\":\"test-uuid-1\"},\"labels\":[]}", postResult1);
         assertEquals("{\"id\":0,\"properties\":{\"name\":\"eventA\",\"uuid\":\"test-uuid-1\"},\"labels\":[]}", postResult2);
-        assertEquals("[{\"node\":{\"id\":0,\"properties\":{\"name\":\"eventA\",\"uuid\":\"test-uuid-1\"},\"labels\":[]},\"relationshipType\":\"AT_TIME\"}]", getResult);
+        assertEquals("[{\"node\":{\"id\":0,\"properties\":{\"name\":\"eventA\",\"uuid\":\"test-uuid-1\"},\"labels\":[]},\"relationshipType\":\"AT_TIME\",\"direction\":\"INCOMING\"}]", getResult);
     }
 
 
@@ -336,7 +336,7 @@ public class TimedEventsApiWithUUIDTest extends GraphAwareApiTest {
 
         assertEquals("{\"id\":1,\"properties\":{\"name\":\"eventA\",\"uuid\":\"test-uuid-2\"},\"labels\":[\"Event\"]}", postResult1);
         assertEquals("{\"id\":1,\"properties\":{\"name\":\"eventA\",\"uuid\":\"test-uuid-2\"},\"labels\":[\"Event\"]}", postResult2);
-        assertEquals("[{\"node\":{\"id\":1,\"properties\":{\"name\":\"eventA\",\"uuid\":\"test-uuid-2\"},\"labels\":[\"Event\"]},\"relationshipType\":\"AT_TIME\"}]", getResult);
+        assertEquals("[{\"node\":{\"id\":1,\"properties\":{\"name\":\"eventA\",\"uuid\":\"test-uuid-2\"},\"labels\":[\"Event\"]},\"relationshipType\":\"AT_TIME\",\"direction\":\"INCOMING\"}]", getResult);
     }
 
     @Test
@@ -383,7 +383,7 @@ public class TimedEventsApiWithUUIDTest extends GraphAwareApiTest {
                 "(day)<-[:AT_TIME]-(event:Event {name:'eventA'})", ignoreUuid);
 
         assertEquals("{\"id\":1,\"properties\":{\"name\":\"eventA\",\"uuid\":\"test-uuid-2\"},\"labels\":[\"Event\"]}", postResult);
-        assertEquals("[{\"node\":{\"id\":1,\"properties\":{\"name\":\"eventA\",\"uuid\":\"test-uuid-2\"},\"labels\":[\"Event\"]},\"relationshipType\":\"AT_TIME\"}]", getResult);
+        assertEquals("[{\"node\":{\"id\":1,\"properties\":{\"name\":\"eventA\",\"uuid\":\"test-uuid-2\"},\"labels\":[\"Event\"]},\"relationshipType\":\"AT_TIME\",\"direction\":\"INCOMING\"}]", getResult);
     }
 
     @Test
@@ -448,8 +448,8 @@ public class TimedEventsApiWithUUIDTest extends GraphAwareApiTest {
 
         assertEquals("{\"id\":0,\"properties\":{\"name\":\"eventA\",\"uuid\":\"test-uuid-1\"},\"labels\":[]}", postResult1);
         assertEquals("{\"id\":1,\"properties\":{\"name\":\"eventB\",\"uuid\":\"test-uuid-2\"},\"labels\":[]}", postResult2);
-        assertEquals("[{\"node\":{\"id\":0,\"properties\":{\"name\":\"eventA\",\"uuid\":\"test-uuid-1\"},\"labels\":[]},\"relationshipType\":\"AT_TIME\"}," +
-                "{\"node\":{\"id\":1,\"properties\":{\"name\":\"eventB\",\"uuid\":\"test-uuid-2\"},\"labels\":[]},\"relationshipType\":\"AT_TIME\"}]", getResult);
+        assertEquals("[{\"node\":{\"id\":0,\"properties\":{\"name\":\"eventA\",\"uuid\":\"test-uuid-1\"},\"labels\":[]},\"relationshipType\":\"AT_TIME\",\"direction\":\"INCOMING\"}," +
+                "{\"node\":{\"id\":1,\"properties\":{\"name\":\"eventB\",\"uuid\":\"test-uuid-2\"},\"labels\":[]},\"relationshipType\":\"AT_TIME\",\"direction\":\"INCOMING\"}]", getResult);
     }
 
     @Test
@@ -519,8 +519,8 @@ public class TimedEventsApiWithUUIDTest extends GraphAwareApiTest {
 
         assertEquals("{\"id\":1,\"properties\":{\"name\":\"eventA\",\"uuid\":\"test-uuid-2\"},\"labels\":[]}", postResult1);
         assertEquals("{\"id\":2,\"properties\":{\"name\":\"eventB\",\"uuid\":\"test-uuid-3\"},\"labels\":[]}", postResult2);
-        assertEquals("[{\"node\":{\"id\":1,\"properties\":{\"name\":\"eventA\",\"uuid\":\"test-uuid-2\"},\"labels\":[]},\"relationshipType\":\"AT_TIME\"}," +
-                "{\"node\":{\"id\":2,\"properties\":{\"name\":\"eventB\",\"uuid\":\"test-uuid-3\"},\"labels\":[]},\"relationshipType\":\"AT_TIME\"}]", getResult);
+        assertEquals("[{\"node\":{\"id\":1,\"properties\":{\"name\":\"eventA\",\"uuid\":\"test-uuid-2\"},\"labels\":[]},\"relationshipType\":\"AT_TIME\",\"direction\":\"INCOMING\"}," +
+                "{\"node\":{\"id\":2,\"properties\":{\"name\":\"eventB\",\"uuid\":\"test-uuid-3\"},\"labels\":[]},\"relationshipType\":\"AT_TIME\",\"direction\":\"INCOMING\"}]", getResult);
     }
 
     private long dateToMillis(int year, int month, int day) {

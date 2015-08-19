@@ -22,6 +22,7 @@ import com.graphaware.runtime.config.function.StringToNodeInclusionPolicy;
 import com.graphaware.runtime.module.RuntimeModule;
 import com.graphaware.runtime.module.RuntimeModuleBootstrapper;
 import org.joda.time.DateTimeZone;
+import org.neo4j.graphdb.Direction;
 import org.neo4j.graphdb.DynamicRelationshipType;
 import org.neo4j.graphdb.GraphDatabaseService;
 import org.neo4j.graphdb.RelationshipType;
@@ -44,6 +45,7 @@ public class TimeTreeModuleBootstrapper implements RuntimeModuleBootstrapper {
     private static final String RESOLUTION = "resolution";
     private static final String TIME_ZONE = "timezone";
     private static final String RELATIONSHIP = "relationship";
+    private static final String DIRECTION = "direction";
     private static final String AUTO_ATTACH = "autoAttach";
 
     /**
@@ -87,6 +89,12 @@ public class TimeTreeModuleBootstrapper implements RuntimeModuleBootstrapper {
             RelationshipType relationshipType = DynamicRelationshipType.withName(config.get(RELATIONSHIP));
             LOG.info("Relationship type set to {}", relationshipType);
             configuration = configuration.withRelationshipType(relationshipType);
+        }
+
+        if (config.get(DIRECTION) != null) {
+            Direction direction = Direction.valueOf(config.get(DIRECTION));
+            LOG.info("Direction set to {}", direction);
+            configuration = configuration.withDirection(direction);
         }
 
         if (config.get(AUTO_ATTACH) != null) {

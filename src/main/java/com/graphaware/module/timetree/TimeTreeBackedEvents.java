@@ -200,7 +200,7 @@ public class TimeTreeBackedEvents implements TimedEvents {
         for (Relationship rel : node.getRelationships(direction)) {
             if (!timeTreeRelationships.contains(rel.getType().name())) {
                 if (types == null || contains(types, rel.getType())) {
-                    result.add(new Event(rel.getOtherNode(node), rel.getType()));
+                    result.add(new Event(rel.getOtherNode(node), rel.getType(), DirectionUtils.resolveDirection(rel, node)));
                 }
             }
         }

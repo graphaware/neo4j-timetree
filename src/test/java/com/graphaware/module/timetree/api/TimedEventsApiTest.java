@@ -120,6 +120,28 @@ public class TimedEventsApiTest extends GraphAwareApiTest {
 
         eventJson = "{" +
                 "        \"node\": {\"id\":0}," +
+                "        \"timezone\": \"UTC\"," +
+                "        \"resolution\": \"DAY\"," +
+                "        \"relationshipType\": \"AT_TIME\"," +
+                "        \"direction\": \"BOTH\"," +
+                "        \"time\": " + System.currentTimeMillis() +
+                "    }";
+
+        httpClient.post(getUrl() + "single/event", eventJson, HttpStatus.SC_BAD_REQUEST);
+
+        eventJson = "{" +
+                "        \"node\": {\"id\":0}," +
+                "        \"timezone\": \"UTC\"," +
+                "        \"resolution\": \"DAY\"," +
+                "        \"relationshipType\": \"AT_TIME\"," +
+                "        \"direction\": \"ILLEGAL\"," +
+                "        \"time\": " + System.currentTimeMillis() +
+                "    }";
+
+        httpClient.post(getUrl() + "single/event", eventJson, HttpStatus.SC_BAD_REQUEST);
+
+        eventJson = "{" +
+                "        \"node\": {\"id\":0}," +
                 "        \"timezone\": \"ILLEGAL\"," +
                 "        \"resolution\": \"DAY\"," +
                 "        \"relationshipType\": \"AT_TIME\"," +
@@ -210,9 +232,9 @@ public class TimedEventsApiTest extends GraphAwareApiTest {
                 "(day)<-[:AT_BAD_TIME]-(event3 {name:'eventC'})");
 
         assertEquals("{\"id\":2,\"properties\":{\"name\":\"eventC\"},\"labels\":[]}", postResult);
-        assertEquals("[{\"node\":{\"id\":0,\"properties\":{\"name\":\"eventA\"},\"labels\":[]},\"relationshipType\":\"AT_TIME\"}]", getResult);
-        assertEquals("[{\"node\":{\"id\":0,\"properties\":{\"name\":\"eventA\"},\"labels\":[]},\"relationshipType\":\"AT_TIME\"}," +
-                "{\"node\":{\"id\":1,\"properties\":{\"name\":\"eventB\"},\"labels\":[]},\"relationshipType\":\"AT_OTHER_TIME\"}]", getMultipleResult);
+        assertEquals("[{\"node\":{\"id\":0,\"properties\":{\"name\":\"eventA\"},\"labels\":[]},\"relationshipType\":\"AT_TIME\",\"direction\":\"INCOMING\"}]", getResult);
+        assertEquals("[{\"node\":{\"id\":0,\"properties\":{\"name\":\"eventA\"},\"labels\":[]},\"relationshipType\":\"AT_TIME\",\"direction\":\"INCOMING\"}," +
+                "{\"node\":{\"id\":1,\"properties\":{\"name\":\"eventB\"},\"labels\":[]},\"relationshipType\":\"AT_OTHER_TIME\",\"direction\":\"INCOMING\"}]", getMultipleResult);
     }
 
     @Test
@@ -284,10 +306,10 @@ public class TimedEventsApiTest extends GraphAwareApiTest {
 
         assertEquals("{\"id\":0,\"properties\":{\"name\":\"eventA\"},\"labels\":[\"Event\",\"Email\"]}", postResult);
 
-        assertEquals("[{\"node\":{\"id\":7,\"properties\":{\"name\":\"eventD\",\"value\":1},\"labels\":[]},\"relationshipType\":\"AT_TIME\"}," +
-                "{\"node\":{\"id\":0,\"properties\":{\"name\":\"eventA\"},\"labels\":[\"Event\",\"Email\"]},\"relationshipType\":\"AT_TIME\"}," +
-                "{\"node\":{\"id\":5,\"properties\":{\"name\":\"eventB\"},\"labels\":[\"Event\"]},\"relationshipType\":\"AT_OTHER_TIME\"}," +
-                "{\"node\":{\"id\":6,\"properties\":{\"name\":\"eventC\"},\"labels\":[]},\"relationshipType\":\"AT_BAD_TIME\"}]", getResult);
+        assertEquals("[{\"node\":{\"id\":7,\"properties\":{\"name\":\"eventD\",\"value\":1},\"labels\":[]},\"relationshipType\":\"AT_TIME\",\"direction\":\"INCOMING\"}," +
+                "{\"node\":{\"id\":0,\"properties\":{\"name\":\"eventA\"},\"labels\":[\"Event\",\"Email\"]},\"relationshipType\":\"AT_TIME\",\"direction\":\"INCOMING\"}," +
+                "{\"node\":{\"id\":5,\"properties\":{\"name\":\"eventB\"},\"labels\":[\"Event\"]},\"relationshipType\":\"AT_OTHER_TIME\",\"direction\":\"INCOMING\"}," +
+                "{\"node\":{\"id\":6,\"properties\":{\"name\":\"eventC\"},\"labels\":[]},\"relationshipType\":\"AT_BAD_TIME\",\"direction\":\"INCOMING\"}]", getResult);
     }
 
     @Test
@@ -340,7 +362,7 @@ public class TimedEventsApiTest extends GraphAwareApiTest {
 
         assertEquals("{\"id\":0,\"properties\":{\"name\":\"eventA\"},\"labels\":[]}", postResult1);
         assertEquals("{\"id\":0,\"properties\":{\"name\":\"eventA\"},\"labels\":[]}", postResult2);
-        assertEquals("[{\"node\":{\"id\":0,\"properties\":{\"name\":\"eventA\"},\"labels\":[]},\"relationshipType\":\"AT_TIME\"}]", getResult);
+        assertEquals("[{\"node\":{\"id\":0,\"properties\":{\"name\":\"eventA\"},\"labels\":[]},\"relationshipType\":\"AT_TIME\",\"direction\":\"INCOMING\"}]", getResult);
     }
 
 
@@ -397,7 +419,7 @@ public class TimedEventsApiTest extends GraphAwareApiTest {
 
         assertEquals("{\"id\":1,\"properties\":{\"name\":\"eventA\"},\"labels\":[\"Event\"]}", postResult1);
         assertEquals("{\"id\":1,\"properties\":{\"name\":\"eventA\"},\"labels\":[\"Event\"]}", postResult2);
-        assertEquals("[{\"node\":{\"id\":1,\"properties\":{\"name\":\"eventA\"},\"labels\":[\"Event\"]},\"relationshipType\":\"AT_TIME\"}]", getResult);
+        assertEquals("[{\"node\":{\"id\":1,\"properties\":{\"name\":\"eventA\"},\"labels\":[\"Event\"]},\"relationshipType\":\"AT_TIME\",\"direction\":\"INCOMING\"}]", getResult);
     }
 
     @Test
@@ -444,7 +466,7 @@ public class TimedEventsApiTest extends GraphAwareApiTest {
                 "(day)<-[:AT_TIME]-(event:Event {name:'eventA'})");
 
         assertEquals("{\"id\":1,\"properties\":{\"name\":\"eventA\"},\"labels\":[\"Event\"]}", postResult);
-        assertEquals("[{\"node\":{\"id\":1,\"properties\":{\"name\":\"eventA\"},\"labels\":[\"Event\"]},\"relationshipType\":\"AT_TIME\"}]", getResult);
+        assertEquals("[{\"node\":{\"id\":1,\"properties\":{\"name\":\"eventA\"},\"labels\":[\"Event\"]},\"relationshipType\":\"AT_TIME\",\"direction\":\"INCOMING\"}]", getResult);
     }
 
     @Test
@@ -509,8 +531,8 @@ public class TimedEventsApiTest extends GraphAwareApiTest {
 
         assertEquals("{\"id\":0,\"properties\":{\"name\":\"eventA\"},\"labels\":[]}", postResult1);
         assertEquals("{\"id\":1,\"properties\":{\"name\":\"eventB\"},\"labels\":[]}", postResult2);
-        assertEquals("[{\"node\":{\"id\":0,\"properties\":{\"name\":\"eventA\"},\"labels\":[]},\"relationshipType\":\"AT_TIME\"}," +
-                "{\"node\":{\"id\":1,\"properties\":{\"name\":\"eventB\"},\"labels\":[]},\"relationshipType\":\"AT_TIME\"}]", getResult);
+        assertEquals("[{\"node\":{\"id\":0,\"properties\":{\"name\":\"eventA\"},\"labels\":[]},\"relationshipType\":\"AT_TIME\",\"direction\":\"INCOMING\"}," +
+                "{\"node\":{\"id\":1,\"properties\":{\"name\":\"eventB\"},\"labels\":[]},\"relationshipType\":\"AT_TIME\",\"direction\":\"INCOMING\"}]", getResult);
     }
 
     @Test
@@ -580,8 +602,8 @@ public class TimedEventsApiTest extends GraphAwareApiTest {
 
         assertEquals("{\"id\":1,\"properties\":{\"name\":\"eventA\"},\"labels\":[]}", postResult1);
         assertEquals("{\"id\":2,\"properties\":{\"name\":\"eventB\"},\"labels\":[]}", postResult2);
-        assertEquals("[{\"node\":{\"id\":1,\"properties\":{\"name\":\"eventA\"},\"labels\":[]},\"relationshipType\":\"AT_TIME\"}," +
-                "{\"node\":{\"id\":2,\"properties\":{\"name\":\"eventB\"},\"labels\":[]},\"relationshipType\":\"AT_TIME\"}]", getResult);
+        assertEquals("[{\"node\":{\"id\":1,\"properties\":{\"name\":\"eventA\"},\"labels\":[]},\"relationshipType\":\"AT_TIME\",\"direction\":\"INCOMING\"}," +
+                "{\"node\":{\"id\":2,\"properties\":{\"name\":\"eventB\"},\"labels\":[]},\"relationshipType\":\"AT_TIME\",\"direction\":\"INCOMING\"}]", getResult);
     }
 
     @Test //issue https://github.com/graphaware/neo4j-timetree/issues/12
@@ -642,14 +664,14 @@ public class TimedEventsApiTest extends GraphAwareApiTest {
 
         httpClient.post(getUrl() + "single/event", eventJson, HttpStatus.SC_CREATED);
 
-        assertEquals("[{\"node\":{\"id\":0,\"labels\":[\"Event\"]},\"relationshipType\":\"AT_TIME\"}]", httpClient.get(getUrl() + "range/122343242132/124343242132/events", HttpStatus.SC_OK));
+        assertEquals("[{\"node\":{\"id\":0,\"labels\":[\"Event\"]},\"relationshipType\":\"AT_TIME\",\"direction\":\"INCOMING\"}]", httpClient.get(getUrl() + "range/122343242132/124343242132/events", HttpStatus.SC_OK));
         assertEquals("[]", httpClient.get(getUrl() + "range/122343242132/124343242132/events?resolution=millisecond", HttpStatus.SC_OK));
         assertEquals("[]", httpClient.get(getUrl() + "range/122343242132/124343242132/events?resolution=second", HttpStatus.SC_OK));
         assertEquals("[]", httpClient.get(getUrl() + "range/122343242132/124343242132/events?resolution=minute", HttpStatus.SC_OK));
-        assertEquals("[{\"node\":{\"id\":0,\"labels\":[\"Event\"]},\"relationshipType\":\"AT_TIME\"}]", httpClient.get(getUrl() + "range/122343242132/124343242132/events?resolution=hour", HttpStatus.SC_OK));
-        assertEquals("[{\"node\":{\"id\":0,\"labels\":[\"Event\"]},\"relationshipType\":\"AT_TIME\"}]", httpClient.get(getUrl() + "range/122343242132/124343242132/events?resolution=day", HttpStatus.SC_OK));
-        assertEquals("[{\"node\":{\"id\":0,\"labels\":[\"Event\"]},\"relationshipType\":\"AT_TIME\"}]", httpClient.get(getUrl() + "range/122343242132/124343242132/events?resolution=month", HttpStatus.SC_OK));
-        assertEquals("[{\"node\":{\"id\":0,\"labels\":[\"Event\"]},\"relationshipType\":\"AT_TIME\"}]", httpClient.get(getUrl() + "range/122343242132/124343242132/events?resolution=year", HttpStatus.SC_OK));
+        assertEquals("[{\"node\":{\"id\":0,\"labels\":[\"Event\"]},\"relationshipType\":\"AT_TIME\",\"direction\":\"INCOMING\"}]", httpClient.get(getUrl() + "range/122343242132/124343242132/events?resolution=hour", HttpStatus.SC_OK));
+        assertEquals("[{\"node\":{\"id\":0,\"labels\":[\"Event\"]},\"relationshipType\":\"AT_TIME\",\"direction\":\"INCOMING\"}]", httpClient.get(getUrl() + "range/122343242132/124343242132/events?resolution=day", HttpStatus.SC_OK));
+        assertEquals("[{\"node\":{\"id\":0,\"labels\":[\"Event\"]},\"relationshipType\":\"AT_TIME\",\"direction\":\"INCOMING\"}]", httpClient.get(getUrl() + "range/122343242132/124343242132/events?resolution=month", HttpStatus.SC_OK));
+        assertEquals("[{\"node\":{\"id\":0,\"labels\":[\"Event\"]},\"relationshipType\":\"AT_TIME\",\"direction\":\"INCOMING\"}]", httpClient.get(getUrl() + "range/122343242132/124343242132/events?resolution=year", HttpStatus.SC_OK));
     }
 
     @Test
@@ -674,6 +696,7 @@ public class TimedEventsApiTest extends GraphAwareApiTest {
         String eventJson2 = "{" +
                 "        \"node\": {\"id\":0}," +
                 "        \"relationshipType\": \"ENDED\"," +
+                "        \"direction\": \"OUTGOING\"," +
                 "        \"timezone\": \"UTC\"," +
                 "        \"resolution\": \"DAY\"," +
                 "        \"time\": " + timeInstant.getTime() +
@@ -682,7 +705,7 @@ public class TimedEventsApiTest extends GraphAwareApiTest {
         httpClient.post(getUrl() + "single/event", eventJson1, HttpStatus.SC_CREATED);
         httpClient.post(getUrl() + "single/event", eventJson2, HttpStatus.SC_CREATED);
 
-        String getResult = httpClient.get(getUrl() + "range/" + (timeInstant.getTime() - 100000L) + "/" + (timeInstant.getTime() + 100000L) + "/events", HttpStatus.SC_OK);
+        String getResult = httpClient.get(getUrl() + "range/" + (timeInstant.getTime() - 100000L) + "/" + (timeInstant.getTime() + 100000L) + "/events?direction=BOTH", HttpStatus.SC_OK);
 
         //Then
         assertSameGraph(getDatabase(), "CREATE" +
@@ -697,9 +720,9 @@ public class TimedEventsApiTest extends GraphAwareApiTest {
                 "(month)-[:CHILD]->(day)," +
                 "(month)-[:LAST]->(day)," +
                 "(day)<-[:STARTED]-(event:Event {name:'eventA'})," +
-                "(day)<-[:ENDED]-(event)");
+                "(day)-[:ENDED]->(event)");
 
-        assertEquals("[{\"node\":{\"id\":0,\"properties\":{\"name\":\"eventA\"},\"labels\":[\"Event\"]},\"relationshipType\":\"STARTED\"},{\"node\":{\"id\":0,\"properties\":{\"name\":\"eventA\"},\"labels\":[\"Event\"]},\"relationshipType\":\"ENDED\"}]", getResult);
+        assertEquals("[{\"node\":{\"id\":0,\"properties\":{\"name\":\"eventA\"},\"labels\":[\"Event\"]},\"relationshipType\":\"STARTED\",\"direction\":\"INCOMING\"},{\"node\":{\"id\":0,\"properties\":{\"name\":\"eventA\"},\"labels\":[\"Event\"]},\"relationshipType\":\"ENDED\",\"direction\":\"OUTGOING\"}]", getResult);
     }
 
     private long dateToMillis(int year, int month, int day) {

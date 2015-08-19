@@ -24,13 +24,15 @@ public class EventVO {
 
     private JsonNode node;
     private String relationshipType;
+    private String direction;
 
     public EventVO() {
     }
 
-    public EventVO(JsonNode node, String relationshipType) {
+    public EventVO(JsonNode node, String relationshipType, String direction) {
         this.node = node;
         this.relationshipType = relationshipType;
+        this.direction = direction;
     }
 
     public JsonNode getNode() {
@@ -47,6 +49,14 @@ public class EventVO {
 
     public void setRelationshipType(String relationshipType) {
         this.relationshipType = relationshipType;
+    }
+
+    public String getDirection() {
+        return direction;
+    }
+
+    public void setDirection(String direction) {
+        this.direction = direction;
     }
 
     public void validate() {

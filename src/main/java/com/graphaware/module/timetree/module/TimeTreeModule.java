@@ -143,7 +143,7 @@ public class TimeTreeModule extends BaseTxDrivenModule<Void> {
             timedEventsToUse = timedEvents;
         }
 
-        timedEventsToUse.attachEvent(created, configuration.getRelationshipType(), TimeInstant.instant(timestamp).with(configuration.getResolution()).with(configuration.getTimeZone()));
+        timedEventsToUse.attachEvent(created, configuration.getRelationshipType(), configuration.getDirection(), TimeInstant.instant(timestamp).with(configuration.getResolution()).with(configuration.getTimeZone()));
     }
 
     private void deleteTimeTreeRelationship(Node changed) {

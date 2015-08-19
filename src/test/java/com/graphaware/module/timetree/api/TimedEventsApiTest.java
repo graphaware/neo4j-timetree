@@ -192,6 +192,7 @@ public class TimedEventsApiTest extends GraphAwareApiTest {
 
         String getResult = httpClient.get(getUrl() + "single/" + timeInstant.getTime() + "/events?relationshipTypes=AT_TIME", HttpStatus.SC_OK);
         String getMultipleResult = httpClient.get(getUrl() + "single/" + timeInstant.getTime() + "/events?relationshipTypes=AT_TIME,AT_OTHER_TIME", HttpStatus.SC_OK);
+
         //Then
         assertSameGraph(getDatabase(), "CREATE" +
                 "(root:TimeTreeRoot)," +
@@ -700,6 +701,56 @@ public class TimedEventsApiTest extends GraphAwareApiTest {
         String responseWithSecondResolution = httpClient.get(getUrl() + "range/1439380520593/1439380521290/events?resolution=second", HttpStatus.SC_OK);
         assertEquals(expected, responseWithSecondResolution);
 
+    }
+
+    @Test
+    public void eventAttachedWithDifferentRelationshipsShouldGetAllRelationshipsReported() {
+
+        //Given
+        DateTime now = DateTime.now(DateTimeZone.UTC);
+        TimeInstant timeInstant = TimeInstant
+                .now()
+                .with(DateTimeZone.UTC)
+                .with(Resolution.DAY);
+
+        //When
+        String eventJson1 = "{" +
+                "        \"node\": {\"labels\":[\"Event\"], \"properties\":{\"name\":\"eventA\"}}," +
+                "        \"relationshipType\": \"STARTED\"," +
+                "        \"timezone\": \"UTC\"," +
+                "        \"resolution\": \"DAY\"," +
+                "        \"time\": " + timeInstant.getTime() +
+                "    }";
+
+        String eventJson2 = "{" +
+                "        \"node\": {\"id\":0}," +
+                "        \"relationshipType\": \"ENDED\"," +
+                "        \"timezone\": \"UTC\"," +
+                "        \"resolution\": \"DAY\"," +
+                "        \"time\": " + timeInstant.getTime() +
+                "    }";
+
+        httpClient.post(getUrl() + "single/event", eventJson1, HttpStatus.SC_CREATED);
+        httpClient.post(getUrl() + "single/event", eventJson2, HttpStatus.SC_CREATED);
+
+        String getResult = httpClient.get(getUrl() + "range/" + (timeInstant.getTime() - 100000L) + "/" + (timeInstant.getTime() + 100000L) + "/events", HttpStatus.SC_OK);
+
+        //Then
+        assertSameGraph(getDatabase(), "CREATE" +
+                "(root:TimeTreeRoot)," +
+                "(root)-[:FIRST]->(year:Year {value:" + now.getYear() + "})," +
+                "(root)-[:CHILD]->(year)," +
+                "(root)-[:LAST]->(year)," +
+                "(year)-[:FIRST]->(month:Month {value:" + now.getMonthOfYear() + "})," +
+                "(year)-[:CHILD]->(month)," +
+                "(year)-[:LAST]->(month)," +
+                "(month)-[:FIRST]->(day:Day {value:" + now.getDayOfMonth() + "})," +
+                "(month)-[:CHILD]->(day)," +
+                "(month)-[:LAST]->(day)," +
+                "(day)<-[:STARTED]-(event:Event {name:'eventA'})," +
+                "(day)<-[:ENDED]-(event)");
+
+        assertEquals("[{\"node\":{\"id\":0,\"properties\":{\"name\":\"eventA\"},\"labels\":[\"Event\"]},\"relationshipType\":\"STARTED\"},{\"node\":{\"id\":0,\"properties\":{\"name\":\"eventA\"},\"labels\":[\"Event\"]},\"relationshipType\":\"ENDED\"}]", getResult);
     }
 
     private long dateToMillis(int year, int month, int day) {

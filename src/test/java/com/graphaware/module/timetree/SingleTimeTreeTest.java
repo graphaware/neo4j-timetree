@@ -297,28 +297,6 @@ public class SingleTimeTreeTest extends DatabaseIntegrationTest {
     }
 
     @Test
-    public void nextDayShouldBeReturnedWhenNonExistingDayIsRequested6() {
-        //Given
-        TimeInstant timeInstant;
-
-        //When
-        try (Transaction tx = getDatabase().beginTx()) {
-            timeTree.getOrCreateInstant(TimeInstant.instant(dateToMillis(2013, 5, 6)));
-            tx.success();
-        }
-
-        timeInstant = TimeInstant.instant(dateToMillis(2013, 5, 5));
-        Node dayNode;
-        try (Transaction tx = getDatabase().beginTx()) {
-            dayNode = timeTree.getInstantAtOrBefore(timeInstant);
-            tx.success();
-        }
-
-        //Then
-        assertNotNull(dayNode);
-    }
-
-    @Test
     public void nextDayShouldBeReturnedWhenNonExistingDayIsRequested() {
         //Given
         TimeInstant timeInstant;

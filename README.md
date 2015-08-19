@@ -126,8 +126,6 @@ The default is all relationships, which is useful if you have different kinds of
 
   on an empty database will result in the following graph being generated. The response body will contain the Neo4j node
   of the node representing the hour. You can then use it in order to link to it. Example response:
-* `direction`, which is a String representation of the `Direction`, with which the event is related to the time instant from the time instant's point of view. Defaults to `INCOMING`. Permitted values are `INCOMING`,`OUTGOING`,`BOTH`.
-
 ```json
 {
   "id": 4,
@@ -139,6 +137,7 @@ The default is all relationships, which is useful if you have different kinds of
   ]
 }
 ```
+* `direction`, which is a String representation of the `Direction`, with which the event is related to the time instant from the time instant's point of view. Defaults to `INCOMING`. Permitted values are `INCOMING`,`OUTGOING`,`BOTH`.
 
 ![GraphAware TimeTree generated time tree](https://github.com/graphaware/neo4j-timetree/raw/master/docs/image4.jpg)
 

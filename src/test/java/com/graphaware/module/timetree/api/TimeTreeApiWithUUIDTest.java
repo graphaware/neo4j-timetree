@@ -23,6 +23,7 @@ import com.graphaware.test.integration.GraphAwareApiTest;
 import org.apache.http.HttpStatus;
 import org.joda.time.DateTime;
 import org.joda.time.DateTimeZone;
+import org.json.JSONException;
 import org.junit.Before;
 import org.junit.Test;
 import org.neo4j.graphdb.DynamicLabel;
@@ -32,6 +33,7 @@ import org.neo4j.graphdb.Transaction;
 import org.neo4j.graphdb.event.TransactionData;
 import org.neo4j.graphdb.event.TransactionEventHandler;
 import org.neo4j.tooling.GlobalGraphOperations;
+import org.skyscreamer.jsonassert.JSONAssert;
 
 import java.util.concurrent.atomic.AtomicInteger;
 
@@ -71,7 +73,7 @@ public class TimeTreeApiWithUUIDTest extends GraphAwareApiTest {
     }
 
     @Test
-    public void trivialTreeShouldBeCreatedWhenFirstDayIsRequested() {
+    public void trivialTreeShouldBeCreatedWhenFirstDayIsRequested() throws JSONException {
         //Given
         long dateInMillis = dateToMillis(2013, 5, 4);
 
@@ -91,11 +93,11 @@ public class TimeTreeApiWithUUIDTest extends GraphAwareApiTest {
                 "(month)-[:CHILD]->(day)," +
                 "(month)-[:LAST]->(day)");
 
-        assertEquals("{\"id\":3,\"properties\":{\"value\":4,\"uuid\":\"test-uuid-4\"},\"labels\":[\"Day\"]}", result);
+        JSONAssert.assertEquals("{\"id\":3,\"properties\":{\"value\":4,\"uuid\":\"test-uuid-4\"},\"labels\":[\"Day\"]}", result, true);
     }
 
     @Test
-    public void consecutiveDaysShouldBeCreatedWhenRequested() {
+    public void consecutiveDaysShouldBeCreatedWhenRequested() throws JSONException {
 
         //Given
         long startDateInMillis = dateToMillis(2013, 5, 4);
@@ -123,11 +125,11 @@ public class TimeTreeApiWithUUIDTest extends GraphAwareApiTest {
                 "(day5)-[:NEXT]->(day6)," +
                 "(day6)-[:NEXT]->(day7)", ignoreUuid);
 
-        assertEquals("[{\"id\":3,\"properties\":{\"value\":4,\"uuid\":\"test-uuid-4\"},\"labels\":[\"Day\"]},{\"id\":4,\"properties\":{\"value\":5,\"uuid\":\"test-uuid-5\"},\"labels\":[\"Day\"]},{\"id\":5,\"properties\":{\"value\":6,\"uuid\":\"test-uuid-6\"},\"labels\":[\"Day\"]},{\"id\":6,\"properties\":{\"value\":7,\"uuid\":\"test-uuid-7\"},\"labels\":[\"Day\"]}]", result);
+        JSONAssert.assertEquals("[{\"id\":3,\"properties\":{\"value\":4,\"uuid\":\"test-uuid-4\"},\"labels\":[\"Day\"]},{\"id\":4,\"properties\":{\"value\":5,\"uuid\":\"test-uuid-5\"},\"labels\":[\"Day\"]},{\"id\":5,\"properties\":{\"value\":6,\"uuid\":\"test-uuid-6\"},\"labels\":[\"Day\"]},{\"id\":6,\"properties\":{\"value\":7,\"uuid\":\"test-uuid-7\"},\"labels\":[\"Day\"]}]", result, true);
     }
 
     @Test
-    public void trivialTreeShouldBeCreatedWhenFirstDayIsRequestedWithCustomRoot() {
+    public void trivialTreeShouldBeCreatedWhenFirstDayIsRequestedWithCustomRoot() throws JSONException {
         //Given
         long dateInMillis = dateToMillis(2013, 5, 4);
 
@@ -152,11 +154,11 @@ public class TimeTreeApiWithUUIDTest extends GraphAwareApiTest {
                 "(month)-[:CHILD]->(day)," +
                 "(month)-[:LAST]->(day)", ignoreUuid);
 
-        assertEquals("{\"id\":3,\"properties\":{\"value\":4,\"uuid\":\"test-uuid-4\"},\"labels\":[\"Day\"]}", result);
+        JSONAssert.assertEquals("{\"id\":3,\"properties\":{\"value\":4,\"uuid\":\"test-uuid-4\"},\"labels\":[\"Day\"]}", result, true);
     }
 
     @Test
-    public void consecutiveDaysShouldBeCreatedWhenRequestedWithCustomRoot() {
+    public void consecutiveDaysShouldBeCreatedWhenRequestedWithCustomRoot() throws JSONException {
 
         //Given
         long startDateInMillis = dateToMillis(2013, 5, 4);
@@ -189,11 +191,11 @@ public class TimeTreeApiWithUUIDTest extends GraphAwareApiTest {
                 "(day5)-[:NEXT]->(day6)," +
                 "(day6)-[:NEXT]->(day7)", ignoreUuid);
 
-        assertEquals("[{\"id\":3,\"properties\":{\"value\":4,\"uuid\":\"test-uuid-4\"},\"labels\":[\"Day\"]},{\"id\":4,\"properties\":{\"value\":5,\"uuid\":\"test-uuid-5\"},\"labels\":[\"Day\"]},{\"id\":5,\"properties\":{\"value\":6,\"uuid\":\"test-uuid-6\"},\"labels\":[\"Day\"]},{\"id\":6,\"properties\":{\"value\":7,\"uuid\":\"test-uuid-7\"},\"labels\":[\"Day\"]}]", result);
+        JSONAssert.assertEquals("[{\"id\":3,\"properties\":{\"value\":4,\"uuid\":\"test-uuid-4\"},\"labels\":[\"Day\"]},{\"id\":4,\"properties\":{\"value\":5,\"uuid\":\"test-uuid-5\"},\"labels\":[\"Day\"]},{\"id\":5,\"properties\":{\"value\":6,\"uuid\":\"test-uuid-6\"},\"labels\":[\"Day\"]},{\"id\":6,\"properties\":{\"value\":7,\"uuid\":\"test-uuid-7\"},\"labels\":[\"Day\"]}]", result, true);
     }
 
     @Test
-    public void trivialTreeShouldBeCreatedWhenTodayIsRequested() {
+    public void trivialTreeShouldBeCreatedWhenTodayIsRequested() throws JSONException {
         //Given
         DateTime now = DateTime.now(DateTimeZone.UTC);
 
@@ -213,11 +215,11 @@ public class TimeTreeApiWithUUIDTest extends GraphAwareApiTest {
                 "(month)-[:CHILD]->(day)," +
                 "(month)-[:LAST]->(day)", ignoreUuid);
 
-        assertEquals("{\"id\":3,\"properties\":{\"value\":" + now.getDayOfMonth() + ",\"uuid\":\"test-uuid-4\"},\"labels\":[\"Day\"]}", result);
+        JSONAssert.assertEquals("{\"id\":3,\"properties\":{\"value\":" + now.getDayOfMonth() + ",\"uuid\":\"test-uuid-4\"},\"labels\":[\"Day\"]}", result, true);
     }
 
     @Test
-    public void trivialTreeShouldBeCreatedWhenTodayIsRequestedWithCustomRoot() {
+    public void trivialTreeShouldBeCreatedWhenTodayIsRequestedWithCustomRoot() throws JSONException {
         //Given
         DateTime now = DateTime.now(DateTimeZone.UTC);
 
@@ -242,7 +244,7 @@ public class TimeTreeApiWithUUIDTest extends GraphAwareApiTest {
                 "(month)-[:CHILD]->(day)," +
                 "(month)-[:LAST]->(day)", ignoreUuid);
 
-        assertEquals("{\"id\":3,\"properties\":{\"value\":" + now.getDayOfMonth() + ",\"uuid\":\"test-uuid-4\"},\"labels\":[\"Day\"]}", result);
+        JSONAssert.assertEquals("{\"id\":3,\"properties\":{\"value\":" + now.getDayOfMonth() + ",\"uuid\":\"test-uuid-4\"},\"labels\":[\"Day\"]}", result, true);
     }
 
     private long dateToMillis(int year, int month, int day) {

@@ -16,6 +16,7 @@
 
 package com.graphaware.module.timetree.module;
 
+import com.graphaware.common.util.Change;
 import com.graphaware.module.timetree.CustomRootTimeTree;
 import com.graphaware.module.timetree.SingleTimeTree;
 import com.graphaware.module.timetree.TimeTreeBackedEvents;
@@ -24,11 +25,9 @@ import com.graphaware.module.timetree.domain.TimeInstant;
 import com.graphaware.runtime.config.TxDrivenModuleConfiguration;
 import com.graphaware.runtime.module.BaseTxDrivenModule;
 import com.graphaware.runtime.module.DeliberateTransactionRollbackException;
-import com.graphaware.tx.event.improved.api.Change;
 import com.graphaware.tx.event.improved.api.ImprovedTransactionData;
 import com.graphaware.tx.executor.batch.IterableInputBatchTransactionExecutor;
 import com.graphaware.tx.executor.batch.UnitOfWork;
-import com.graphaware.tx.executor.input.AllNodes;
 import com.graphaware.tx.executor.input.TransactionalInput;
 import com.graphaware.tx.executor.single.TransactionCallback;
 import org.neo4j.graphdb.Direction;

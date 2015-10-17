@@ -273,6 +273,25 @@ Of course, the expressions can be combined with logical operators, for instance:
 By default, events are attached to a single tree, unless the events have a `timeTreeRootId` (or its equivalent changed in config) property, in
  which case a tree rooted at the node with the specified ID will be used to attach the event.
 
+Note that you can define multiple modules if desired, e.g.:
+```
+com.graphaware.runtime.enabled=true
+
+com.graphaware.module.TT.1=com.graphaware.module.timetree.module.TimeTreeModuleBootstrapper
+com.graphaware.module.TT.event=hasProperty('timestamp_enabled')
+com.graphaware.module.TT.relationship=ENABLED_ON
+com.graphaware.module.TT.autoAttach=true
+com.graphaware.module.TT.timestamp=timestamp_enabled
+
+com.graphaware.module.TS.2=com.graphaware.module.timetree.module.TimeTreeModuleBootstrapper
+com.graphaware.module.TS.event=hasProperty('timestamp_disabled')
+com.graphaware.module.TS.relationship=DISABLED_ON
+com.graphaware.module.TS.autoAttach=true
+com.graphaware.module.TS.timestamp=timestamp_disabled
+
+...
+```
+
 ### Java API
 
 Java API has the same functionality as the rest API. Please refer to <a href="http://graphaware.com/site/timetree/latest/apidocs/" target="_blank">its Javadoc</a> (look at the `TimeTree` and `TimedEvents` interfaces).

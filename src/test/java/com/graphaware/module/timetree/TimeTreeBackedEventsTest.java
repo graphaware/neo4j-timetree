@@ -569,8 +569,8 @@ public class TimeTreeBackedEventsTest extends DatabaseIntegrationTest {
         try (Transaction tx = getDatabase().beginTx()) {
             List<Event> events = timedEvents.getEvents(timeInstant1, timeInstant2, REL_TYPES);
             assertEquals(3, events.size());
-            assertEquals("eventA", events.get(0).getNode().getProperty("name"));
-            assertEquals("eventC", events.get(1).getNode().getProperty("name"));
+            assertEquals("eventC", events.get(0).getNode().getProperty("name"));
+            assertEquals("eventA", events.get(1).getNode().getProperty("name"));
             assertEquals("eventB", events.get(2).getNode().getProperty("name"));
 
             tx.success();

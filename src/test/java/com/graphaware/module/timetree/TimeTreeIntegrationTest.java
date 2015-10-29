@@ -16,7 +16,10 @@
 
 package com.graphaware.module.timetree;
 
+import com.graphaware.test.integration.CommunityNeoServerIntegrationTest;
+import com.graphaware.test.integration.CommunityNeoTestServer;
 import com.graphaware.test.integration.NeoServerIntegrationTest;
+import com.graphaware.test.integration.NeoTestServer;
 import org.eclipse.jetty.http.HttpStatus;
 import org.junit.Test;
 
@@ -33,7 +36,7 @@ import static org.junit.Assert.assertNotSame;
 /**
  * {@link NeoServerIntegrationTest} for {@link TimeTree} module and {@link com.graphaware.module.timetree.api.TimeTreeApi}.
  */
-public class TimeTreeIntegrationTest extends NeoServerIntegrationTest {
+public class TimeTreeIntegrationTest extends CommunityNeoServerIntegrationTest {
 
     @Test
     public void graphAwareApisAreMountedWhenPresentOnClasspath() throws InterruptedException, IOException {

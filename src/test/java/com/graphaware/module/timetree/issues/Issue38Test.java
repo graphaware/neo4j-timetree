@@ -1,14 +1,12 @@
 package com.graphaware.module.timetree.issues;
 
-import com.graphaware.test.integration.NeoServerIntegrationTest;
-import com.graphaware.test.unit.GraphUnit;
+import com.graphaware.test.integration.CommunityNeoServerIntegrationTest;
 import org.apache.http.HttpStatus;
-import org.junit.Assert;
 import org.junit.Test;
 
-import static org.junit.Assert.*;
+import static org.junit.Assert.assertEquals;
 
-public class Issue38Test extends NeoServerIntegrationTest {
+public class Issue38Test extends CommunityNeoServerIntegrationTest {
 
     @Override
     protected String neo4jConfigFile() {

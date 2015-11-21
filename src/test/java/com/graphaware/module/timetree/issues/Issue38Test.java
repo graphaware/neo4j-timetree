@@ -16,13 +16,13 @@
 
 package com.graphaware.module.timetree.issues;
 
-import com.graphaware.test.integration.CommunityNeoServerIntegrationTest;
+import com.graphaware.test.integration.NeoServerIntegrationTest;
 import org.apache.http.HttpStatus;
 import org.junit.Test;
 
 import static org.junit.Assert.assertEquals;
 
-public class Issue38Test extends CommunityNeoServerIntegrationTest {
+public class Issue38Test extends NeoServerIntegrationTest {
 
     @Override
     protected String neo4jConfigFile() {

@@ -1,14 +1,14 @@
 /*
- * Copyright (c) 2015 GraphAware
+ * Copyright (c) 2013-2015 GraphAware
  *
- * This file is part of GraphAware.
+ * This file is part of the GraphAware Framework.
  *
- * GraphAware is free software: you can redistribute it and/or modify it under the terms of
+ * GraphAware Framework is free software: you can redistribute it and/or modify it under the terms of
  * the GNU General Public License as published by the Free Software Foundation, either
  * version 3 of the License, or (at your option) any later version.
  *
  * This program is distributed in the hope that it will be useful, but WITHOUT ANY WARRANTY;
- *  without even the implied warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.
+ * without even the implied warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.
  * See the GNU General Public License for more details. You should have received a copy of
  * the GNU General Public License along with this program.  If not, see
  * <http://www.gnu.org/licenses/>.
@@ -18,13 +18,11 @@ package com.graphaware.module.timetree.api;
 
 import com.graphaware.common.policy.InclusionPolicies;
 import com.graphaware.common.policy.NodePropertyInclusionPolicy;
-import com.graphaware.common.util.PropertyContainerUtils;
 import com.graphaware.test.integration.GraphAwareApiTest;
 import org.apache.http.HttpStatus;
 import org.joda.time.DateTime;
 import org.joda.time.DateTimeZone;
 import org.json.JSONException;
-import org.junit.Before;
 import org.junit.Test;
 import org.neo4j.graphdb.DynamicLabel;
 import org.neo4j.graphdb.GraphDatabaseService;
@@ -32,14 +30,11 @@ import org.neo4j.graphdb.Node;
 import org.neo4j.graphdb.Transaction;
 import org.neo4j.graphdb.event.TransactionData;
 import org.neo4j.graphdb.event.TransactionEventHandler;
-import org.neo4j.tooling.GlobalGraphOperations;
 import org.skyscreamer.jsonassert.JSONAssert;
 
 import java.util.concurrent.atomic.AtomicInteger;
 
 import static com.graphaware.test.unit.GraphUnit.assertSameGraph;
-import static com.graphaware.test.unit.GraphUnit.printGraph;
-import static org.junit.Assert.assertEquals;
 
 /**
  * Integration test for {@link TimeTreeApi}.

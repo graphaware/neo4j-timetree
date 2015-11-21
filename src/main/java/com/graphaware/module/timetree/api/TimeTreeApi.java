@@ -1,14 +1,14 @@
 /*
- * Copyright (c) 2013 GraphAware
+ * Copyright (c) 2013-2015 GraphAware
  *
- * This file is part of GraphAware.
+ * This file is part of the GraphAware Framework.
  *
- * GraphAware is free software: you can redistribute it and/or modify it under the terms of
+ * GraphAware Framework is free software: you can redistribute it and/or modify it under the terms of
  * the GNU General Public License as published by the Free Software Foundation, either
  * version 3 of the License, or (at your option) any later version.
  *
  * This program is distributed in the hope that it will be useful, but WITHOUT ANY WARRANTY;
- *  without even the implied warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.
+ * without even the implied warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.
  * See the GNU General Public License for more details. You should have received a copy of
  * the GNU General Public License along with this program.  If not, see
  * <http://www.gnu.org/licenses/>.
@@ -17,9 +17,14 @@
 package com.graphaware.module.timetree.api;
 
 import com.graphaware.api.JsonNode;
-import com.graphaware.module.timetree.*;
+import com.graphaware.module.timetree.CustomRootTimeTree;
+import com.graphaware.module.timetree.SingleTimeTree;
+import com.graphaware.module.timetree.TimeTree;
 import com.graphaware.module.timetree.domain.TimeInstant;
-import org.neo4j.graphdb.*;
+import org.neo4j.graphdb.GraphDatabaseService;
+import org.neo4j.graphdb.Node;
+import org.neo4j.graphdb.NotFoundException;
+import org.neo4j.graphdb.Transaction;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -31,8 +36,6 @@ import java.util.Collections;
 import java.util.LinkedList;
 import java.util.List;
 import java.util.Map;
-
-import static com.graphaware.common.util.PropertyContainerUtils.ids;
 
 /**
  * REST API for {@link com.graphaware.module.timetree.TimeTree}.

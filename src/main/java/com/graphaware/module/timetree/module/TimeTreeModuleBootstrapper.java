@@ -19,8 +19,8 @@ package com.graphaware.module.timetree.module;
 import com.graphaware.common.policy.NodeInclusionPolicy;
 import com.graphaware.module.timetree.domain.Resolution;
 import com.graphaware.runtime.config.function.StringToNodeInclusionPolicy;
+import com.graphaware.runtime.module.BaseRuntimeModuleBootstrapper;
 import com.graphaware.runtime.module.RuntimeModule;
-import com.graphaware.runtime.module.RuntimeModuleBootstrapper;
 import org.joda.time.DateTimeZone;
 import org.neo4j.graphdb.Direction;
 import org.neo4j.graphdb.DynamicRelationshipType;
@@ -35,7 +35,7 @@ import java.util.TimeZone;
 /**
  * Bootstraps the {@link com.graphaware.module.timetree.module.TimeTreeModule} in server mode.
  */
-public class TimeTreeModuleBootstrapper implements RuntimeModuleBootstrapper {
+public class TimeTreeModuleBootstrapper extends BaseRuntimeModuleBootstrapper<TimeTreeConfiguration> {
 
     private static final Logger LOG = LoggerFactory.getLogger(TimeTreeModuleBootstrapper.class);
 
@@ -48,56 +48,62 @@ public class TimeTreeModuleBootstrapper implements RuntimeModuleBootstrapper {
     private static final String DIRECTION = "direction";
     private static final String AUTO_ATTACH = "autoAttach";
 
-    /**
-     * {@inheritDoc}
-     */
     @Override
-    public RuntimeModule bootstrapModule(String moduleId, Map<String, String> config, GraphDatabaseService database) {
-        TimeTreeConfiguration configuration = TimeTreeConfiguration.defaultConfiguration();
+    protected TimeTreeConfiguration defaultConfiguration() {
+        return TimeTreeConfiguration.defaultConfiguration();
+    }
 
-        if (config.get(EVENT) != null) {
+    @Override
+    protected TimeTreeConfiguration configureInclusionPolicies(Map<String, String> config, TimeTreeConfiguration configuration) {
+        //do nothing here
+        return configuration;
+    }
+
+    @Override
+    protected RuntimeModule doBootstrapModule(String moduleId, Map<String, String> config, GraphDatabaseService database, TimeTreeConfiguration configuration) {
+        if (configExists(config, EVENT)) {
             NodeInclusionPolicy policy = StringToNodeInclusionPolicy.getInstance().apply(config.get(EVENT));
             LOG.info("Node Inclusion Strategy set to {}", policy);
             configuration = configuration.with(policy);
         }
 
-        if (config.get(TIMESTAMP_PROPERTY) != null) {
+        if (configExists(config, TIMESTAMP_PROPERTY)) {
             String timestampProperty = config.get(TIMESTAMP_PROPERTY);
             LOG.info("Timestamp Property set to {}", timestampProperty);
             configuration = configuration.withTimestampProperty(timestampProperty);
         }
 
-        if (config.get(CUSTOM_TIMETREE_ROOT_PROPERTY) != null) {
+        if (configExists(config, CUSTOM_TIMETREE_ROOT_PROPERTY)) {
             String customTimeTreeRootProperty = config.get(CUSTOM_TIMETREE_ROOT_PROPERTY);
             LOG.info("Custom TimeTree Root Property set to {}", customTimeTreeRootProperty);
             configuration = configuration.withCustomTimeTreeRootProperty(customTimeTreeRootProperty);
         }
 
-        if (config.get(RESOLUTION) != null) {
+        if (configExists(config, RESOLUTION)) {
             Resolution resolution = Resolution.valueOf(config.get(RESOLUTION).toUpperCase());
             LOG.info("Resolution set to {}", resolution);
             configuration = configuration.withResolution(resolution);
         }
 
-        if (config.get(TIME_ZONE) != null) {
+        if (configExists(config, TIME_ZONE)) {
             DateTimeZone timeZone = DateTimeZone.forTimeZone(TimeZone.getTimeZone(config.get(TIME_ZONE)));
             LOG.info("Time zone set to {}", timeZone);
             configuration = configuration.withTimeZone(timeZone);
         }
 
-        if (config.get(RELATIONSHIP) != null) {
+        if (configExists(config, RELATIONSHIP)) {
             RelationshipType relationshipType = DynamicRelationshipType.withName(config.get(RELATIONSHIP));
             LOG.info("Relationship type set to {}", relationshipType);
             configuration = configuration.withRelationshipType(relationshipType);
         }
 
-        if (config.get(DIRECTION) != null) {
+        if (configExists(config, DIRECTION)) {
             Direction direction = Direction.valueOf(config.get(DIRECTION));
             LOG.info("Direction set to {}", direction);
             configuration = configuration.withDirection(direction);
         }
 
-        if (config.get(AUTO_ATTACH) != null) {
+        if (configExists(config, AUTO_ATTACH)) {
             boolean autoAttach = Boolean.valueOf(config.get(AUTO_ATTACH));
             LOG.info("AutoAttach set to {}", autoAttach);
             configuration = configuration.withAutoAttach(autoAttach);

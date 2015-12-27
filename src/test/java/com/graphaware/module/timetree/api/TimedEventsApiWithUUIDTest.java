@@ -24,6 +24,7 @@ import com.graphaware.test.integration.GraphAwareApiTest;
 import org.apache.http.HttpStatus;
 import org.joda.time.DateTime;
 import org.joda.time.DateTimeZone;
+import org.json.JSONException;
 import org.junit.Test;
 import org.neo4j.graphdb.DynamicLabel;
 import org.neo4j.graphdb.GraphDatabaseService;
@@ -36,7 +37,7 @@ import java.io.IOException;
 import java.util.concurrent.atomic.AtomicInteger;
 
 import static com.graphaware.test.unit.GraphUnit.assertSameGraph;
-import static org.junit.Assert.assertEquals;
+import static org.skyscreamer.jsonassert.JSONAssert.assertEquals;
 
 /**
  * Integration test for {@link TimeTreeApi}.
@@ -70,7 +71,7 @@ public class TimedEventsApiWithUUIDTest extends GraphAwareApiTest {
     }
 
     @Test
-    public void eventAndTimeInstantShouldBeCreatedWhenEventIsAttached() throws IOException {
+    public void eventAndTimeInstantShouldBeCreatedWhenEventIsAttached() throws IOException, JSONException {
         //Given
         DateTime now = DateTime.now(DateTimeZone.UTC);
         TimeInstant timeInstant = TimeInstant
@@ -146,14 +147,14 @@ public class TimedEventsApiWithUUIDTest extends GraphAwareApiTest {
                 "(day)<-[:AT_OTHER_TIME]-(event2 {name:'eventB'})," +
                 "(day)<-[:AT_BAD_TIME]-(event3 {name:'eventC'})", ignoreUuid);
 
-        assertEquals("{\"id\":2,\"properties\":{\"name\":\"eventC\",\"uuid\":\"test-uuid-3\"},\"labels\":[]}", postResult);
-        assertEquals("[{\"node\":{\"id\":0,\"properties\":{\"name\":\"eventA\",\"uuid\":\"test-uuid-1\"},\"labels\":[]},\"relationshipType\":\"AT_TIME\",\"direction\":\"INCOMING\"}]", getResult);
+        assertEquals("{\"id\":2,\"properties\":{\"name\":\"eventC\",\"uuid\":\"test-uuid-3\"},\"labels\":[]}", postResult, false);
+        assertEquals("[{\"node\":{\"id\":0,\"properties\":{\"name\":\"eventA\",\"uuid\":\"test-uuid-1\"},\"labels\":[]},\"relationshipType\":\"AT_TIME\",\"direction\":\"INCOMING\"}]", getResult, false);
         assertEquals("[{\"node\":{\"id\":1,\"properties\":{\"name\":\"eventB\",\"uuid\":\"test-uuid-2\"},\"labels\":[]},\"relationshipType\":\"AT_OTHER_TIME\",\"direction\":\"INCOMING\"}," +
-                "{\"node\":{\"id\":0,\"properties\":{\"name\":\"eventA\",\"uuid\":\"test-uuid-1\"},\"labels\":[]},\"relationshipType\":\"AT_TIME\",\"direction\":\"INCOMING\"}]", getMultipleResult);
+                "{\"node\":{\"id\":0,\"properties\":{\"name\":\"eventA\",\"uuid\":\"test-uuid-1\"},\"labels\":[]},\"relationshipType\":\"AT_TIME\",\"direction\":\"INCOMING\"}]", getMultipleResult, false);
     }
 
     @Test
-    public void eventAndTimeInstantShouldBeCreatedWhenEventIsCreatedFromScratch() throws IOException {
+    public void eventAndTimeInstantShouldBeCreatedWhenEventIsCreatedFromScratch() throws IOException, JSONException {
         //Given
         DateTime now = DateTime.now(DateTimeZone.UTC);
         TimeInstant timeInstant = TimeInstant
@@ -219,16 +220,16 @@ public class TimedEventsApiWithUUIDTest extends GraphAwareApiTest {
                 "(day)<-[:AT_OTHER_TIME]-(event2:Event {name:'eventB'})," +
                 "(day)<-[:AT_BAD_TIME]-(event3 {name:'eventC'})", ignoreUuid);
 
-        assertEquals("{\"id\":0,\"properties\":{\"name\":\"eventA\",\"uuid\":\"test-uuid-1\"},\"labels\":[\"Event\",\"Email\"]}", postResult);
+        assertEquals("{\"id\":0,\"properties\":{\"name\":\"eventA\",\"uuid\":\"test-uuid-1\"},\"labels\":[\"Event\",\"Email\"]}", postResult, false);
 
         assertEquals("[{\"node\":{\"id\":7,\"properties\":{\"name\":\"eventD\",\"value\":1,\"uuid\":\"test-uuid-8\"},\"labels\":[]},\"relationshipType\":\"AT_TIME\",\"direction\":\"INCOMING\"}," +
                 "{\"node\":{\"id\":6,\"properties\":{\"name\":\"eventC\",\"uuid\":\"test-uuid-7\"},\"labels\":[]},\"relationshipType\":\"AT_BAD_TIME\",\"direction\":\"INCOMING\"}," +
                 "{\"node\":{\"id\":5,\"properties\":{\"name\":\"eventB\",\"uuid\":\"test-uuid-6\"},\"labels\":[\"Event\"]},\"relationshipType\":\"AT_OTHER_TIME\",\"direction\":\"INCOMING\"}," +
-                "{\"node\":{\"id\":0,\"properties\":{\"name\":\"eventA\",\"uuid\":\"test-uuid-1\"},\"labels\":[\"Event\",\"Email\"]},\"relationshipType\":\"AT_TIME\",\"direction\":\"INCOMING\"}]", getResult);
+                "{\"node\":{\"id\":0,\"properties\":{\"name\":\"eventA\",\"uuid\":\"test-uuid-1\"},\"labels\":[\"Event\",\"Email\"]},\"relationshipType\":\"AT_TIME\",\"direction\":\"INCOMING\"}]", getResult, false);
     }
 
     @Test
-    public void eventShouldOnlyBeAttachedOnce() throws IOException {
+    public void eventShouldOnlyBeAttachedOnce() throws IOException, JSONException {
         //Given
         DateTime now = DateTime.now(DateTimeZone.UTC);
         TimeInstant timeInstant = TimeInstant
@@ -275,14 +276,14 @@ public class TimedEventsApiWithUUIDTest extends GraphAwareApiTest {
                 "(month)-[:LAST]->(day)," +
                 "(day)<-[:AT_TIME]-(event {name:'eventA'})", ignoreUuid);
 
-        assertEquals("{\"id\":0,\"properties\":{\"name\":\"eventA\",\"uuid\":\"test-uuid-1\"},\"labels\":[]}", postResult1);
-        assertEquals("{\"id\":0,\"properties\":{\"name\":\"eventA\",\"uuid\":\"test-uuid-1\"},\"labels\":[]}", postResult2);
-        assertEquals("[{\"node\":{\"id\":0,\"properties\":{\"name\":\"eventA\",\"uuid\":\"test-uuid-1\"},\"labels\":[]},\"relationshipType\":\"AT_TIME\",\"direction\":\"INCOMING\"}]", getResult);
+        assertEquals("{\"id\":0,\"properties\":{\"name\":\"eventA\",\"uuid\":\"test-uuid-1\"},\"labels\":[]}", postResult1, false);
+        assertEquals("{\"id\":0,\"properties\":{\"name\":\"eventA\",\"uuid\":\"test-uuid-1\"},\"labels\":[]}", postResult2, false);
+        assertEquals("[{\"node\":{\"id\":0,\"properties\":{\"name\":\"eventA\",\"uuid\":\"test-uuid-1\"},\"labels\":[]},\"relationshipType\":\"AT_TIME\",\"direction\":\"INCOMING\"}]", getResult, false);
     }
 
 
     @Test
-    public void eventAndTimeInstantAtCustomRootShouldBeCreatedWhenEventIsAttached() {
+    public void eventAndTimeInstantAtCustomRootShouldBeCreatedWhenEventIsAttached() throws JSONException {
         //Given
         DateTime now = DateTime.now(DateTimeZone.UTC);
         TimeInstant timeInstant = TimeInstant
@@ -332,13 +333,13 @@ public class TimedEventsApiWithUUIDTest extends GraphAwareApiTest {
                 "(month)-[:LAST]->(day)," +
                 "(day)<-[:AT_TIME]-(event:Event {name:'eventA'})", ignoreUuid);
 
-        assertEquals("{\"id\":1,\"properties\":{\"name\":\"eventA\",\"uuid\":\"test-uuid-2\"},\"labels\":[\"Event\"]}", postResult1);
-        assertEquals("{\"id\":1,\"properties\":{\"name\":\"eventA\",\"uuid\":\"test-uuid-2\"},\"labels\":[\"Event\"]}", postResult2);
-        assertEquals("[{\"node\":{\"id\":1,\"properties\":{\"name\":\"eventA\",\"uuid\":\"test-uuid-2\"},\"labels\":[\"Event\"]},\"relationshipType\":\"AT_TIME\",\"direction\":\"INCOMING\"}]", getResult);
+        assertEquals("{\"id\":1,\"properties\":{\"name\":\"eventA\",\"uuid\":\"test-uuid-2\"},\"labels\":[\"Event\"]}", postResult1, false);
+        assertEquals("{\"id\":1,\"properties\":{\"name\":\"eventA\",\"uuid\":\"test-uuid-2\"},\"labels\":[\"Event\"]}", postResult2, false);
+        assertEquals("[{\"node\":{\"id\":1,\"properties\":{\"name\":\"eventA\",\"uuid\":\"test-uuid-2\"},\"labels\":[\"Event\"]},\"relationshipType\":\"AT_TIME\",\"direction\":\"INCOMING\"}]", getResult, false);
     }
 
     @Test
-    public void eventAndTimeInstantAtCustomRootShouldBeCreatedWhenEventIsCreatedFromScratch() {
+    public void eventAndTimeInstantAtCustomRootShouldBeCreatedWhenEventIsCreatedFromScratch() throws JSONException {
         //Given
         DateTime now = DateTime.now(DateTimeZone.UTC);
         TimeInstant timeInstant = TimeInstant
@@ -380,12 +381,12 @@ public class TimedEventsApiWithUUIDTest extends GraphAwareApiTest {
                 "(month)-[:LAST]->(day)," +
                 "(day)<-[:AT_TIME]-(event:Event {name:'eventA'})", ignoreUuid);
 
-        assertEquals("{\"id\":1,\"properties\":{\"name\":\"eventA\",\"uuid\":\"test-uuid-2\"},\"labels\":[\"Event\"]}", postResult);
-        assertEquals("[{\"node\":{\"id\":1,\"properties\":{\"name\":\"eventA\",\"uuid\":\"test-uuid-2\"},\"labels\":[\"Event\"]},\"relationshipType\":\"AT_TIME\",\"direction\":\"INCOMING\"}]", getResult);
+        assertEquals("{\"id\":1,\"properties\":{\"name\":\"eventA\",\"uuid\":\"test-uuid-2\"},\"labels\":[\"Event\"]}", postResult, false);
+        assertEquals("[{\"node\":{\"id\":1,\"properties\":{\"name\":\"eventA\",\"uuid\":\"test-uuid-2\"},\"labels\":[\"Event\"]},\"relationshipType\":\"AT_TIME\",\"direction\":\"INCOMING\"}]", getResult, false);
     }
 
     @Test
-    public void multipleEventsAndTimeInstantsShouldBeCreatedWhenEventsAreAttached() {
+    public void multipleEventsAndTimeInstantsShouldBeCreatedWhenEventsAreAttached() throws JSONException {
         //Given
         TimeInstant timeInstant1 = TimeInstant.instant(dateToMillis(2012, 11, 1)).with(Resolution.DAY).with(DateTimeZone.UTC);
         TimeInstant timeInstant2 = TimeInstant.instant(dateToMillis(2012, 11, 3)).with(Resolution.DAY).with(DateTimeZone.UTC);
@@ -444,14 +445,14 @@ public class TimedEventsApiWithUUIDTest extends GraphAwareApiTest {
 
         String getResult = httpClient.get(getUrl() + "range/" + timeInstant1.getTime() + "/" + timeInstant2.getTime() + "/events", HttpStatus.SC_OK);
 
-        assertEquals("{\"id\":0,\"properties\":{\"name\":\"eventA\",\"uuid\":\"test-uuid-1\"},\"labels\":[]}", postResult1);
-        assertEquals("{\"id\":1,\"properties\":{\"name\":\"eventB\",\"uuid\":\"test-uuid-2\"},\"labels\":[]}", postResult2);
+        assertEquals("{\"id\":0,\"properties\":{\"name\":\"eventA\",\"uuid\":\"test-uuid-1\"},\"labels\":[]}", postResult1, false);
+        assertEquals("{\"id\":1,\"properties\":{\"name\":\"eventB\",\"uuid\":\"test-uuid-2\"},\"labels\":[]}", postResult2, false);
         assertEquals("[{\"node\":{\"id\":0,\"properties\":{\"name\":\"eventA\",\"uuid\":\"test-uuid-1\"},\"labels\":[]},\"relationshipType\":\"AT_TIME\",\"direction\":\"INCOMING\"}," +
-                "{\"node\":{\"id\":1,\"properties\":{\"name\":\"eventB\",\"uuid\":\"test-uuid-2\"},\"labels\":[]},\"relationshipType\":\"AT_TIME\",\"direction\":\"INCOMING\"}]", getResult);
+                "{\"node\":{\"id\":1,\"properties\":{\"name\":\"eventB\",\"uuid\":\"test-uuid-2\"},\"labels\":[]},\"relationshipType\":\"AT_TIME\",\"direction\":\"INCOMING\"}]", getResult, false);
     }
 
     @Test
-    public void multipleEventsAndTimeInstantsForCustomRootShouldBeCreatedWhenEventsAreAttached() {
+    public void multipleEventsAndTimeInstantsForCustomRootShouldBeCreatedWhenEventsAreAttached() throws JSONException {
         //Given
         TimeInstant timeInstant1 = TimeInstant.instant(dateToMillis(2012, 11, 1)).with(Resolution.DAY).with(DateTimeZone.UTC);
         TimeInstant timeInstant2 = TimeInstant.instant(dateToMillis(2012, 11, 3)).with(Resolution.DAY).with(DateTimeZone.UTC);
@@ -515,10 +516,10 @@ public class TimedEventsApiWithUUIDTest extends GraphAwareApiTest {
 
         String getResult = httpClient.get(getUrl() + "0/range/" + timeInstant1.getTime() + "/" + timeInstant2.getTime() + "/events", HttpStatus.SC_OK);
 
-        assertEquals("{\"id\":1,\"properties\":{\"name\":\"eventA\",\"uuid\":\"test-uuid-2\"},\"labels\":[]}", postResult1);
-        assertEquals("{\"id\":2,\"properties\":{\"name\":\"eventB\",\"uuid\":\"test-uuid-3\"},\"labels\":[]}", postResult2);
+        assertEquals("{\"id\":1,\"properties\":{\"name\":\"eventA\",\"uuid\":\"test-uuid-2\"},\"labels\":[]}", postResult1, false);
+        assertEquals("{\"id\":2,\"properties\":{\"name\":\"eventB\",\"uuid\":\"test-uuid-3\"},\"labels\":[]}", postResult2, false);
         assertEquals("[{\"node\":{\"id\":1,\"properties\":{\"name\":\"eventA\",\"uuid\":\"test-uuid-2\"},\"labels\":[]},\"relationshipType\":\"AT_TIME\",\"direction\":\"INCOMING\"}," +
-                "{\"node\":{\"id\":2,\"properties\":{\"name\":\"eventB\",\"uuid\":\"test-uuid-3\"},\"labels\":[]},\"relationshipType\":\"AT_TIME\",\"direction\":\"INCOMING\"}]", getResult);
+                "{\"node\":{\"id\":2,\"properties\":{\"name\":\"eventB\",\"uuid\":\"test-uuid-3\"},\"labels\":[]},\"relationshipType\":\"AT_TIME\",\"direction\":\"INCOMING\"}]", getResult, false);
     }
 
     private long dateToMillis(int year, int month, int day) {

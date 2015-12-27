@@ -30,11 +30,11 @@ import org.neo4j.graphdb.Node;
 import org.neo4j.graphdb.Transaction;
 import org.neo4j.graphdb.event.TransactionData;
 import org.neo4j.graphdb.event.TransactionEventHandler;
-import org.skyscreamer.jsonassert.JSONAssert;
 
 import java.util.concurrent.atomic.AtomicInteger;
 
 import static com.graphaware.test.unit.GraphUnit.assertSameGraph;
+import static org.skyscreamer.jsonassert.JSONAssert.assertEquals;
 
 /**
  * Integration test for {@link TimeTreeApi}.
@@ -88,7 +88,7 @@ public class TimeTreeApiWithUUIDTest extends GraphAwareApiTest {
                 "(month)-[:CHILD]->(day)," +
                 "(month)-[:LAST]->(day)");
 
-        JSONAssert.assertEquals("{\"id\":3,\"properties\":{\"value\":4,\"uuid\":\"test-uuid-4\"},\"labels\":[\"Day\"]}", result, true);
+        assertEquals("{\"id\":3,\"properties\":{\"value\":4,\"uuid\":\"test-uuid-4\"},\"labels\":[\"Day\"]}", result, true);
     }
 
     @Test
@@ -120,7 +120,7 @@ public class TimeTreeApiWithUUIDTest extends GraphAwareApiTest {
                 "(day5)-[:NEXT]->(day6)," +
                 "(day6)-[:NEXT]->(day7)", ignoreUuid);
 
-        JSONAssert.assertEquals("[{\"id\":3,\"properties\":{\"value\":4,\"uuid\":\"test-uuid-4\"},\"labels\":[\"Day\"]},{\"id\":4,\"properties\":{\"value\":5,\"uuid\":\"test-uuid-5\"},\"labels\":[\"Day\"]},{\"id\":5,\"properties\":{\"value\":6,\"uuid\":\"test-uuid-6\"},\"labels\":[\"Day\"]},{\"id\":6,\"properties\":{\"value\":7,\"uuid\":\"test-uuid-7\"},\"labels\":[\"Day\"]}]", result, true);
+        assertEquals("[{\"id\":3,\"properties\":{\"value\":4,\"uuid\":\"test-uuid-4\"},\"labels\":[\"Day\"]},{\"id\":4,\"properties\":{\"value\":5,\"uuid\":\"test-uuid-5\"},\"labels\":[\"Day\"]},{\"id\":5,\"properties\":{\"value\":6,\"uuid\":\"test-uuid-6\"},\"labels\":[\"Day\"]},{\"id\":6,\"properties\":{\"value\":7,\"uuid\":\"test-uuid-7\"},\"labels\":[\"Day\"]}]", result, true);
     }
 
     @Test
@@ -149,7 +149,7 @@ public class TimeTreeApiWithUUIDTest extends GraphAwareApiTest {
                 "(month)-[:CHILD]->(day)," +
                 "(month)-[:LAST]->(day)", ignoreUuid);
 
-        JSONAssert.assertEquals("{\"id\":3,\"properties\":{\"value\":4,\"uuid\":\"test-uuid-4\"},\"labels\":[\"Day\"]}", result, true);
+        assertEquals("{\"id\":3,\"properties\":{\"value\":4,\"uuid\":\"test-uuid-4\"},\"labels\":[\"Day\"]}", result, true);
     }
 
     @Test
@@ -186,7 +186,7 @@ public class TimeTreeApiWithUUIDTest extends GraphAwareApiTest {
                 "(day5)-[:NEXT]->(day6)," +
                 "(day6)-[:NEXT]->(day7)", ignoreUuid);
 
-        JSONAssert.assertEquals("[{\"id\":3,\"properties\":{\"value\":4,\"uuid\":\"test-uuid-4\"},\"labels\":[\"Day\"]},{\"id\":4,\"properties\":{\"value\":5,\"uuid\":\"test-uuid-5\"},\"labels\":[\"Day\"]},{\"id\":5,\"properties\":{\"value\":6,\"uuid\":\"test-uuid-6\"},\"labels\":[\"Day\"]},{\"id\":6,\"properties\":{\"value\":7,\"uuid\":\"test-uuid-7\"},\"labels\":[\"Day\"]}]", result, true);
+        assertEquals("[{\"id\":3,\"properties\":{\"value\":4,\"uuid\":\"test-uuid-4\"},\"labels\":[\"Day\"]},{\"id\":4,\"properties\":{\"value\":5,\"uuid\":\"test-uuid-5\"},\"labels\":[\"Day\"]},{\"id\":5,\"properties\":{\"value\":6,\"uuid\":\"test-uuid-6\"},\"labels\":[\"Day\"]},{\"id\":6,\"properties\":{\"value\":7,\"uuid\":\"test-uuid-7\"},\"labels\":[\"Day\"]}]", result, true);
     }
 
     @Test
@@ -210,7 +210,7 @@ public class TimeTreeApiWithUUIDTest extends GraphAwareApiTest {
                 "(month)-[:CHILD]->(day)," +
                 "(month)-[:LAST]->(day)", ignoreUuid);
 
-        JSONAssert.assertEquals("{\"id\":3,\"properties\":{\"value\":" + now.getDayOfMonth() + ",\"uuid\":\"test-uuid-4\"},\"labels\":[\"Day\"]}", result, true);
+        assertEquals("{\"id\":3,\"properties\":{\"value\":" + now.getDayOfMonth() + ",\"uuid\":\"test-uuid-4\"},\"labels\":[\"Day\"]}", result, true);
     }
 
     @Test
@@ -239,7 +239,7 @@ public class TimeTreeApiWithUUIDTest extends GraphAwareApiTest {
                 "(month)-[:CHILD]->(day)," +
                 "(month)-[:LAST]->(day)", ignoreUuid);
 
-        JSONAssert.assertEquals("{\"id\":3,\"properties\":{\"value\":" + now.getDayOfMonth() + ",\"uuid\":\"test-uuid-4\"},\"labels\":[\"Day\"]}", result, true);
+        assertEquals("{\"id\":3,\"properties\":{\"value\":" + now.getDayOfMonth() + ",\"uuid\":\"test-uuid-4\"},\"labels\":[\"Day\"]}", result, true);
     }
 
     private long dateToMillis(int year, int month, int day) {

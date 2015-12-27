@@ -21,6 +21,7 @@ import com.graphaware.test.integration.GraphAwareApiTest;
 import org.apache.http.HttpStatus;
 import org.joda.time.DateTime;
 import org.joda.time.DateTimeZone;
+import org.json.JSONException;
 import org.junit.Test;
 import org.neo4j.graphdb.DynamicLabel;
 import org.neo4j.graphdb.Node;
@@ -28,7 +29,7 @@ import org.neo4j.graphdb.Transaction;
 import org.neo4j.tooling.GlobalGraphOperations;
 
 import static com.graphaware.test.unit.GraphUnit.assertSameGraph;
-import static org.junit.Assert.assertEquals;
+import static org.skyscreamer.jsonassert.JSONAssert.assertEquals;
 
 /**
  * Integration test for {@link com.graphaware.module.timetree.api.TimeTreeApi}.
@@ -36,7 +37,7 @@ import static org.junit.Assert.assertEquals;
 public class TimeTreeApiTest extends GraphAwareApiTest {
 
     @Test
-    public void trivialTreeShouldBeCreatedWhenFirstDayIsRequested() {
+    public void trivialTreeShouldBeCreatedWhenFirstDayIsRequested() throws JSONException {
         //Given
         long dateInMillis = dateToMillis(2013, 5, 4);
 
@@ -56,11 +57,11 @@ public class TimeTreeApiTest extends GraphAwareApiTest {
                 "(month)-[:CHILD]->(day)," +
                 "(month)-[:LAST]->(day)");
 
-        assertEquals("{\"id\":3,\"properties\":{\"value\":4},\"labels\":[\"Day\"]}", result);
+        assertEquals("{\"id\":3,\"properties\":{\"value\":4},\"labels\":[\"Day\"]}", result, false);
     }
 
     @Test
-    public void consecutiveDaysShouldBeCreatedWhenRequested() {
+    public void consecutiveDaysShouldBeCreatedWhenRequested() throws JSONException {
 
         //Given
         long startDateInMillis = dateToMillis(2013, 5, 4);
@@ -88,11 +89,11 @@ public class TimeTreeApiTest extends GraphAwareApiTest {
                 "(day5)-[:NEXT]->(day6)," +
                 "(day6)-[:NEXT]->(day7)");
 
-        assertEquals("[{\"id\":3,\"properties\":{\"value\":4},\"labels\":[\"Day\"]},{\"id\":4,\"properties\":{\"value\":5},\"labels\":[\"Day\"]},{\"id\":5,\"properties\":{\"value\":6},\"labels\":[\"Day\"]},{\"id\":6,\"properties\":{\"value\":7},\"labels\":[\"Day\"]}]", result);
+        assertEquals("[{\"id\":3,\"properties\":{\"value\":4},\"labels\":[\"Day\"]},{\"id\":4,\"properties\":{\"value\":5},\"labels\":[\"Day\"]},{\"id\":5,\"properties\":{\"value\":6},\"labels\":[\"Day\"]},{\"id\":6,\"properties\":{\"value\":7},\"labels\":[\"Day\"]}]", result, false);
     }
 
     @Test
-    public void trivialTreeShouldBeCreatedWhenFirstDayIsRequestedWithCustomRoot() {
+    public void trivialTreeShouldBeCreatedWhenFirstDayIsRequestedWithCustomRoot() throws JSONException {
         //Given
         long dateInMillis = dateToMillis(2013, 5, 4);
 
@@ -117,11 +118,11 @@ public class TimeTreeApiTest extends GraphAwareApiTest {
                 "(month)-[:CHILD]->(day)," +
                 "(month)-[:LAST]->(day)");
 
-        assertEquals("{\"id\":3,\"properties\":{\"value\":4},\"labels\":[\"Day\"]}", result);
+        assertEquals("{\"id\":3,\"properties\":{\"value\":4},\"labels\":[\"Day\"]}", result, false);
     }
 
     @Test
-    public void consecutiveDaysShouldBeCreatedWhenRequestedWithCustomRoot() {
+    public void consecutiveDaysShouldBeCreatedWhenRequestedWithCustomRoot() throws JSONException {
 
         //Given
         long startDateInMillis = dateToMillis(2013, 5, 4);
@@ -154,11 +155,11 @@ public class TimeTreeApiTest extends GraphAwareApiTest {
                 "(day5)-[:NEXT]->(day6)," +
                 "(day6)-[:NEXT]->(day7)");
 
-        assertEquals("[{\"id\":3,\"properties\":{\"value\":4},\"labels\":[\"Day\"]},{\"id\":4,\"properties\":{\"value\":5},\"labels\":[\"Day\"]},{\"id\":5,\"properties\":{\"value\":6},\"labels\":[\"Day\"]},{\"id\":6,\"properties\":{\"value\":7},\"labels\":[\"Day\"]}]", result);
+        assertEquals("[{\"id\":3,\"properties\":{\"value\":4},\"labels\":[\"Day\"]},{\"id\":4,\"properties\":{\"value\":5},\"labels\":[\"Day\"]},{\"id\":5,\"properties\":{\"value\":6},\"labels\":[\"Day\"]},{\"id\":6,\"properties\":{\"value\":7},\"labels\":[\"Day\"]}]", result, false);
     }
 
     @Test
-    public void trivialTreeShouldBeCreatedWhenFirstMilliInstantIsRequested() {
+    public void trivialTreeShouldBeCreatedWhenFirstMilliInstantIsRequested() throws JSONException {
         //Given
         long dateInMillis = new DateTime(2014, 4, 5, 13, 56, 22, 123, DateTimeZone.UTC).getMillis();
 
@@ -190,11 +191,11 @@ public class TimeTreeApiTest extends GraphAwareApiTest {
                 "(second)-[:CHILD]->(milli)," +
                 "(second)-[:LAST]->(milli)");
 
-        assertEquals("{\"id\":7,\"properties\":{\"value\":123},\"labels\":[\"Millisecond\"]}", result);
+        assertEquals("{\"id\":7,\"properties\":{\"value\":123},\"labels\":[\"Millisecond\"]}", result, false);
     }
 
     @Test
-    public void trivialTreeShouldBeCreatedWhenTodayIsRequested() {
+    public void trivialTreeShouldBeCreatedWhenTodayIsRequested() throws JSONException {
         //Given
         DateTime now = DateTime.now(DateTimeZone.UTC);
 
@@ -214,11 +215,11 @@ public class TimeTreeApiTest extends GraphAwareApiTest {
                 "(month)-[:CHILD]->(day)," +
                 "(month)-[:LAST]->(day)");
 
-        assertEquals("{\"id\":3,\"properties\":{\"value\":" + now.getDayOfMonth() + "},\"labels\":[\"Day\"]}", result);
+        assertEquals("{\"id\":3,\"properties\":{\"value\":" + now.getDayOfMonth() + "},\"labels\":[\"Day\"]}", result, false);
     }
 
     @Test
-    public void trivialTreeShouldBeCreatedWhenTodayIsRequestedWithCustomRoot() {
+    public void trivialTreeShouldBeCreatedWhenTodayIsRequestedWithCustomRoot() throws JSONException {
         //Given
         DateTime now = DateTime.now(DateTimeZone.UTC);
 
@@ -243,15 +244,15 @@ public class TimeTreeApiTest extends GraphAwareApiTest {
                 "(month)-[:CHILD]->(day)," +
                 "(month)-[:LAST]->(day)");
 
-        assertEquals("{\"id\":3,\"properties\":{\"value\":" + now.getDayOfMonth() + "},\"labels\":[\"Day\"]}", result);
+        assertEquals("{\"id\":3,\"properties\":{\"value\":" + now.getDayOfMonth() + "},\"labels\":[\"Day\"]}", result, false);
     }
 
     @Test
-    public void whenTheRootIsDeletedSubsequentRestApiCallsShouldBeOK() {
+    public void whenTheRootIsDeletedSubsequentRestApiCallsShouldBeOK() throws JSONException {
         //Given
         long dateInMillis = dateToMillis(2013, 5, 4);
         String result = httpClient.get(getUrl() + "single/" + dateInMillis, HttpStatus.SC_OK);
-        assertEquals("{\"id\":3,\"properties\":{\"value\":4},\"labels\":[\"Day\"]}", result);
+        assertEquals("{\"id\":3,\"properties\":{\"value\":4},\"labels\":[\"Day\"]}", result, false);
 
         //When
         try (Transaction tx = getDatabase().beginTx()) {
@@ -276,11 +277,11 @@ public class TimeTreeApiTest extends GraphAwareApiTest {
                 "(month)-[:CHILD]->(day)," +
                 "(month)-[:LAST]->(day)");
 
-        assertEquals("{\"id\":7,\"properties\":{\"value\":4},\"labels\":[\"Day\"]}", result);
+        assertEquals("{\"id\":7,\"properties\":{\"value\":4},\"labels\":[\"Day\"]}", result, false);
     }
 
     @Test
-    public void whenTheCustomRootIsDeletedSubsequentRestApiCallsShouldThrowNotFoundException() {
+    public void whenTheCustomRootIsDeletedSubsequentRestApiCallsShouldThrowNotFoundException() throws JSONException {
         //Given
         try (Transaction tx = getDatabase().beginTx()) {
             getDatabase().createNode(DynamicLabel.label("CustomRoot"));
@@ -289,7 +290,7 @@ public class TimeTreeApiTest extends GraphAwareApiTest {
 
         long dateInMillis = dateToMillis(2013, 5, 4);
         String result = httpClient.get(getUrl() + "0/single/" + dateInMillis, HttpStatus.SC_OK);
-        assertEquals("{\"id\":3,\"properties\":{\"value\":4},\"labels\":[\"Day\"]}", result);
+        assertEquals("{\"id\":3,\"properties\":{\"value\":4},\"labels\":[\"Day\"]}", result, false);
 
         //When
         try (Transaction tx = getDatabase().beginTx()) {
@@ -304,7 +305,7 @@ public class TimeTreeApiTest extends GraphAwareApiTest {
     }
 
     @Test
-    public void timeZoneShouldWork() {
+    public void timeZoneShouldWork() throws JSONException {
         //Given
         long dateInMillis = new DateTime(2014, 10, 25, 6, 36, DateTimeZone.UTC).getMillis();
 
@@ -332,11 +333,11 @@ public class TimeTreeApiTest extends GraphAwareApiTest {
                         "(hour)-[:LAST]->(minute)"
         );
 
-        assertEquals("{\"id\":5,\"properties\":{\"value\":36},\"labels\":[\"Minute\"]}", result);
+        assertEquals("{\"id\":5,\"properties\":{\"value\":36},\"labels\":[\"Minute\"]}", result, false);
     }
 
     @Test
-    public void timeZoneShouldWork2() {
+    public void timeZoneShouldWork2() throws JSONException {
         //Given
         long dateInMillis = 1414264162000L;
 
@@ -364,11 +365,11 @@ public class TimeTreeApiTest extends GraphAwareApiTest {
                         "(hour)-[:LAST]->(minute)"
         );
 
-        assertEquals("{\"id\":5,\"properties\":{\"value\":9},\"labels\":[\"Minute\"]}", result);
+        assertEquals("{\"id\":5,\"properties\":{\"value\":9},\"labels\":[\"Minute\"]}", result, false);
     }
 
     @Test
-    public void shouldSupportDatesBefore1970() {
+    public void shouldSupportDatesBefore1970() throws JSONException {
         //Given
         long dateInMillis = dateToMillis(1940, 2, 5);
 
@@ -388,7 +389,7 @@ public class TimeTreeApiTest extends GraphAwareApiTest {
                 "(month)-[:CHILD]->(day)," +
                 "(month)-[:LAST]->(day)");
 
-        assertEquals("{\"id\":3,\"properties\":{\"value\":5},\"labels\":[\"Day\"]}", result);
+        assertEquals("{\"id\":3,\"properties\":{\"value\":5},\"labels\":[\"Day\"]}", result, false);
     }
 
     private long dateToMillis(int year, int month, int day) {

@@ -37,7 +37,7 @@ public class TimeTreeIntegrationTest extends NeoServerIntegrationTest {
 
     @Test
     public void graphAwareApisAreMountedWhenPresentOnClasspath() throws InterruptedException, IOException {
-        httpClient.get(baseUrl() + "/graphaware/timetree/now/", HttpStatus.OK_200);
+        httpClient.post(baseUrl() + "/graphaware/timetree/now/", HttpStatus.OK_200);
     }
 
     @Test
@@ -50,7 +50,7 @@ public class TimeTreeIntegrationTest extends NeoServerIntegrationTest {
             executor.execute(new Runnable() {
                 @Override
                 public void run() {
-                    httpClient.get(baseUrl() + "/graphaware/timetree/now?resolution=millisecond", HttpStatus.OK_200);
+                    httpClient.post(baseUrl() + "/graphaware/timetree/now?resolution=millisecond", HttpStatus.OK_200);
                     successfulRequests.incrementAndGet();
                 }
             });
@@ -67,7 +67,7 @@ public class TimeTreeIntegrationTest extends NeoServerIntegrationTest {
 
     @Test
     public void shouldReturnEvents() {
-        String nodeId = httpClient.get(baseUrl() + "/graphaware/timetree/now?resolution=second", HttpStatus.OK_200);
+        String nodeId = httpClient.post(baseUrl() + "/graphaware/timetree/now?resolution=second", HttpStatus.OK_200);
 
         httpClient.executeCypher(baseUrl(), "START second=node(" + nodeId + ") " +
                 "CREATE (email:Event {subject:'Neo4j'})-[:SENT_ON]->(second)");

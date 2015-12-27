@@ -92,7 +92,7 @@ and their children, etc.
 
 ### REST API
 
-When deployed in server mode, there are the following URLs that you can issue GET requests to:
+When deployed in server mode, there are the following URLs that you can issue `GET` requests to:
 
 * `http://your-server-address:7474/graphaware/timetree/single/{time}` to get a node representing a time instant, where time must be replaced by a `long` number representing the number of milliseconds since 1/1/1970. The default resolution is Day and the default time zone is UTC
 * `http://your-server-address:7474/graphaware/timetree/single/{time}/events` to get events attached to a time instant, where time must be replaced by a `long` number representing the number of milliseconds since 1/1/1970. The default resolution is Day and the default time zone is UTC
@@ -103,6 +103,14 @@ When deployed in server mode, there are the following URLs that you can issue GE
 * `http://your-server-address:7474/graphaware/timetree/{rootNodeId}/single/{time}/events` to get events attached to a time instant, where {time} must be replaced by a `long` number representing the number of milliseconds since 1/1/1970 and {rootNodeId} must be replaced by the ID of an existing node that should serve as the tree root. Defaults are the same as above.
 * `http://your-server-address:7474/graphaware/timetree/{rootNodeId}/range/{startTime}/{endTime}/events` to get events that occurred between {startTime} and {endTime} (inclusive) and {rootNodeId} must be replaced by the ID of an existing node that should serve as the tree root. Defaults are the same as above.
 * `http://your-server-address:7474/graphaware/timetree/{rootNodeId}/now` to get a node representing now, where {rootNodeId} must be replaced by the ID of an existing node that should serve as the tree root. Defaults are the same as above.
+
+Additionally, you can issue `POST` requests to:
+
+* `http://your-server-address:7474/graphaware/timetree/single/{time}` to get or create a node representing a time instant, where time must be replaced by a `long` number representing the number of milliseconds since 1/1/1970. The default resolution is Day and the default time zone is UTC
+* `http://your-server-address:7474/graphaware/timetree/range/{startTime}/{endTime}` to get or create nodes representing time instants between {startTime} and {endTime} (inclusive). The default resolution is Day and the default time zone is UTC
+* `http://your-server-address:7474/graphaware/timetree/now` to get or create  a node representing now. Defaults are the same as above.
+* `http://your-server-address:7474/graphaware/timetree/{rootNodeId}/single/{time}` to get or create  a node representing a time instant, where {time} must be replaced by a `long` number representing the number of milliseconds since 1/1/1970 and {rootNodeId} must be replaced by the ID of an existing node that should serve as the tree root. Defaults are the same as above.
+* `http://your-server-address:7474/graphaware/timetree/{rootNodeId}/now` to get or create a node representing now, where {rootNodeId} must be replaced by the ID of an existing node that should serve as the tree root. Defaults are the same as above.
 
 You have four query parameters:
 

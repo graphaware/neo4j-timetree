@@ -73,7 +73,7 @@ public class TimeTreeApiWithUUIDTest extends GraphAwareApiTest {
         long dateInMillis = dateToMillis(2013, 5, 4);
 
         //When
-        String result = httpClient.get(getUrl() + "single/" + dateInMillis, HttpStatus.SC_OK);
+        String result = httpClient.post(getUrl() + "single/" + dateInMillis, HttpStatus.SC_OK);
 
         //Then
         assertSameGraph(getDatabase(), "CREATE" +
@@ -99,7 +99,7 @@ public class TimeTreeApiWithUUIDTest extends GraphAwareApiTest {
         long endDateInMillis = dateToMillis(2013, 5, 7);
 
         //When
-        String result = httpClient.get(getUrl() + "range/" + startDateInMillis + "/" + endDateInMillis, HttpStatus.SC_OK);
+        String result = httpClient.post(getUrl() + "range/" + startDateInMillis + "/" + endDateInMillis, HttpStatus.SC_OK);
 
         //Then
         assertSameGraph(getDatabase(), "CREATE" +
@@ -134,7 +134,7 @@ public class TimeTreeApiWithUUIDTest extends GraphAwareApiTest {
             tx.success();
         }
 
-        String result = httpClient.get(getUrl() + "0/single/" + dateInMillis, HttpStatus.SC_OK);
+        String result = httpClient.post(getUrl() + "0/single/" + dateInMillis, HttpStatus.SC_OK);
 
         //Then
         assertSameGraph(getDatabase(), "CREATE" +
@@ -165,7 +165,7 @@ public class TimeTreeApiWithUUIDTest extends GraphAwareApiTest {
             tx.success();
         }
 
-        String result = httpClient.get(getUrl() + "0/range/" + startDateInMillis + "/" + endDateInMillis, HttpStatus.SC_OK);
+        String result = httpClient.post(getUrl() + "0/range/" + startDateInMillis + "/" + endDateInMillis, HttpStatus.SC_OK);
 
         //Then
         assertSameGraph(getDatabase(), "CREATE" +
@@ -195,7 +195,7 @@ public class TimeTreeApiWithUUIDTest extends GraphAwareApiTest {
         DateTime now = DateTime.now(DateTimeZone.UTC);
 
         //When
-        String result = httpClient.get(getUrl() + "now", HttpStatus.SC_OK);
+        String result = httpClient.post(getUrl() + "now", HttpStatus.SC_OK);
 
         //Then
         assertSameGraph(getDatabase(), "CREATE" +
@@ -224,7 +224,7 @@ public class TimeTreeApiWithUUIDTest extends GraphAwareApiTest {
             tx.success();
         }
 
-        String result = httpClient.get(getUrl() + "/0/now", HttpStatus.SC_OK);
+        String result = httpClient.post(getUrl() + "/0/now", HttpStatus.SC_OK);
 
         //Then
         assertSameGraph(getDatabase(), "CREATE" +

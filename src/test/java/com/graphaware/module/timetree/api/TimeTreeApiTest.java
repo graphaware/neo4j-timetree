@@ -38,13 +38,12 @@ public class TimeTreeApiTest extends GraphAwareApiTest {
 
     @Test
     public void trivialTreeShouldBeCreatedWhenFirstDayIsRequested() throws JSONException {
-        //Given
         long dateInMillis = dateToMillis(2013, 5, 4);
 
-        //When
-        String result = httpClient.get(getUrl() + "single/" + dateInMillis, HttpStatus.SC_OK);
+        httpClient.get(getUrl() + "single/" + dateInMillis, HttpStatus.SC_NOT_FOUND);
 
-        //Then
+        String result = httpClient.post(getUrl() + "single/" + dateInMillis, HttpStatus.SC_OK);
+
         assertSameGraph(getDatabase(), "CREATE" +
                 "(root:TimeTreeRoot)," +
                 "(root)-[:FIRST]->(year:Year {value:2013})," +
@@ -58,19 +57,31 @@ public class TimeTreeApiTest extends GraphAwareApiTest {
                 "(month)-[:LAST]->(day)");
 
         assertEquals("{\"id\":3,\"properties\":{\"value\":4},\"labels\":[\"Day\"]}", result, false);
+        assertEquals("{\"id\":3,\"properties\":{\"value\":4},\"labels\":[\"Day\"]}", httpClient.post(getUrl() + "single/" + dateInMillis, HttpStatus.SC_OK), false);
+        assertEquals("{\"id\":3,\"properties\":{\"value\":4},\"labels\":[\"Day\"]}", httpClient.get(getUrl() + "single/" + dateInMillis, HttpStatus.SC_OK), false);
+
+        assertSameGraph(getDatabase(), "CREATE" +
+                "(root:TimeTreeRoot)," +
+                "(root)-[:FIRST]->(year:Year {value:2013})," +
+                "(root)-[:CHILD]->(year)," +
+                "(root)-[:LAST]->(year)," +
+                "(year)-[:FIRST]->(month:Month {value:5})," +
+                "(year)-[:CHILD]->(month)," +
+                "(year)-[:LAST]->(month)," +
+                "(month)-[:FIRST]->(day:Day {value:4})," +
+                "(month)-[:CHILD]->(day)," +
+                "(month)-[:LAST]->(day)");
     }
 
     @Test
     public void consecutiveDaysShouldBeCreatedWhenRequested() throws JSONException {
-
-        //Given
         long startDateInMillis = dateToMillis(2013, 5, 4);
         long endDateInMillis = dateToMillis(2013, 5, 7);
 
-        //When
-        String result = httpClient.get(getUrl() + "range/" + startDateInMillis + "/" + endDateInMillis, HttpStatus.SC_OK);
+        assertEquals("[]", httpClient.get(getUrl() + "range/" + startDateInMillis + "/" + endDateInMillis, HttpStatus.SC_OK), false);
 
-        //Then
+        String result = httpClient.post(getUrl() + "range/" + startDateInMillis + "/" + endDateInMillis, HttpStatus.SC_OK);
+
         assertSameGraph(getDatabase(), "CREATE" +
                 "(root:TimeTreeRoot)," +
                 "(root)-[:FIRST]->(year:Year {value:2013})," +
@@ -90,22 +101,44 @@ public class TimeTreeApiTest extends GraphAwareApiTest {
                 "(day6)-[:NEXT]->(day7)");
 
         assertEquals("[{\"id\":3,\"properties\":{\"value\":4},\"labels\":[\"Day\"]},{\"id\":4,\"properties\":{\"value\":5},\"labels\":[\"Day\"]},{\"id\":5,\"properties\":{\"value\":6},\"labels\":[\"Day\"]},{\"id\":6,\"properties\":{\"value\":7},\"labels\":[\"Day\"]}]", result, false);
+        assertEquals("[{\"id\":3,\"properties\":{\"value\":4},\"labels\":[\"Day\"]},{\"id\":4,\"properties\":{\"value\":5},\"labels\":[\"Day\"]},{\"id\":5,\"properties\":{\"value\":6},\"labels\":[\"Day\"]},{\"id\":6,\"properties\":{\"value\":7},\"labels\":[\"Day\"]}]", httpClient.post(getUrl() + "range/" + startDateInMillis + "/" + endDateInMillis, HttpStatus.SC_OK), false);
+        assertEquals("[{\"id\":3,\"properties\":{\"value\":4},\"labels\":[\"Day\"]},{\"id\":4,\"properties\":{\"value\":5},\"labels\":[\"Day\"]},{\"id\":5,\"properties\":{\"value\":6},\"labels\":[\"Day\"]},{\"id\":6,\"properties\":{\"value\":7},\"labels\":[\"Day\"]}]", httpClient.get(getUrl() + "range/" + startDateInMillis + "/" + endDateInMillis, HttpStatus.SC_OK), false);
+
+        assertSameGraph(getDatabase(), "CREATE" +
+                "(root:TimeTreeRoot)," +
+                "(root)-[:FIRST]->(year:Year {value:2013})," +
+                "(root)-[:CHILD]->(year)," +
+                "(root)-[:LAST]->(year)," +
+                "(year)-[:FIRST]->(month:Month {value:5})," +
+                "(year)-[:CHILD]->(month)," +
+                "(year)-[:LAST]->(month)," +
+                "(month)-[:CHILD]->(day4:Day {value:4})," +
+                "(month)-[:CHILD]->(day5:Day {value:5})," +
+                "(month)-[:CHILD]->(day6:Day {value:6})," +
+                "(month)-[:CHILD]->(day7:Day {value:7})," +
+                "(month)-[:FIRST]->(day4)," +
+                "(month)-[:LAST]->(day7)," +
+                "(day4)-[:NEXT]->(day5)," +
+                "(day5)-[:NEXT]->(day6)," +
+                "(day6)-[:NEXT]->(day7)");
     }
 
     @Test
     public void trivialTreeShouldBeCreatedWhenFirstDayIsRequestedWithCustomRoot() throws JSONException {
-        //Given
         long dateInMillis = dateToMillis(2013, 5, 4);
 
-        //When
+        httpClient.get(getUrl() + "0/single/" + dateInMillis, HttpStatus.SC_NOT_FOUND);
+        httpClient.post(getUrl() + "0/single/" + dateInMillis, HttpStatus.SC_NOT_FOUND);
+
         try (Transaction tx = getDatabase().beginTx()) {
             getDatabase().createNode(DynamicLabel.label("CustomRoot"));
             tx.success();
         }
 
-        String result = httpClient.get(getUrl() + "0/single/" + dateInMillis, HttpStatus.SC_OK);
+        httpClient.get(getUrl() + "0/single/" + dateInMillis, HttpStatus.SC_NOT_FOUND);
 
-        //Then
+        String result = httpClient.post(getUrl() + "0/single/" + dateInMillis, HttpStatus.SC_OK);
+
         assertSameGraph(getDatabase(), "CREATE" +
                 "(root:CustomRoot)," +
                 "(root)-[:FIRST]->(year:Year {value:2013})," +
@@ -119,24 +152,39 @@ public class TimeTreeApiTest extends GraphAwareApiTest {
                 "(month)-[:LAST]->(day)");
 
         assertEquals("{\"id\":3,\"properties\":{\"value\":4},\"labels\":[\"Day\"]}", result, false);
+        assertEquals("{\"id\":3,\"properties\":{\"value\":4},\"labels\":[\"Day\"]}", httpClient.post(getUrl() + "0/single/" + dateInMillis, HttpStatus.SC_OK), false);
+        assertEquals("{\"id\":3,\"properties\":{\"value\":4},\"labels\":[\"Day\"]}", httpClient.get(getUrl() + "0/single/" + dateInMillis, HttpStatus.SC_OK), false);
+
+        assertSameGraph(getDatabase(), "CREATE" +
+                "(root:CustomRoot)," +
+                "(root)-[:FIRST]->(year:Year {value:2013})," +
+                "(root)-[:CHILD]->(year)," +
+                "(root)-[:LAST]->(year)," +
+                "(year)-[:FIRST]->(month:Month {value:5})," +
+                "(year)-[:CHILD]->(month)," +
+                "(year)-[:LAST]->(month)," +
+                "(month)-[:FIRST]->(day:Day {value:4})," +
+                "(month)-[:CHILD]->(day)," +
+                "(month)-[:LAST]->(day)");
     }
 
     @Test
     public void consecutiveDaysShouldBeCreatedWhenRequestedWithCustomRoot() throws JSONException {
-
-        //Given
         long startDateInMillis = dateToMillis(2013, 5, 4);
         long endDateInMillis = dateToMillis(2013, 5, 7);
 
-        //When
+        httpClient.post(getUrl() + "0/range/" + startDateInMillis + "/" + endDateInMillis, HttpStatus.SC_NOT_FOUND);
+        httpClient.get(getUrl() + "0/range/" + startDateInMillis + "/" + endDateInMillis, HttpStatus.SC_NOT_FOUND);
+
         try (Transaction tx = getDatabase().beginTx()) {
             getDatabase().createNode(DynamicLabel.label("CustomRoot"));
             tx.success();
         }
 
-        String result = httpClient.get(getUrl() + "0/range/" + startDateInMillis + "/" + endDateInMillis, HttpStatus.SC_OK);
+        assertEquals("[]", httpClient.get(getUrl() + "0/range/" + startDateInMillis + "/" + endDateInMillis, HttpStatus.SC_OK), false);
 
-        //Then
+        String result = httpClient.post(getUrl() + "0/range/" + startDateInMillis + "/" + endDateInMillis, HttpStatus.SC_OK);
+
         assertSameGraph(getDatabase(), "CREATE" +
                 "(root:CustomRoot)," +
                 "(root)-[:FIRST]->(year:Year {value:2013})," +
@@ -156,17 +204,36 @@ public class TimeTreeApiTest extends GraphAwareApiTest {
                 "(day6)-[:NEXT]->(day7)");
 
         assertEquals("[{\"id\":3,\"properties\":{\"value\":4},\"labels\":[\"Day\"]},{\"id\":4,\"properties\":{\"value\":5},\"labels\":[\"Day\"]},{\"id\":5,\"properties\":{\"value\":6},\"labels\":[\"Day\"]},{\"id\":6,\"properties\":{\"value\":7},\"labels\":[\"Day\"]}]", result, false);
+        assertEquals("[{\"id\":3,\"properties\":{\"value\":4},\"labels\":[\"Day\"]},{\"id\":4,\"properties\":{\"value\":5},\"labels\":[\"Day\"]},{\"id\":5,\"properties\":{\"value\":6},\"labels\":[\"Day\"]},{\"id\":6,\"properties\":{\"value\":7},\"labels\":[\"Day\"]}]", httpClient.post(getUrl() + "0/range/" + startDateInMillis + "/" + endDateInMillis, HttpStatus.SC_OK), false);
+        assertEquals("[{\"id\":3,\"properties\":{\"value\":4},\"labels\":[\"Day\"]},{\"id\":4,\"properties\":{\"value\":5},\"labels\":[\"Day\"]},{\"id\":5,\"properties\":{\"value\":6},\"labels\":[\"Day\"]},{\"id\":6,\"properties\":{\"value\":7},\"labels\":[\"Day\"]}]", httpClient.get(getUrl() + "0/range/" + startDateInMillis + "/" + endDateInMillis, HttpStatus.SC_OK), false);
+
+        assertSameGraph(getDatabase(), "CREATE" +
+                "(root:CustomRoot)," +
+                "(root)-[:FIRST]->(year:Year {value:2013})," +
+                "(root)-[:CHILD]->(year)," +
+                "(root)-[:LAST]->(year)," +
+                "(year)-[:FIRST]->(month:Month {value:5})," +
+                "(year)-[:CHILD]->(month)," +
+                "(year)-[:LAST]->(month)," +
+                "(month)-[:CHILD]->(day4:Day {value:4})," +
+                "(month)-[:CHILD]->(day5:Day {value:5})," +
+                "(month)-[:CHILD]->(day6:Day {value:6})," +
+                "(month)-[:CHILD]->(day7:Day {value:7})," +
+                "(month)-[:FIRST]->(day4)," +
+                "(month)-[:LAST]->(day7)," +
+                "(day4)-[:NEXT]->(day5)," +
+                "(day5)-[:NEXT]->(day6)," +
+                "(day6)-[:NEXT]->(day7)");
     }
 
     @Test
     public void trivialTreeShouldBeCreatedWhenFirstMilliInstantIsRequested() throws JSONException {
-        //Given
         long dateInMillis = new DateTime(2014, 4, 5, 13, 56, 22, 123, DateTimeZone.UTC).getMillis();
 
-        //When
-        String result = httpClient.get(getUrl() + "single/" + dateInMillis + "?resolution=millisecond&timezone=GMT%2B1", HttpStatus.SC_OK);
+        httpClient.get(getUrl() + "single/" + dateInMillis + "?resolution=millisecond&timezone=GMT%2B1", HttpStatus.SC_NOT_FOUND);
 
-        //Then
+        String result = httpClient.post(getUrl() + "single/" + dateInMillis + "?resolution=millisecond&timezone=GMT%2B1", HttpStatus.SC_OK);
+
         assertSameGraph(getDatabase(), "CREATE" +
                 "(root:TimeTreeRoot)," +
                 "(root)-[:FIRST]->(year:Year {value:2014})," +
@@ -192,17 +259,42 @@ public class TimeTreeApiTest extends GraphAwareApiTest {
                 "(second)-[:LAST]->(milli)");
 
         assertEquals("{\"id\":7,\"properties\":{\"value\":123},\"labels\":[\"Millisecond\"]}", result, false);
+        assertEquals("{\"id\":7,\"properties\":{\"value\":123},\"labels\":[\"Millisecond\"]}", httpClient.post(getUrl() + "single/" + dateInMillis + "?resolution=millisecond&timezone=GMT%2B1", HttpStatus.SC_OK), false);
+        assertEquals("{\"id\":7,\"properties\":{\"value\":123},\"labels\":[\"Millisecond\"]}", httpClient.get(getUrl() + "single/" + dateInMillis + "?resolution=millisecond&timezone=GMT%2B1", HttpStatus.SC_OK), false);
+
+        assertSameGraph(getDatabase(), "CREATE" +
+                "(root:TimeTreeRoot)," +
+                "(root)-[:FIRST]->(year:Year {value:2014})," +
+                "(root)-[:CHILD]->(year)," +
+                "(root)-[:LAST]->(year)," +
+                "(year)-[:FIRST]->(month:Month {value:4})," +
+                "(year)-[:CHILD]->(month)," +
+                "(year)-[:LAST]->(month)," +
+                "(month)-[:FIRST]->(day:Day {value:5})," +
+                "(month)-[:CHILD]->(day)," +
+                "(month)-[:LAST]->(day)," +
+                "(day)-[:FIRST]->(hour:Hour {value:14})," + //1 hour more!
+                "(day)-[:CHILD]->(hour)," +
+                "(day)-[:LAST]->(hour)," +
+                "(hour)-[:FIRST]->(minute:Minute {value:56})," +
+                "(hour)-[:CHILD]->(minute)," +
+                "(hour)-[:LAST]->(minute)," +
+                "(minute)-[:FIRST]->(second:Second {value:22})," +
+                "(minute)-[:CHILD]->(second)," +
+                "(minute)-[:LAST]->(second)," +
+                "(second)-[:FIRST]->(milli:Millisecond {value:123})," +
+                "(second)-[:CHILD]->(milli)," +
+                "(second)-[:LAST]->(milli)");
     }
 
     @Test
     public void trivialTreeShouldBeCreatedWhenTodayIsRequested() throws JSONException {
-        //Given
         DateTime now = DateTime.now(DateTimeZone.UTC);
 
-        //When
-        String result = httpClient.get(getUrl() + "now", HttpStatus.SC_OK);
+        httpClient.get(getUrl() + "now", HttpStatus.SC_NOT_FOUND);
 
-        //Then
+        String result = httpClient.post(getUrl() + "now", HttpStatus.SC_OK);
+
         assertSameGraph(getDatabase(), "CREATE" +
                 "(root:TimeTreeRoot)," +
                 "(root)-[:FIRST]->(year:Year {value:" + now.getYear() + "})," +
@@ -216,22 +308,39 @@ public class TimeTreeApiTest extends GraphAwareApiTest {
                 "(month)-[:LAST]->(day)");
 
         assertEquals("{\"id\":3,\"properties\":{\"value\":" + now.getDayOfMonth() + "},\"labels\":[\"Day\"]}", result, false);
+        assertEquals("{\"id\":3,\"properties\":{\"value\":" + now.getDayOfMonth() + "},\"labels\":[\"Day\"]}", httpClient.post(getUrl() + "now", HttpStatus.SC_OK), false);
+        assertEquals("{\"id\":3,\"properties\":{\"value\":" + now.getDayOfMonth() + "},\"labels\":[\"Day\"]}", httpClient.get(getUrl() + "now", HttpStatus.SC_OK), false);
+
+        assertSameGraph(getDatabase(), "CREATE" +
+                "(root:TimeTreeRoot)," +
+                "(root)-[:FIRST]->(year:Year {value:" + now.getYear() + "})," +
+                "(root)-[:CHILD]->(year)," +
+                "(root)-[:LAST]->(year)," +
+                "(year)-[:FIRST]->(month:Month {value:" + now.getMonthOfYear() + "})," +
+                "(year)-[:CHILD]->(month)," +
+                "(year)-[:LAST]->(month)," +
+                "(month)-[:FIRST]->(day:Day {value:" + now.getDayOfMonth() + "})," +
+                "(month)-[:CHILD]->(day)," +
+                "(month)-[:LAST]->(day)");
+
     }
 
     @Test
     public void trivialTreeShouldBeCreatedWhenTodayIsRequestedWithCustomRoot() throws JSONException {
-        //Given
         DateTime now = DateTime.now(DateTimeZone.UTC);
 
-        //When
+        httpClient.post(getUrl() + "/0/now", HttpStatus.SC_NOT_FOUND);
+        httpClient.get(getUrl() + "/0/now", HttpStatus.SC_NOT_FOUND);
+
         try (Transaction tx = getDatabase().beginTx()) {
             getDatabase().createNode(DynamicLabel.label("CustomRoot"));
             tx.success();
         }
 
-        String result = httpClient.get(getUrl() + "/0/now", HttpStatus.SC_OK);
+        httpClient.get(getUrl() + "/0/now", HttpStatus.SC_NOT_FOUND);
 
-        //Then
+        String result = httpClient.post(getUrl() + "/0/now", HttpStatus.SC_OK);
+
         assertSameGraph(getDatabase(), "CREATE" +
                 "(root:CustomRoot)," +
                 "(root)-[:FIRST]->(year:Year {value:" + now.getYear() + "})," +
@@ -245,16 +354,28 @@ public class TimeTreeApiTest extends GraphAwareApiTest {
                 "(month)-[:LAST]->(day)");
 
         assertEquals("{\"id\":3,\"properties\":{\"value\":" + now.getDayOfMonth() + "},\"labels\":[\"Day\"]}", result, false);
+        assertEquals("{\"id\":3,\"properties\":{\"value\":" + now.getDayOfMonth() + "},\"labels\":[\"Day\"]}", httpClient.post(getUrl() + "/0/now", HttpStatus.SC_OK), false);
+        assertEquals("{\"id\":3,\"properties\":{\"value\":" + now.getDayOfMonth() + "},\"labels\":[\"Day\"]}", httpClient.get(getUrl() + "/0/now", HttpStatus.SC_OK), false);
+
+        assertSameGraph(getDatabase(), "CREATE" +
+                "(root:CustomRoot)," +
+                "(root)-[:FIRST]->(year:Year {value:" + now.getYear() + "})," +
+                "(root)-[:CHILD]->(year)," +
+                "(root)-[:LAST]->(year)," +
+                "(year)-[:FIRST]->(month:Month {value:" + now.getMonthOfYear() + "})," +
+                "(year)-[:CHILD]->(month)," +
+                "(year)-[:LAST]->(month)," +
+                "(month)-[:FIRST]->(day:Day {value:" + now.getDayOfMonth() + "})," +
+                "(month)-[:CHILD]->(day)," +
+                "(month)-[:LAST]->(day)");
     }
 
     @Test
     public void whenTheRootIsDeletedSubsequentRestApiCallsShouldBeOK() throws JSONException {
-        //Given
         long dateInMillis = dateToMillis(2013, 5, 4);
-        String result = httpClient.get(getUrl() + "single/" + dateInMillis, HttpStatus.SC_OK);
+        String result = httpClient.post(getUrl() + "single/" + dateInMillis, HttpStatus.SC_OK);
         assertEquals("{\"id\":3,\"properties\":{\"value\":4},\"labels\":[\"Day\"]}", result, false);
 
-        //When
         try (Transaction tx = getDatabase().beginTx()) {
             for (Node node : GlobalGraphOperations.at(getDatabase()).getAllNodes()) {
                 PropertyContainerUtils.deleteNodeAndRelationships(node);
@@ -262,8 +383,7 @@ public class TimeTreeApiTest extends GraphAwareApiTest {
             tx.success();
         }
 
-        //Then
-        result = httpClient.get(getUrl() + "single/" + dateInMillis, HttpStatus.SC_OK);
+        result = httpClient.post(getUrl() + "single/" + dateInMillis, HttpStatus.SC_OK);
 
         assertSameGraph(getDatabase(), "CREATE" +
                 "(root:TimeTreeRoot)," +
@@ -278,21 +398,33 @@ public class TimeTreeApiTest extends GraphAwareApiTest {
                 "(month)-[:LAST]->(day)");
 
         assertEquals("{\"id\":7,\"properties\":{\"value\":4},\"labels\":[\"Day\"]}", result, false);
+        assertEquals("{\"id\":7,\"properties\":{\"value\":4},\"labels\":[\"Day\"]}", httpClient.post(getUrl() + "single/" + dateInMillis, HttpStatus.SC_OK), false);
+        assertEquals("{\"id\":7,\"properties\":{\"value\":4},\"labels\":[\"Day\"]}", httpClient.get(getUrl() + "single/" + dateInMillis, HttpStatus.SC_OK), false);
+
+        assertSameGraph(getDatabase(), "CREATE" +
+                "(root:TimeTreeRoot)," +
+                "(root)-[:FIRST]->(year:Year {value:2013})," +
+                "(root)-[:CHILD]->(year)," +
+                "(root)-[:LAST]->(year)," +
+                "(year)-[:FIRST]->(month:Month {value:5})," +
+                "(year)-[:CHILD]->(month)," +
+                "(year)-[:LAST]->(month)," +
+                "(month)-[:FIRST]->(day:Day {value:4})," +
+                "(month)-[:CHILD]->(day)," +
+                "(month)-[:LAST]->(day)");
     }
 
     @Test
     public void whenTheCustomRootIsDeletedSubsequentRestApiCallsShouldThrowNotFoundException() throws JSONException {
-        //Given
         try (Transaction tx = getDatabase().beginTx()) {
             getDatabase().createNode(DynamicLabel.label("CustomRoot"));
             tx.success();
         }
 
         long dateInMillis = dateToMillis(2013, 5, 4);
-        String result = httpClient.get(getUrl() + "0/single/" + dateInMillis, HttpStatus.SC_OK);
+        String result = httpClient.post(getUrl() + "0/single/" + dateInMillis, HttpStatus.SC_OK);
         assertEquals("{\"id\":3,\"properties\":{\"value\":4},\"labels\":[\"Day\"]}", result, false);
 
-        //When
         try (Transaction tx = getDatabase().beginTx()) {
             for (Node node : GlobalGraphOperations.at(getDatabase()).getAllNodes()) {
                 PropertyContainerUtils.deleteNodeAndRelationships(node);
@@ -300,7 +432,7 @@ public class TimeTreeApiTest extends GraphAwareApiTest {
             tx.success();
         }
 
-        //Then
+        httpClient.post(getUrl() + "0/single/" + dateInMillis, HttpStatus.SC_NOT_FOUND);
         httpClient.get(getUrl() + "0/single/" + dateInMillis, HttpStatus.SC_NOT_FOUND);
     }
 
@@ -311,7 +443,7 @@ public class TimeTreeApiTest extends GraphAwareApiTest {
 
         //When
         String timezone = "America/Los_Angeles";
-        String result = httpClient.get(getUrl() + "single/" + dateInMillis + "?resolution=minute&timezone=" + timezone, HttpStatus.SC_OK);
+        String result = httpClient.post(getUrl() + "single/" + dateInMillis + "?resolution=minute&timezone=" + timezone, HttpStatus.SC_OK);
 
         //Then
         assertSameGraph(getDatabase(), "CREATE" +
@@ -343,7 +475,7 @@ public class TimeTreeApiTest extends GraphAwareApiTest {
 
         //When
         String timezone = "PST";
-        String result = httpClient.get(getUrl() + "single/" + dateInMillis + "?resolution=minute&timezone=" + timezone, HttpStatus.SC_OK);
+        String result = httpClient.post(getUrl() + "single/" + dateInMillis + "?resolution=minute&timezone=" + timezone, HttpStatus.SC_OK);
 
         //Then
         assertSameGraph(getDatabase(), "CREATE" +
@@ -374,7 +506,7 @@ public class TimeTreeApiTest extends GraphAwareApiTest {
         long dateInMillis = dateToMillis(1940, 2, 5);
 
         //When
-        String result = httpClient.get(getUrl() + "single/" + dateInMillis, HttpStatus.SC_OK);
+        String result = httpClient.post(getUrl() + "single/" + dateInMillis, HttpStatus.SC_OK);
 
         //Then
         assertSameGraph(getDatabase(), "CREATE" +

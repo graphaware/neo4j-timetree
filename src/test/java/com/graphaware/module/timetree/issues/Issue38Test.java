@@ -18,7 +18,9 @@ package com.graphaware.module.timetree.issues;
 
 import com.graphaware.test.integration.NeoServerIntegrationTest;
 import org.apache.http.HttpStatus;
+import org.json.JSONException;
 import org.junit.Test;
+import org.skyscreamer.jsonassert.JSONAssert;
 
 import static org.junit.Assert.assertEquals;
 
@@ -72,18 +74,18 @@ public class Issue38Test extends NeoServerIntegrationTest {
     }
 
     @Test
-    public void testNonUTCEventsAreReturned() {
+    public void testNonUTCEventsAreReturned() throws JSONException {
         // 24.08.2015 11:43UTC
         // hour node will be 22 because configuration is GMT+11
         // node Id will be 0
         httpClient.executeCypher(baseUrl(), "CREATE (n:Item {created: 1440416586000})");
         String response = httpClient.get(baseUrl() + "/graphaware/timetree/range/1440416586000/1440416600000/events?timezone=GMT+11", null, HttpStatus.SC_OK);
-        assertEquals("[{\"node\":{\"id\":0,\"properties\":{\"created\":1440416586000},\"labels\":[\"Item\"]},\"relationshipType\":\"Created\",\"direction\":\"INCOMING\"}]", response);
+        JSONAssert.assertEquals("[{\"node\":{\"id\":0,\"properties\":{\"created\":1440416586000},\"labels\":[\"Item\"]},\"relationshipType\":\"Created\",\"direction\":\"INCOMING\"}]", response, false);
         // add a node modification property
         // modification time is 24.08.2015 12:02UTC
         httpClient.executeCypher(baseUrl(), "MATCH (n) WHERE id(n) = 0 SET n.modified = 1440417779000");
         String modificationResponse = httpClient.get(baseUrl() + "/graphaware/timetree/range/1440417779000/1440417779000/events?timezone=GMT+11", null, HttpStatus.SC_OK);
-        assertEquals("[{\"node\":{\"id\":0,\"properties\":{\"created\":1440416586000,\"modified\":1440417779000},\"labels\":[\"Item\"]},\"relationshipType\":\"Created\",\"direction\":\"INCOMING\"},{\"node\":{\"id\":0,\"properties\":{\"created\":1440416586000,\"modified\":1440417779000},\"labels\":[\"Item\"]},\"relationshipType\":\"Modified\",\"direction\":\"INCOMING\"}]", modificationResponse);
+        JSONAssert.assertEquals("[{\"node\":{\"id\":0,\"properties\":{\"created\":1440416586000,\"modified\":1440417779000},\"labels\":[\"Item\"]},\"relationshipType\":\"Created\",\"direction\":\"INCOMING\"},{\"node\":{\"id\":0,\"properties\":{\"created\":1440416586000,\"modified\":1440417779000},\"labels\":[\"Item\"]},\"relationshipType\":\"Modified\",\"direction\":\"INCOMING\"}]", modificationResponse, false);
 
         // The below query shouldn't return anything as the default timezone is UTC and the previous events were inserted with GMT+11
         String responseFromRequestWithoutTZ = httpClient.get(baseUrl() + "/graphaware/timetree/range/1440417779000/1440417779000/events?resolution=Second", null, HttpStatus.SC_OK);

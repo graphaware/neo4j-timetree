@@ -16,7 +16,8 @@
 
 package com.graphaware.module.timetree.api;
 
-import com.graphaware.api.JsonNode;
+import com.graphaware.api.json.JsonNode;
+import com.graphaware.api.json.LongIdJsonNode;
 import com.graphaware.module.timetree.CustomRootTimeTree;
 import com.graphaware.module.timetree.SingleTimeTree;
 import com.graphaware.module.timetree.TimeTree;
@@ -68,7 +69,7 @@ public class TimeTreeApi {
         try (Transaction tx = database.beginTx()) {
             Node instant = timeTree.getInstant(timeInstant);
             if (instant != null) {
-                result = new JsonNode(instant);
+                result = new LongIdJsonNode(instant);
             }
             tx.success();
         }
@@ -99,7 +100,7 @@ public class TimeTreeApi {
         JsonNode result;
 
         try (Transaction tx = database.beginTx()) {
-            result = new JsonNode(database.getNodeById(id));
+            result = new LongIdJsonNode(database.getNodeById(id));
             tx.success();
         }
 
@@ -168,7 +169,7 @@ public class TimeTreeApi {
         try (Transaction tx = database.beginTx()) {
             Node instant = new CustomRootTimeTree(database.getNodeById(rootNodeId)).getInstant(timeInstant);
             if (instant != null) {
-                result = new JsonNode(instant);
+                result = new LongIdJsonNode(instant);
             }
             tx.success();
         }
@@ -198,7 +199,7 @@ public class TimeTreeApi {
 
         JsonNode result;
         try (Transaction tx = database.beginTx()) {
-            result = new JsonNode(database.getNodeById(id));
+            result = new LongIdJsonNode(database.getNodeById(id));
             tx.success();
         }
 
@@ -313,7 +314,7 @@ public class TimeTreeApi {
     private JsonNode[] jsonNodes(List<Node> nodes) {
         List<JsonNode> result = new LinkedList<>();
         for (Node node : nodes) {
-            result.add(new JsonNode(node));
+            result.add(new LongIdJsonNode(node));
         }
         return result.toArray(new JsonNode[result.size()]);
     }

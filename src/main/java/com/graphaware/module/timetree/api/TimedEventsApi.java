@@ -16,7 +16,8 @@
 
 package com.graphaware.module.timetree.api;
 
-import com.graphaware.api.JsonNode;
+import com.graphaware.api.json.JsonNode;
+import com.graphaware.api.json.LongIdJsonNode;
 import com.graphaware.module.timetree.CustomRootTimeTree;
 import com.graphaware.module.timetree.TimeTreeBackedEvents;
 import com.graphaware.module.timetree.TimedEvents;
@@ -104,7 +105,7 @@ public class TimedEventsApi {
 
         JsonNode result;
         try (Transaction tx = database.beginTx()) {
-            result = new JsonNode(database.getNodeById(id));
+            result = new LongIdJsonNode(database.getNodeById(id));
             tx.success();
         }
 
@@ -229,7 +230,7 @@ public class TimedEventsApi {
 
         JsonNode result;
         try (Transaction tx = database.beginTx()) {
-            result = new JsonNode(database.getNodeById(id));
+            result = new LongIdJsonNode(database.getNodeById(id));
             tx.success();
         }
 

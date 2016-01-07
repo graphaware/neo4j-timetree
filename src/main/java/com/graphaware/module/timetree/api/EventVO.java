@@ -15,31 +15,31 @@
  */
 package com.graphaware.module.timetree.api;
 
-import com.graphaware.api.JsonNode;
+import com.graphaware.api.json.LongIdJsonNode;
 
 /**
  * Representation of an event.
  */
 public class EventVO {
 
-    private JsonNode node;
+    private LongIdJsonNode node;
     private String relationshipType;
     private String direction;
 
     public EventVO() {
     }
 
-    public EventVO(JsonNode node, String relationshipType, String direction) {
+    public EventVO(LongIdJsonNode node, String relationshipType, String direction) {
         this.node = node;
         this.relationshipType = relationshipType;
         this.direction = direction;
     }
 
-    public JsonNode getNode() {
+    public LongIdJsonNode getNode() {
         return node;
     }
 
-    public void setNode(JsonNode node) {
+    public void setNode(LongIdJsonNode node) {
         this.node = node;
     }
 

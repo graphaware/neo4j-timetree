@@ -1,3 +1,6 @@
+2.3.2.37.24:
+    -no changes
+
 2.3.1.37.24:
     - solved issue #47 - GET request do not modify the graph
 

@@ -238,7 +238,7 @@ com.graphaware.runtime.enabled=true
 # A Runtime module that takes care of attaching the events like this (TT is the ID of the module)
 com.graphaware.module.TT.1=com.graphaware.module.timetree.module.TimeTreeModuleBootstrapper
 
-# Nodes which represent events and should be attached automatically have to be defined
+# Optionally, nodes which represent events and should be attached automatically have to be defined (defaults to nodes with label Event)
 com.graphaware.module.TT.event=hasLabel('Email')
 
 # Optionally, a property on the event nodes that represents the the time (long) at which the event took place must be specified (defaults to "timestamp")

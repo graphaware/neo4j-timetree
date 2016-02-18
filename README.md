@@ -229,7 +229,11 @@ instead if `node.id`. the body of the POST should resemble:
 ### Automatic Event Attachment
 
 All TimeTree versions compatible with Neo4j 2.2.0+ have the capability of automatically attaching events to the tree.
-This capability can be configured in `neo4j.properties` as follows:
+
+By default, any node created with label `Event` that contains a property named `timestamp` (with value as a `long` representing the timestamp in milliseconds),
+will be attached to the tree with an outgoing relationship `AT_TIME` from the event node to tree.
+
+Required configuration as well as overriding the defaults are specified in `neo4j.properties` as follows:
 
 ```
 # Runtime must be enabled like this
@@ -237,6 +241,9 @@ com.graphaware.runtime.enabled=true
 
 # A Runtime module that takes care of attaching the events like this (TT is the ID of the module)
 com.graphaware.module.TT.1=com.graphaware.module.timetree.module.TimeTreeModuleBootstrapper
+
+# autoAttach must be set to true
+com.graphaware.module.TT.autoAttach=true
 
 # Optionally, nodes which represent events and should be attached automatically have to be defined (defaults to nodes with label Event)
 com.graphaware.module.TT.event=hasLabel('Email')
@@ -259,8 +266,6 @@ com.graphaware.module.TT.relationship=SENT_ON
 # Optionally, a relationship direction (from the tree's point of view), with which the events will be attached to the tree can be specified (defaults to INCOMING)
 com.graphaware.module.TT.direction=INCOMING
 
-# autoAttach must be set to true
-com.graphaware.module.TT.autoAttach=true
 ```
 
 For more information on the `com.graphaware.module.TT.event` setting, i.e. how to write expressions that define which

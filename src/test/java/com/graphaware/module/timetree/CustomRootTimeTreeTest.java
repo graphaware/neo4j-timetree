@@ -26,7 +26,6 @@ import org.joda.time.DateTime;
 import org.joda.time.DateTimeZone;
 import org.junit.Test;
 import org.neo4j.graphdb.*;
-import org.neo4j.tooling.GlobalGraphOperations;
 
 import java.util.TimeZone;
 
@@ -97,7 +96,7 @@ public class CustomRootTimeTreeTest extends DatabaseIntegrationTest {
 
         //When
         try (Transaction tx = getDatabase().beginTx()) {
-            for (Node node : GlobalGraphOperations.at(getDatabase()).getAllNodes()) {
+            for (Node node : getDatabase().getAllNodes()) {
                 PropertyContainerUtils.deleteNodeAndRelationships(node);
             }
             tx.success();

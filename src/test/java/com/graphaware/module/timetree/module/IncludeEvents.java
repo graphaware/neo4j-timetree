@@ -21,7 +21,7 @@ import org.neo4j.graphdb.DynamicLabel;
 import org.neo4j.graphdb.GraphDatabaseService;
 import org.neo4j.graphdb.Label;
 import org.neo4j.graphdb.Node;
-import org.neo4j.helpers.collection.Iterables;
+import org.neo4j.helpers.collection.Iterators;
 
 public final class IncludeEvents extends BaseNodeInclusionPolicy {
 
@@ -43,6 +43,6 @@ public final class IncludeEvents extends BaseNodeInclusionPolicy {
 
     @Override
     protected Iterable<Node> doGetAll(GraphDatabaseService database) {
-        return Iterables.asResourceIterable(database.findNodes(EVENT));
+        return Iterators.asResourceIterable(database.findNodes(EVENT));
     }
 }

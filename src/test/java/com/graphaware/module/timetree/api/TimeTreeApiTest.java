@@ -26,7 +26,6 @@ import org.junit.Test;
 import org.neo4j.graphdb.DynamicLabel;
 import org.neo4j.graphdb.Node;
 import org.neo4j.graphdb.Transaction;
-import org.neo4j.tooling.GlobalGraphOperations;
 
 import static com.graphaware.test.unit.GraphUnit.assertSameGraph;
 import static org.skyscreamer.jsonassert.JSONAssert.assertEquals;
@@ -377,7 +376,7 @@ public class TimeTreeApiTest extends GraphAwareApiTest {
         assertEquals("{\"id\":3,\"properties\":{\"value\":4},\"labels\":[\"Day\"]}", result, false);
 
         try (Transaction tx = getDatabase().beginTx()) {
-            for (Node node : GlobalGraphOperations.at(getDatabase()).getAllNodes()) {
+            for (Node node : getDatabase().getAllNodes()) {
                 PropertyContainerUtils.deleteNodeAndRelationships(node);
             }
             tx.success();
@@ -426,7 +425,7 @@ public class TimeTreeApiTest extends GraphAwareApiTest {
         assertEquals("{\"id\":3,\"properties\":{\"value\":4},\"labels\":[\"Day\"]}", result, false);
 
         try (Transaction tx = getDatabase().beginTx()) {
-            for (Node node : GlobalGraphOperations.at(getDatabase()).getAllNodes()) {
+            for (Node node : getDatabase().getAllNodes()) {
                 PropertyContainerUtils.deleteNodeAndRelationships(node);
             }
             tx.success();

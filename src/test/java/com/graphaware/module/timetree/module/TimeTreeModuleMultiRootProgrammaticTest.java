@@ -37,6 +37,7 @@ import java.util.TimeZone;
 
 import static com.graphaware.module.timetree.domain.Resolution.MONTH;
 import static com.graphaware.test.unit.GraphUnit.assertSameGraph;
+import java.io.File;
 
 /**
  * Test for {@link TimeTreeModule} set up programatically.
@@ -506,7 +507,7 @@ public class TimeTreeModuleMultiRootProgrammaticTest extends DatabaseIntegration
         temporaryFolder.create();
         temporaryFolder.getRoot().deleteOnExit();
 
-        GraphDatabaseService database = new GraphDatabaseFactory().newEmbeddedDatabase(temporaryFolder.getRoot().getAbsolutePath());
+        GraphDatabaseService database = new GraphDatabaseFactory().newEmbeddedDatabase(new File(temporaryFolder.getRoot().getAbsolutePath()));
 
         GraphAwareRuntime runtime = GraphAwareRuntimeFactory.createRuntime(database);
         runtime.registerModule(new TimeTreeModule("timetree", TimeTreeConfiguration.defaultConfiguration().withAutoAttach(true), database));
@@ -546,7 +547,7 @@ public class TimeTreeModuleMultiRootProgrammaticTest extends DatabaseIntegration
 
         database.shutdown();
 
-        database = new GraphDatabaseFactory().newEmbeddedDatabase(temporaryFolder.getRoot().getAbsolutePath());
+        database = new GraphDatabaseFactory().newEmbeddedDatabase(new File(temporaryFolder.getRoot().getAbsolutePath()));
 
         runtime = GraphAwareRuntimeFactory.createRuntime(database);
         runtime.registerModule(new TimeTreeModule("timetree", TimeTreeConfiguration.defaultConfiguration().withResolution(MONTH).withAutoAttach(true), database));

@@ -26,7 +26,6 @@ import org.junit.Before;
 import org.junit.Test;
 import org.neo4j.graphdb.Node;
 import org.neo4j.graphdb.Transaction;
-import org.neo4j.tooling.GlobalGraphOperations;
 
 import java.util.List;
 import java.util.TimeZone;
@@ -789,7 +788,7 @@ public class SingleTimeTreeTest extends DatabaseIntegrationTest {
 
         //When
         try (Transaction tx = getDatabase().beginTx()) {
-            for (Node node : GlobalGraphOperations.at(getDatabase()).getAllNodes()) {
+            for (Node node : getDatabase().getAllNodes()) {
                 PropertyContainerUtils.deleteNodeAndRelationships(node);
             }
             tx.success();

@@ -24,7 +24,6 @@ import com.graphaware.module.timetree.domain.Resolution;
 import com.graphaware.runtime.GraphAwareRuntime;
 import com.graphaware.runtime.GraphAwareRuntimeFactory;
 import com.graphaware.runtime.metadata.DefaultTxDrivenModuleMetadata;
-import com.graphaware.test.integration.DatabaseIntegrationTest;
 import org.joda.time.DateTimeZone;
 import org.junit.Test;
 import org.junit.rules.TemporaryFolder;
@@ -36,13 +35,14 @@ import java.util.Calendar;
 import java.util.TimeZone;
 
 import static com.graphaware.module.timetree.domain.Resolution.MONTH;
+import com.graphaware.test.integration.EmbeddedDatabaseIntegrationTest;
 import static com.graphaware.test.unit.GraphUnit.assertSameGraph;
 import java.io.File;
 
 /**
  * Test for {@link TimeTreeModule} set up programatically.
  */
-public class TimeTreeModuleMultiRootProgrammaticTest extends DatabaseIntegrationTest {
+public class TimeTreeModuleMultiRootProgrammaticTest extends EmbeddedDatabaseIntegrationTest {
 
     private static final Label Email = DynamicLabel.label("Email");
     private static final Label Event = DynamicLabel.label("Event");

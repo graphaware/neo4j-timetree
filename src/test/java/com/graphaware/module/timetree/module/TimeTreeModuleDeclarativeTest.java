@@ -16,7 +16,7 @@
 
 package com.graphaware.module.timetree.module;
 
-import com.graphaware.test.integration.GraphAwareApiTest;
+import com.graphaware.test.integration.GraphAwareIntegrationTest;
 import org.junit.Test;
 import org.springframework.core.io.ClassPathResource;
 
@@ -29,7 +29,7 @@ import static com.graphaware.test.unit.GraphUnit.assertSameGraph;
 /**
  * Integration test for {@link com.graphaware.module.timetree.module.TimeTreeModule}.
  */
-public class TimeTreeModuleDeclarativeTest extends GraphAwareApiTest {
+public class TimeTreeModuleDeclarativeTest extends GraphAwareIntegrationTest {
 
     private static final long TIMESTAMP;
 
@@ -40,12 +40,8 @@ public class TimeTreeModuleDeclarativeTest extends GraphAwareApiTest {
     }
 
     @Override
-    protected String propertiesFile() {
-        try {
-            return new ClassPathResource("neo4j-timetree.properties").getFile().getAbsolutePath();
-        } catch (IOException e) {
-            throw new RuntimeException(e);
-        }
+    protected String configFile() {
+        return "neo4j-timetree.properties";
     }
 
     @Test

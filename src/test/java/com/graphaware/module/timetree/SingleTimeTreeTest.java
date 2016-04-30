@@ -19,7 +19,6 @@ package com.graphaware.module.timetree;
 import com.graphaware.common.util.PropertyContainerUtils;
 import com.graphaware.module.timetree.domain.TimeInstant;
 import com.graphaware.module.timetree.domain.TimeTreeLabels;
-import com.graphaware.test.integration.DatabaseIntegrationTest;
 import org.joda.time.DateTime;
 import org.joda.time.DateTimeZone;
 import org.junit.Before;
@@ -32,6 +31,7 @@ import java.util.TimeZone;
 
 import static com.graphaware.module.timetree.SingleTimeTree.VALUE_PROPERTY;
 import static com.graphaware.module.timetree.domain.Resolution.*;
+import com.graphaware.test.integration.ServerIntegrationTest;
 import static com.graphaware.test.unit.GraphUnit.assertSameGraph;
 import static org.junit.Assert.*;
 import static org.neo4j.graphdb.DynamicRelationshipType.withName;
@@ -39,7 +39,7 @@ import static org.neo4j.graphdb.DynamicRelationshipType.withName;
 /**
  * Unit test for {@link SingleTimeTree}.
  */
-public class SingleTimeTreeTest extends DatabaseIntegrationTest {
+public class SingleTimeTreeTest extends ServerIntegrationTest {
 
     private TimeTree timeTree; //class under test
 

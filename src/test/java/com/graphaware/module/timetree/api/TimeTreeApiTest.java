@@ -17,7 +17,7 @@
 package com.graphaware.module.timetree.api;
 
 import com.graphaware.common.util.PropertyContainerUtils;
-import com.graphaware.test.integration.GraphAwareApiTest;
+import com.graphaware.test.integration.GraphAwareIntegrationTest;
 import org.apache.http.HttpStatus;
 import org.joda.time.DateTime;
 import org.joda.time.DateTimeZone;
@@ -33,7 +33,7 @@ import static org.skyscreamer.jsonassert.JSONAssert.assertEquals;
 /**
  * Integration test for {@link com.graphaware.module.timetree.api.TimeTreeApi}.
  */
-public class TimeTreeApiTest extends GraphAwareApiTest {
+public class TimeTreeApiTest extends GraphAwareIntegrationTest {
 
     @Test
     public void trivialTreeShouldBeCreatedWhenFirstDayIsRequested() throws JSONException {

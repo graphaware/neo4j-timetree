@@ -19,7 +19,6 @@ package com.graphaware.module.timetree;
 import com.graphaware.module.timetree.domain.Event;
 import com.graphaware.module.timetree.domain.Resolution;
 import com.graphaware.module.timetree.domain.TimeInstant;
-import com.graphaware.test.integration.DatabaseIntegrationTest;
 import org.joda.time.DateTime;
 import org.joda.time.DateTimeZone;
 import org.junit.Before;
@@ -33,6 +32,7 @@ import java.util.*;
 
 import static com.graphaware.module.timetree.domain.Resolution.MONTH;
 import static com.graphaware.module.timetree.domain.Resolution.YEAR;
+import com.graphaware.test.integration.ServerIntegrationTest;
 import static com.graphaware.test.unit.GraphUnit.assertSameGraph;
 import static org.junit.Assert.*;
 import static org.neo4j.graphdb.Direction.BOTH;
@@ -43,7 +43,7 @@ import static org.neo4j.helpers.collection.Iterables.count;
 /**
  * Unit test for {@link com.graphaware.module.timetree.TimeTreeBackedEvents}.
  */
-public class TimeTreeBackedEventsTest extends DatabaseIntegrationTest {
+public class TimeTreeBackedEventsTest extends ServerIntegrationTest {
 
     private static final RelationshipType AT_TIME = withName("AT_TIME");
     private static final RelationshipType AT_OTHER_TIME = withName("AT_OTHER_TIME");

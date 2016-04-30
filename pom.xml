@@ -101,7 +101,7 @@
             <groupId>com.graphaware.neo4j</groupId>
             <artifactId>resttest</artifactId>
             <scope>test</scope>
-            <version>2.3.3.37.13</version>
+            <version>3.0.0.37.13</version>
         </dependency>
 
         <dependency>

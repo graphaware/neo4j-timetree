@@ -20,7 +20,7 @@ import com.graphaware.common.policy.InclusionPolicies;
 import com.graphaware.common.policy.NodePropertyInclusionPolicy;
 import com.graphaware.module.timetree.domain.Resolution;
 import com.graphaware.module.timetree.domain.TimeInstant;
-import com.graphaware.test.integration.GraphAwareApiTest;
+import com.graphaware.test.integration.GraphAwareIntegrationTest;
 import org.apache.http.HttpStatus;
 import org.joda.time.DateTime;
 import org.joda.time.DateTimeZone;
@@ -42,7 +42,7 @@ import static org.skyscreamer.jsonassert.JSONAssert.assertEquals;
 /**
  * Integration test for {@link TimeTreeApi}.
  */
-public class TimedEventsApiWithUUIDTest extends GraphAwareApiTest {
+public class TimedEventsApiWithUUIDTest extends GraphAwareIntegrationTest {
 
     private final AtomicInteger counter = new AtomicInteger(0);
     private InclusionPolicies ignoreUuid = InclusionPolicies.all().with(

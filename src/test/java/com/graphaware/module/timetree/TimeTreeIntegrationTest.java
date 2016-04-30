@@ -16,7 +16,7 @@
 
 package com.graphaware.module.timetree;
 
-import com.graphaware.test.integration.NeoServerIntegrationTest;
+import com.graphaware.test.integration.GraphAwareIntegrationTest;
 import org.eclipse.jetty.http.HttpStatus;
 import org.junit.Test;
 
@@ -33,11 +33,11 @@ import static org.junit.Assert.assertNotSame;
 /**
  * {@link NeoServerIntegrationTest} for {@link TimeTree} module and {@link com.graphaware.module.timetree.api.TimeTreeApi}.
  */
-public class TimeTreeIntegrationTest extends NeoServerIntegrationTest {
+public class TimeTreeIntegrationTest extends GraphAwareIntegrationTest {
 
     @Test
     public void graphAwareApisAreMountedWhenPresentOnClasspath() throws InterruptedException, IOException {
-        httpClient.post(baseUrl() + "/graphaware/timetree/now/", HttpStatus.OK_200);
+        httpClient.post(baseUrl() + "/timetree/now/", HttpStatus.OK_200);
     }
 
     @Test
@@ -50,7 +50,7 @@ public class TimeTreeIntegrationTest extends NeoServerIntegrationTest {
             executor.execute(new Runnable() {
                 @Override
                 public void run() {
-                    httpClient.post(baseUrl() + "/graphaware/timetree/now?resolution=millisecond", HttpStatus.OK_200);
+                    httpClient.post(baseUrl() + "/timetree/now?resolution=millisecond", HttpStatus.OK_200);
                     successfulRequests.incrementAndGet();
                 }
             });
@@ -60,21 +60,23 @@ public class TimeTreeIntegrationTest extends NeoServerIntegrationTest {
         executor.awaitTermination(30, TimeUnit.SECONDS);
 
         assertEquals(noRequests, successfulRequests.get());
+        String cypherResult = httpClient.executeCypher(baseNeoUrl(), "MATCH (n:TimeTreeRoot) RETURN count(n)");
+        String expectedResult = "{\"results\":[{\"columns\":[\"count(n)\"],\"data\":[{\"row\":[1],\"meta\":[null]}]}],\"errors\":[]}";
 
         //make sure there's only 1 root
-        assertEquals("{\"results\":[{\"columns\":[\"count(n)\"],\"data\":[{\"row\":[1]}]}],\"errors\":[]}", httpClient.executeCypher(baseUrl(), "MATCH (n:TimeTreeRoot) RETURN count(n)"));
+        assertEquals(expectedResult, cypherResult);
     }
 
     @Test
     public void shouldReturnEvents() {
-        String nodeId = httpClient.post(baseUrl() + "/graphaware/timetree/now?resolution=second", HttpStatus.OK_200);
+        String nodeId = httpClient.post(baseUrl() + "/timetree/now?resolution=second", HttpStatus.OK_200);
 
-        httpClient.executeCypher(baseUrl(), "START second=node(" + nodeId + ") " +
+        httpClient.executeCypher(baseNeoUrl(), "START second=node(" + nodeId + ") " +
                 "CREATE (email:Event {subject:'Neo4j'})-[:SENT_ON]->(second)");
 
         long now = new Date().getTime();
 
-        String actual = httpClient.get(baseUrl() + "/graphaware/timetree/range/" + (now - 100000000000L) + "/" + (now + 100000000000L) + "/events?resolution=second", HttpStatus.OK_200);
+        String actual = httpClient.get(baseUrl() + "/timetree/range/" + (now - 100000000000L) + "/" + (now + 100000000000L) + "/events?resolution=second", HttpStatus.OK_200);
         assertNotSame("[]", actual);
     }
 }

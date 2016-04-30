@@ -18,7 +18,7 @@ package com.graphaware.module.timetree.api;
 
 import com.graphaware.module.timetree.domain.Resolution;
 import com.graphaware.module.timetree.domain.TimeInstant;
-import com.graphaware.test.integration.GraphAwareApiTest;
+import com.graphaware.test.integration.GraphAwareIntegrationTest;
 import com.graphaware.test.unit.GraphUnit;
 import org.apache.http.HttpStatus;
 import org.joda.time.DateTime;
@@ -38,7 +38,7 @@ import static org.skyscreamer.jsonassert.JSONAssert.assertEquals;
 /**
  * Integration test for {@link TimeTreeApi}.
  */
-public class TimedEventsApiTest extends GraphAwareApiTest {
+public class TimedEventsApiTest extends GraphAwareIntegrationTest {
 
     @Test
     public void shouldComplainWhenInputIllegal() throws IOException {

@@ -21,7 +21,6 @@ import com.graphaware.module.timetree.domain.TimeInstant;
 import com.graphaware.module.timetree.domain.TimeTreeLabels;
 import com.graphaware.test.data.DatabasePopulator;
 import com.graphaware.test.data.SingleTransactionPopulator;
-import com.graphaware.test.integration.DatabaseIntegrationTest;
 import org.joda.time.DateTime;
 import org.joda.time.DateTimeZone;
 import org.junit.Test;
@@ -30,6 +29,7 @@ import org.neo4j.graphdb.*;
 import java.util.TimeZone;
 
 import static com.graphaware.module.timetree.SingleTimeTree.VALUE_PROPERTY;
+import com.graphaware.test.integration.ServerIntegrationTest;
 import static com.graphaware.test.unit.GraphUnit.assertSameGraph;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertTrue;
@@ -37,7 +37,7 @@ import static org.junit.Assert.assertTrue;
 /**
  * Unit test for {@link com.graphaware.module.timetree.SingleTimeTree}.
  */
-public class CustomRootTimeTreeTest extends DatabaseIntegrationTest {
+public class CustomRootTimeTreeTest extends ServerIntegrationTest {
 
     private static final DateTimeZone UTC = DateTimeZone.forTimeZone(TimeZone.getTimeZone("UTC"));
 

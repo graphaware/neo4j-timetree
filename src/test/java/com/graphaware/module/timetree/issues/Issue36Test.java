@@ -16,21 +16,21 @@
 
 package com.graphaware.module.timetree.issues;
 
-import com.graphaware.test.integration.NeoServerIntegrationTest;
+import com.graphaware.test.integration.GraphAwareIntegrationTest;
 import org.apache.http.HttpStatus;
 import org.junit.Test;
 
-public class Issue36Test extends NeoServerIntegrationTest {
+public class Issue36Test extends GraphAwareIntegrationTest {
 
     @Override
-    protected String neo4jConfigFile() {
+    protected String configFile() {
         return "issue-36.properties";
     }
 
     @Test
     public void verifyIssue36IsNotAnIssue() throws InterruptedException {
-        httpClient.executeCypher(baseUrl(), "CREATE (n:SomeNode)"); //will get ID 0
-        httpClient.executeCypher(baseUrl(), "CREATE (n:Customer {timestamp: 1436941284 , timeTreeRootId: 0, name: 'test'}) return n");
+        httpClient.executeCypher(baseNeoUrl(), "CREATE (n:SomeNode)"); //will get ID 0
+        httpClient.executeCypher(baseNeoUrl(), "CREATE (n:Customer {timestamp: 1436941284 , timeTreeRootId: 0, name: 'test'}) return n");
 
         String cypher = "CREATE (n:SomeNode), (y:Year {value:1970}), (m:Month {value:1}), (d:Day {value:17}), (h:Hour {value:15})," +
                 "(n)-[:LAST]->(y)," +
@@ -47,6 +47,6 @@ public class Issue36Test extends NeoServerIntegrationTest {
                 "(d)-[:CHILD]->(h)," +
                 "(h)<-[:CREATED_ON]-(:Customer {timestamp: 1436941284 , timeTreeRootId: 0, name: 'test'})";
 
-        httpClient.post(baseUrl() + "/graphaware/resttest/assertSameGraph", "{\"cypher\":\"" + cypher + "\"}", HttpStatus.SC_OK);
+        httpClient.post(baseUrl() + "/resttest/assertSameGraph", "{\"cypher\":\"" + cypher + "\"}", HttpStatus.SC_OK);
     }
 }

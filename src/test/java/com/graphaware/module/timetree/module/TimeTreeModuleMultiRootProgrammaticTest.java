@@ -37,6 +37,8 @@ import java.util.TimeZone;
 import static com.graphaware.module.timetree.domain.Resolution.MONTH;
 import com.graphaware.test.integration.EmbeddedDatabaseIntegrationTest;
 import static com.graphaware.test.unit.GraphUnit.assertSameGraph;
+import static org.neo4j.graphdb.Label.*;
+
 import java.io.File;
 
 /**
@@ -44,9 +46,9 @@ import java.io.File;
  */
 public class TimeTreeModuleMultiRootProgrammaticTest extends EmbeddedDatabaseIntegrationTest {
 
-    private static final Label Email = DynamicLabel.label("Email");
-    private static final Label Event = DynamicLabel.label("Event");
-    private static final Label CustomRoot = DynamicLabel.label("CustomRoot");
+    private static final Label Email = label("Email");
+    private static final Label Event = label("Event");
+    private static final Label CustomRoot = label("CustomRoot");
     private static final long TIMESTAMP;
 
     static {

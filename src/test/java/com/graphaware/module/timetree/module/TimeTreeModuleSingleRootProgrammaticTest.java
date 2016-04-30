@@ -39,6 +39,8 @@ import static com.graphaware.module.timetree.domain.Resolution.MINUTE;
 import static com.graphaware.module.timetree.domain.Resolution.MONTH;
 import com.graphaware.test.integration.EmbeddedDatabaseIntegrationTest;
 import static com.graphaware.test.unit.GraphUnit.assertSameGraph;
+import static org.neo4j.graphdb.Label.*;
+
 import java.io.File;
 
 /**
@@ -46,8 +48,8 @@ import java.io.File;
  */
 public class TimeTreeModuleSingleRootProgrammaticTest extends EmbeddedDatabaseIntegrationTest {
 
-    private static final Label Email = DynamicLabel.label("Email");
-    private static final Label Event = DynamicLabel.label("Event");
+    private static final Label Email = label("Email");
+    private static final Label Event = label("Event");
     private static final long TIMESTAMP;
 
     static {

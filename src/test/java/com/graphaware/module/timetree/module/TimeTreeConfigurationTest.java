@@ -19,9 +19,9 @@ package com.graphaware.module.timetree.module;
 import com.graphaware.common.policy.composite.CompositeNodeInclusionPolicy;
 import com.graphaware.common.policy.spel.SpelNodeInclusionPolicy;
 import org.junit.Test;
-import org.neo4j.graphdb.DynamicRelationshipType;
 
 import static org.junit.Assert.assertTrue;
+import org.neo4j.graphdb.RelationshipType;
 
 /**
  * Unit test for {@link com.graphaware.module.timetree.module.TimeTreeConfiguration}
@@ -33,13 +33,13 @@ public class TimeTreeConfigurationTest {
         TimeTreeConfiguration c1 = TimeTreeConfiguration.defaultConfiguration()
                 .withAutoAttach(true)
                 .withTimestampProperty("created")
-                .withRelationshipType(DynamicRelationshipType.withName("TEST"))
+                .withRelationshipType(RelationshipType.withName("TEST"))
                 .with(CompositeNodeInclusionPolicy.of(new SpelNodeInclusionPolicy("hasLabel('Test')")));
 
         TimeTreeConfiguration c2 = TimeTreeConfiguration.defaultConfiguration()
                 .withAutoAttach(true)
                 .withTimestampProperty("created")
-                .withRelationshipType(DynamicRelationshipType.withName("TEST"))
+                .withRelationshipType(RelationshipType.withName("TEST"))
                 .with(CompositeNodeInclusionPolicy.of(new SpelNodeInclusionPolicy("hasLabel('Test')")));
 
         assertTrue(c1.equals(c2));

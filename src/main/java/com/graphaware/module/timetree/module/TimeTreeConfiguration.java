@@ -23,12 +23,12 @@ import com.graphaware.runtime.config.BaseTxDrivenModuleConfiguration;
 import com.graphaware.runtime.policy.InclusionPoliciesFactory;
 import org.joda.time.DateTimeZone;
 import org.neo4j.graphdb.Direction;
-import org.neo4j.graphdb.DynamicRelationshipType;
 import org.neo4j.graphdb.RelationshipType;
 
 import java.util.TimeZone;
 
 import static com.graphaware.module.timetree.domain.Resolution.DAY;
+import org.neo4j.graphdb.DynamicRelationshipType;
 
 
 /**
@@ -40,7 +40,7 @@ public class TimeTreeConfiguration extends BaseTxDrivenModuleConfiguration<TimeT
     private static final DateTimeZone DEFAULT_TIME_ZONE = DateTimeZone.forTimeZone(TimeZone.getTimeZone("UTC"));
     private static final String DEFAULT_TIMESTAMP_PROPERTY = "timestamp";
     private static final String DEFAULT_CUSTOM_TIMETREE_ROOT_PROPERTY = "timeTreeRootId";
-    private static final RelationshipType DEFAULT_RELATIONSHIP_TYPE = DynamicRelationshipType.withName("AT_TIME");
+    private static final RelationshipType DEFAULT_RELATIONSHIP_TYPE = RelationshipType.withName("AT_TIME");
     private static final Direction DEFAULT_DIRECTION = Direction.INCOMING;
     private static final boolean DEFAULT_AUTO_ATTACH = false;
 
@@ -53,7 +53,7 @@ public class TimeTreeConfiguration extends BaseTxDrivenModuleConfiguration<TimeT
     private String customTimeTreeRootProperty;
     private Resolution resolution;
     private DateTimeZone timeZone;
-    private RelationshipType relationshipType;
+    private String relationshipType;
     private Direction direction;
     private boolean autoAttach;
 
@@ -81,7 +81,7 @@ public class TimeTreeConfiguration extends BaseTxDrivenModuleConfiguration<TimeT
         this.customTimeTreeRootProperty = customTimeTreeRootProperty;
         this.resolution = resolution;
         this.timeZone = timeZone;
-        this.relationshipType = relationshipType;
+        this.relationshipType = relationshipType.name();
         this.direction = direction;
         this.autoAttach = autoAttach;
     }
@@ -203,7 +203,7 @@ public class TimeTreeConfiguration extends BaseTxDrivenModuleConfiguration<TimeT
     }
 
     public RelationshipType getRelationshipType() {
-        return relationshipType;
+        return RelationshipType.withName(relationshipType);
     }
 
     public Direction getDirection() {
@@ -234,7 +234,7 @@ public class TimeTreeConfiguration extends BaseTxDrivenModuleConfiguration<TimeT
         if (autoAttach != that.autoAttach) {
             return false;
         }
-        if (!relationshipType.name().equals(that.relationshipType.name())) {
+        if (!relationshipType.equals(that.relationshipType)) {
             return false;
         }
         if (!direction.name().equals(that.direction.name())) {
@@ -266,7 +266,7 @@ public class TimeTreeConfiguration extends BaseTxDrivenModuleConfiguration<TimeT
         result = 31 * result + customTimeTreeRootProperty.hashCode();
         result = 31 * result + resolution.hashCode();
         result = 31 * result + timeZone.hashCode();
-        result = 31 * result + relationshipType.name().hashCode();
+        result = 31 * result + relationshipType.hashCode();
         result = 31 * result + direction.name().hashCode();
         result = 31 * result + (autoAttach ? 1 : 0);
         return result;

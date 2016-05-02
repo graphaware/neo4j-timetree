@@ -23,7 +23,6 @@ import com.graphaware.runtime.module.BaseRuntimeModuleBootstrapper;
 import com.graphaware.runtime.module.RuntimeModule;
 import org.joda.time.DateTimeZone;
 import org.neo4j.graphdb.Direction;
-import org.neo4j.graphdb.DynamicRelationshipType;
 import org.neo4j.graphdb.GraphDatabaseService;
 import org.neo4j.graphdb.RelationshipType;
 import org.slf4j.Logger;
@@ -92,7 +91,7 @@ public class TimeTreeModuleBootstrapper extends BaseRuntimeModuleBootstrapper<Ti
         }
 
         if (configExists(config, RELATIONSHIP)) {
-            RelationshipType relationshipType = DynamicRelationshipType.withName(config.get(RELATIONSHIP));
+            RelationshipType relationshipType = RelationshipType.withName(config.get(RELATIONSHIP));
             LOG.info("Relationship type set to {}", relationshipType);
             configuration = configuration.withRelationshipType(relationshipType);
         }

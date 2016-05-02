@@ -168,7 +168,7 @@ public class TimeTreeModuleSingleRootProgrammaticTest extends EmbeddedDatabaseIn
                                 return node.hasLabel(Email);
                             }
                         })
-                        .withRelationshipType(DynamicRelationshipType.withName("SENT_AT"))
+                        .withRelationshipType(RelationshipType.withName("SENT_AT"))
                         .withTimeZone(DateTimeZone.forTimeZone(TimeZone.getTimeZone("GMT+1")))
                         .withTimestampProperty("time")
                         .withResolution(MINUTE)

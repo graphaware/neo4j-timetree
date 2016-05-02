@@ -23,6 +23,7 @@ import com.graphaware.module.timetree.TimeTreeBackedEvents;
 import com.graphaware.module.timetree.TimedEvents;
 import com.graphaware.module.timetree.domain.Event;
 import com.graphaware.module.timetree.domain.TimeInstant;
+import com.graphaware.module.timetree.logic.TimedEventsBusinessLogic;
 import org.neo4j.graphdb.*;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -45,11 +46,14 @@ public class TimedEventsApi {
 
     private final GraphDatabaseService database;
     private final TimedEvents timedEvents;
+    
+    private final TimedEventsBusinessLogic timedEventsLogic;
 
     @Autowired
     public TimedEventsApi(GraphDatabaseService database, TimedEvents timedEvents) {
         this.database = database;
         this.timedEvents = timedEvents;
+        this.timedEventsLogic = new TimedEventsBusinessLogic(database, timedEvents);
     }
 
     @RequestMapping(value = "/single/{time}/events", method = RequestMethod.GET)
@@ -61,22 +65,12 @@ public class TimedEventsApi {
             @RequestParam(required = false) Set<String> relationshipTypes,
             @RequestParam(required = false) String direction) {
 
-        TimeInstant timeInstant = TimeInstant.fromValueObject(new TimeInstantVO(time, resolution, timezone));
-
-        List<Event> events;
-        try (Transaction tx = database.beginTx()) {
-            events = timedEvents.getEvents(timeInstant, getRelationshipTypes(relationshipTypes), resolveDirection(direction));
-            tx.success();
-        }
-
-        List<EventVO> result;
-        try (Transaction tx = database.beginTx()) {
-            result = convertEvents(events);
-            tx.success();
-        }
-
+        List<Event> events = timedEventsLogic.getEvents(time, resolution, timezone, relationshipTypes, direction);
+        List<EventVO> result = convertEvents(events);
         return result;
     }
+
+    
 
     @RequestMapping(value = "/single/event", method = RequestMethod.POST)
     @ResponseBody
@@ -90,7 +84,7 @@ public class TimedEventsApi {
 
             boolean attached = timedEvents.attachEvent(
                     eventNode,
-                    DynamicRelationshipType.withName(event.getEvent().getRelationshipType()),
+                    RelationshipType.withName(event.getEvent().getRelationshipType()),
                     resolveDirection(event.getEvent().getDirection()),
                     TimeInstant.fromValueObject(event.getTimeInstant()));
 
@@ -123,25 +117,12 @@ public class TimedEventsApi {
             @RequestParam(required = false) String direction) {
 
 
-        TimeInstant startTimeInstant = TimeInstant.fromValueObject(new TimeInstantVO(startTime, resolution, timezone));
-        TimeInstant endTimeInstant = TimeInstant.fromValueObject(new TimeInstantVO(endTime, resolution, timezone));
-
-        List<Event> events;
-        try (Transaction tx = database.beginTx()) {
-            events = timedEvents.getEvents(startTimeInstant, endTimeInstant, getRelationshipTypes(relationshipTypes), resolveDirection(direction));
-            tx.success();
-        }
-
-        List<EventVO> result;
-        try (Transaction tx = database.beginTx()) {
-            result = convertEvents(events);
-            tx.success();
-        }
-
+        List<Event> events = timedEventsLogic.getEvents(startTime, resolution, timezone, endTime, relationshipTypes, direction);
+        List<EventVO> result = convertEvents(events);
         return result;
     }
 
-
+    
     @RequestMapping(value = "/{rootNodeId}/single/{time}/events", method = RequestMethod.GET)
     @ResponseBody
     public List<EventVO> getEventsCustomRoot(
@@ -153,21 +134,8 @@ public class TimedEventsApi {
             @RequestParam(required = false) String direction) {
 
 
-        TimeInstant timeInstant = TimeInstant.fromValueObject(new TimeInstantVO(time, resolution, timezone));
-
-        List<Event> events;
-        try (Transaction tx = database.beginTx()) {
-            CustomRootTimeTree timeTree = new CustomRootTimeTree(database.getNodeById(rootNodeId));
-            events = new TimeTreeBackedEvents(timeTree).getEvents(timeInstant, getRelationshipTypes(relationshipTypes), resolveDirection(direction));
-            tx.success();
-        }
-
-        List<EventVO> result;
-        try (Transaction tx = database.beginTx()) {
-            result = convertEvents(events);
-            tx.success();
-        }
-
+        List<Event> events = timedEventsLogic.getEventsCustomRoot(time, resolution, timezone, rootNodeId, relationshipTypes, direction);
+        List<EventVO> result = convertEvents(events);
         return result;
     }
 
@@ -182,22 +150,8 @@ public class TimedEventsApi {
             @RequestParam(required = false) Set<String> relationshipTypes,
             @RequestParam(required = false) String direction) {
 
-        TimeInstant startTimeInstant = TimeInstant.fromValueObject(new TimeInstantVO(startTime, resolution, timezone));
-        TimeInstant endTimeInstant = TimeInstant.fromValueObject(new TimeInstantVO(endTime, resolution, timezone));
-
-        List<Event> events;
-        try (Transaction tx = database.beginTx()) {
-            CustomRootTimeTree timeTree = new CustomRootTimeTree(database.getNodeById(rootNodeId));
-            events = new TimeTreeBackedEvents(timeTree).getEvents(startTimeInstant, endTimeInstant, getRelationshipTypes(relationshipTypes), resolveDirection(direction));
-            tx.success();
-        }
-
-        List<EventVO> result;
-        try (Transaction tx = database.beginTx()) {
-            result = convertEvents(events);
-            tx.success();
-        }
-
+        List<Event> events = timedEventsLogic.getEventsCustomRoot(startTime, resolution, timezone, endTime, rootNodeId, relationshipTypes, direction);
+        List<EventVO> result = convertEvents(events);
         return result;
     }
 
@@ -215,7 +169,7 @@ public class TimedEventsApi {
 
             boolean attached = new TimeTreeBackedEvents(timeTree).attachEvent(
                     eventNode,
-                    DynamicRelationshipType.withName(event.getEvent().getRelationshipType()),
+                    RelationshipType.withName(event.getEvent().getRelationshipType()),
                     resolveDirection(event.getEvent().getDirection()),
                     TimeInstant.fromValueObject(event.getTimeInstant()));
 
@@ -237,22 +191,13 @@ public class TimedEventsApi {
         return result;
     }
 
-    private Set<RelationshipType> getRelationshipTypes(Set<String> strings) {
-        if (strings == null) {
-            return null;
-        }
-
-        Set<RelationshipType> result = new HashSet<>();
-        for (String type : strings) {
-            result.add(DynamicRelationshipType.withName(type));
-        }
-        return result;
-    }
-
     private List<EventVO> convertEvents(List<Event> events) {
         List<EventVO> eventVOs = new ArrayList<>(events.size());
-        for (Event event : events) {
-            eventVOs.add(event.toValueObject());
+        try (Transaction tx = database.beginTx()) {
+            for (Event event : events) {
+                eventVOs.add(event.toValueObject());
+            }
+            tx.success();
         }
         return eventVOs;
     }

@@ -42,7 +42,7 @@ public class TimeTreeProcedure {
     }
 
     public CallableProcedure.BasicProcedure getOrCreateInstant() {
-        return new CallableProcedure.BasicProcedure(procedureSignature(getProcedureName("getOrCreateInstant"))
+        return new CallableProcedure.BasicProcedure(procedureSignature(getProcedureName("mergeInstant"))
                 .mode(ProcedureSignature.Mode.READ_WRITE)
                 .in("time", Neo4jTypes.NTNumber)
                 .in("resolution", Neo4jTypes.NTString)
@@ -58,7 +58,7 @@ public class TimeTreeProcedure {
     }
     
     public CallableProcedure.BasicProcedure getInstant() {
-        return new CallableProcedure.BasicProcedure(procedureSignature(getProcedureName("getInstant"))
+        return new CallableProcedure.BasicProcedure(procedureSignature(getProcedureName("single"))
                 .mode(ProcedureSignature.Mode.READ_WRITE)
                 .in("time", Neo4jTypes.NTNumber)
                 .in("resolution", Neo4jTypes.NTString)
@@ -80,7 +80,7 @@ public class TimeTreeProcedure {
     }
     
     public CallableProcedure.BasicProcedure getInstants() {
-        return new CallableProcedure.BasicProcedure(procedureSignature(getProcedureName("getInstants"))
+        return new CallableProcedure.BasicProcedure(procedureSignature(getProcedureName("range"))
                 .mode(ProcedureSignature.Mode.READ_WRITE)
                 .in("starTime", Neo4jTypes.NTNumber)
                 .in("enTime", Neo4jTypes.NTNumber)
@@ -99,7 +99,7 @@ public class TimeTreeProcedure {
     }
     
     public CallableProcedure.BasicProcedure getOrCreateInstants() {
-        return new CallableProcedure.BasicProcedure(procedureSignature(getProcedureName("getOrCreateInstants"))
+        return new CallableProcedure.BasicProcedure(procedureSignature(getProcedureName("mergeInstants"))
                 .mode(ProcedureSignature.Mode.READ_WRITE)
                 .in("starTime", Neo4jTypes.NTNumber)
                 .in("enTime", Neo4jTypes.NTNumber)

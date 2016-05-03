@@ -21,6 +21,7 @@ import com.graphaware.module.timetree.TimedEvents;
 import com.graphaware.module.timetree.api.TimeInstantVO;
 import com.graphaware.module.timetree.domain.Event;
 import com.graphaware.module.timetree.domain.TimeInstant;
+import java.util.Collection;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
@@ -39,7 +40,7 @@ public class TimedEventsBusinessLogic {
         this.timedEvents = timedEvents;
     }
 
-    public List<Event> getEvents(long time, String resolution, String timezone, Set<String> relationshipTypes, String direction) {
+    public List<Event> getEvents(long time, String resolution, String timezone, Collection<String> relationshipTypes, String direction) {
         TimeInstant timeInstant = TimeInstant.fromValueObject(new TimeInstantVO(time, resolution, timezone));
         List<Event> events;
         try (Transaction tx = database.beginTx()) {
@@ -83,7 +84,7 @@ public class TimedEventsBusinessLogic {
         return events;
     }
 
-    private Set<RelationshipType> getRelationshipTypes(Set<String> strings) {
+    private Set<RelationshipType> getRelationshipTypes(Collection<String> strings) {
         if (strings == null) {
             return null;
         }

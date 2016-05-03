@@ -16,6 +16,7 @@
 
 package com.graphaware.module.timetree.proc;
 
+import com.graphaware.module.timetree.TimedEvents;
 import org.neo4j.graphdb.GraphDatabaseService;
 import org.neo4j.kernel.api.exceptions.ProcedureException;
 import org.neo4j.kernel.impl.proc.Procedures;
@@ -30,11 +31,14 @@ public class TimeTreeProcedures {
 
     private final GraphDatabaseService database;
     private final Procedures procedures;
+    private final TimedEvents timedEvents;
+
 
     @Autowired
-    public TimeTreeProcedures(GraphDatabaseService database, Procedures procedures) {
+    public TimeTreeProcedures(GraphDatabaseService database, TimedEvents timedEvents, Procedures procedures) {
         this.database = database;
         this.procedures = procedures;
+        this.timedEvents = timedEvents;
     }
 
     @PostConstruct
@@ -57,5 +61,8 @@ public class TimeTreeProcedures {
         //
         procedures.register(timeTreeProcedures.nowWithRoot());
         procedures.register(timeTreeProcedures.mergeNowWithRoot());
+        
+        TimedEventsProcedure timedEventsProcedures = new TimedEventsProcedure(database, timedEvents);
+        procedures.register(timedEventsProcedures.getEvents());
     }
 }

@@ -131,7 +131,7 @@ public class TimeTreeApi {
             @RequestParam(required = false) String resolution,
             @RequestParam(required = false) String timezone) {
 
-        Node instant = timeTreeLogic.getInstantWithCustomRoot(time, resolution, timezone, rootNodeId);
+        Node instant = timeTreeLogic.getInstantWithCustomRoot(rootNodeId, time, resolution, timezone);
         JsonNode result = getJsonNode(instant);
         return result;
     }
@@ -144,7 +144,7 @@ public class TimeTreeApi {
             @RequestParam(required = false) String resolution,
             @RequestParam(required = false) String timezone) {
 
-        Node instant = timeTreeLogic.getOrCreateInstantWithCustomRoot(time, resolution, timezone, rootNodeId);
+        Node instant = timeTreeLogic.getOrCreateInstantWithCustomRoot(rootNodeId, time, resolution, timezone);
         JsonNode result = getJsonNode(instant);
         return result;
     }
@@ -159,7 +159,7 @@ public class TimeTreeApi {
             @RequestParam(required = false) String resolution,
             @RequestParam(required = false) String timezone) {
 
-        List<Node> nodes = timeTreeLogic.getInstantsWithCustomRoot(startTime, resolution, timezone, endTime, rootNodeId);
+        List<Node> nodes = timeTreeLogic.getInstantsWithCustomRoot(rootNodeId, startTime, endTime, resolution, timezone);
         JsonNode[] result = getJsonNodes(nodes);
         return result;
     }
@@ -173,7 +173,7 @@ public class TimeTreeApi {
             @RequestParam(required = false) String resolution,
             @RequestParam(required = false) String timezone) {
 
-        List<Node> nodes = timeTreeLogic.getOrCreateInstantsWithCustomRoot(startTime, resolution, timezone, endTime, rootNodeId);
+        List<Node> nodes = timeTreeLogic.getOrCreateInstantsWithCustomRoot(rootNodeId, startTime, endTime, resolution, timezone);
         JsonNode[] result = getJsonNodes(nodes);
         return result;
     }

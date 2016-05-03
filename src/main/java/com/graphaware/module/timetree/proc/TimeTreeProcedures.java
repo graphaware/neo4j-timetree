@@ -40,9 +40,22 @@ public class TimeTreeProcedures {
     @PostConstruct
     public void init() throws ProcedureException, KernelException {
         TimeTreeProcedure timeTreeProcedures = new TimeTreeProcedure(database);
-        procedures.register(timeTreeProcedures.getOrCreateInstant());
         procedures.register(timeTreeProcedures.getInstant());
+        procedures.register(timeTreeProcedures.getOrCreateInstant());
+        //
         procedures.register(timeTreeProcedures.getInstants());
         procedures.register(timeTreeProcedures.getOrCreateInstants());
+        //
+        procedures.register(timeTreeProcedures.getInstantWithCustomRoot());
+        procedures.register(timeTreeProcedures.getOrCreateInstantWithCustomRoot());
+        //
+        procedures.register(timeTreeProcedures.getInstantsWithCustomRoot());
+        procedures.register(timeTreeProcedures.getOrCreateInstantsWithCustomRoot());
+        //
+        procedures.register(timeTreeProcedures.now());
+        procedures.register(timeTreeProcedures.mergeNow());
+        //
+        procedures.register(timeTreeProcedures.nowWithRoot());
+        procedures.register(timeTreeProcedures.mergeNowWithRoot());
     }
 }

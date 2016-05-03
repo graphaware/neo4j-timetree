@@ -83,7 +83,7 @@ public class TimeTreeBusinessLogic {
         return nodes;
     }
     
-    public Node getInstantWithCustomRoot(long time, String resolution, String timezone, long rootNodeId) throws NotFoundException {
+    public Node getInstantWithCustomRoot(long rootNodeId, long time, String resolution, String timezone) throws NotFoundException {
       TimeInstant timeInstant = TimeInstant.fromValueObject(new TimeInstantVO(time, resolution, timezone));
       Node instant;
       try (Transaction tx = database.beginTx()) {
@@ -96,7 +96,7 @@ public class TimeTreeBusinessLogic {
         return instant;
     }
     
-    public Node getOrCreateInstantWithCustomRoot(long time, String resolution, String timezone, long rootNodeId) {
+    public Node getOrCreateInstantWithCustomRoot(long rootNodeId, long time, String resolution, String timezone) {
       TimeInstant timeInstant = TimeInstant.fromValueObject(new TimeInstantVO(time, resolution, timezone));
       Node instant;
       try (Transaction tx = database.beginTx()) {
@@ -106,7 +106,7 @@ public class TimeTreeBusinessLogic {
         return instant;
     }
     
-    public List<Node> getInstantsWithCustomRoot(long startTime, String resolution, String timezone, long endTime, long rootNodeId) {
+    public List<Node> getInstantsWithCustomRoot(long rootNodeId, long startTime, long endTime, String resolution, String timezone) {
       TimeInstant startTimeInstant = TimeInstant.fromValueObject(new TimeInstantVO(startTime, resolution, timezone));
       TimeInstant endTimeInstant = TimeInstant.fromValueObject(new TimeInstantVO(endTime, resolution, timezone));
       List<Node> nodes;
@@ -117,7 +117,7 @@ public class TimeTreeBusinessLogic {
         return nodes;
     }
     
-    public List<Node> getOrCreateInstantsWithCustomRoot(long startTime, String resolution, String timezone, long endTime, long rootNodeId) {
+    public List<Node> getOrCreateInstantsWithCustomRoot(long rootNodeId, long startTime, long endTime, String resolution, String timezone) {
       TimeInstant startTimeInstant = TimeInstant.fromValueObject(new TimeInstantVO(startTime, resolution, timezone));
       TimeInstant endTimeInstant = TimeInstant.fromValueObject(new TimeInstantVO(endTime, resolution, timezone));
       List<Node> nodes;

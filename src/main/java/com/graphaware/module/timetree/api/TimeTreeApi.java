@@ -118,7 +118,7 @@ public class TimeTreeApi {
             @RequestParam(required = false) String resolution,
             @RequestParam(required = false) String timezone) {
 
-        List<Node> nodes = timeTreeLogic.getOrCreateInstants(startTime, resolution, timezone, endTime);
+        List<Node> nodes = timeTreeLogic.getOrCreateInstants(startTime, endTime, resolution, timezone);
         JsonNode[] result = getJsonNodes(nodes);
         return result;
     }

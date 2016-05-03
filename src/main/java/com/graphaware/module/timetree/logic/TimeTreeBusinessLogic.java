@@ -25,6 +25,8 @@ import org.neo4j.graphdb.GraphDatabaseService;
 import org.neo4j.graphdb.Node;
 import org.neo4j.graphdb.NotFoundException;
 import org.neo4j.graphdb.Transaction;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.stereotype.Component;
 
 public class TimeTreeBusinessLogic {
 
@@ -70,7 +72,7 @@ public class TimeTreeBusinessLogic {
         return nodes;
     }
 
-    public List<Node> getOrCreateInstants(long startTime, String resolution, String timezone, long endTime) {
+    public List<Node> getOrCreateInstants(long startTime, long endTime, String resolution, String timezone) {
         TimeInstant startTimeInstant = TimeInstant.fromValueObject(new TimeInstantVO(startTime, resolution, timezone));
         TimeInstant endTimeInstant = TimeInstant.fromValueObject(new TimeInstantVO(endTime, resolution, timezone));
         List<Node> nodes;

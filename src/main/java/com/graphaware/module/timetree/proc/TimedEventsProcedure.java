@@ -18,6 +18,8 @@ package com.graphaware.module.timetree.proc;
 import com.graphaware.module.timetree.TimedEvents;
 import com.graphaware.module.timetree.domain.Event;
 import com.graphaware.module.timetree.logic.TimedEventsBusinessLogic;
+
+import java.lang.reflect.Method;
 import java.util.Collections;
 import java.util.List;
 import java.util.Map;
@@ -133,13 +135,25 @@ public class TimedEventsProcedure {
             @Override
             public RawIterator<Object[], ProcedureException> apply(CallableProcedure.Context ctx, Object[] input) throws ProcedureException {
                 Map<String, Object> inputParams = (Map) input[0];
-                List<Event> events = timedEventsLogic.getEvents(
-                        (long) inputParams.get(PARAMETER_NAME_START_TIME),
-                        (long) inputParams.get(PARAMETER_NAME_END_TIME),
-                        (String) inputParams.get(PARAMETER_NAME_RESOLUTION),
-                        (String) inputParams.get(PARAMETER_NAME_TIMEZONE),
-                        (List<String>) inputParams.get(PARAMETER_NAME_RELATIONSHIP_TYPES),
-                        (String) inputParams.get(PARAMETER_NAME_DIRECTION));
+                List<Event> events;
+                if (inputParams.containsKey(PARAMETER_NAME_ROOT)) {
+                    events = timedEventsLogic.getEventsCustomRoot(
+                            (long) ((Node) inputParams.get(PARAMETER_NAME_ROOT)).getId(),
+                            (long) inputParams.get(PARAMETER_NAME_START_TIME),
+                            (long) inputParams.get(PARAMETER_NAME_END_TIME),
+                            (String) inputParams.get(PARAMETER_NAME_RESOLUTION),
+                            (String) inputParams.get(PARAMETER_NAME_TIMEZONE),
+                            (List<String>) inputParams.get(PARAMETER_NAME_RELATIONSHIP_TYPES),
+                            (String) inputParams.get(PARAMETER_NAME_DIRECTION));
+                } else {
+                    events = timedEventsLogic.getEvents(
+                            (long) inputParams.get(PARAMETER_NAME_START_TIME),
+                            (long) inputParams.get(PARAMETER_NAME_END_TIME),
+                            (String) inputParams.get(PARAMETER_NAME_RESOLUTION),
+                            (String) inputParams.get(PARAMETER_NAME_TIMEZONE),
+                            (List<String>) inputParams.get(PARAMETER_NAME_RELATIONSHIP_TYPES),
+                            (String) inputParams.get(PARAMETER_NAME_DIRECTION));
+                }
                 List<Object[]> collector = getObjectArray(events);
                 return Iterators.asRawIterator(collector.iterator());
             }

@@ -20,7 +20,6 @@ import com.graphaware.module.timetree.TimeTreeBackedEvents;
 import com.graphaware.module.timetree.TimedEvents;
 import com.graphaware.module.timetree.api.TimeInstantVO;
 import com.graphaware.module.timetree.api.TimedEventVO;
-import com.graphaware.module.timetree.api.TimedEventsApi;
 import com.graphaware.module.timetree.domain.Event;
 import com.graphaware.module.timetree.domain.TimeInstant;
 import java.util.Collection;

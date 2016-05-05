@@ -19,8 +19,13 @@ package com.graphaware.module.timetree.proc;
 import com.graphaware.module.timetree.domain.Resolution;
 import com.graphaware.module.timetree.domain.TimeInstant;
 import com.graphaware.test.integration.GraphAwareIntegrationTest;
+
+import java.util.ArrayList;
 import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
+import java.util.stream.LongStream;
+
 import org.apache.http.HttpStatus;
 import org.joda.time.DateTime;
 import org.joda.time.DateTimeZone;
@@ -141,6 +146,27 @@ public class TimedEventsProcedureTest extends GraphAwareIntegrationTest {
         assertEquals(1, i);
     }
 
+    @Test
+    public void testMultipleAutoAttachedEventsAreReturnedWithProcedure() {
+        long t = dateToMillis(2016, 1, 1, 1);
+        for (int i = 0; i < 10; ++i) {
+            createEvent(t + i);
+        }
+
+        int i = 0;
+        try (Transaction tx = getDatabase().beginTx()) {
+            Result rs = getDatabase().execute("CALL ga.timetree.events.single(" +
+                    "{params}.time, {params}.resolution, {params}.timezone, {params}.relationshipType, {params}.direction) " +
+                    "YIELD node, relationshipType, direction RETURN *", getParamsMapForTime(t));
+            while (rs.hasNext()) {
+                Map<String, Object> record = rs.next();
+                ++i;
+            }
+            tx.success();
+        }
+        assertEquals(10, i);
+    }
+
     private Map<String, Object> getParamsMapForTime(long time) {
         Map<String, Object> params = new HashMap<>();
         params.put("time", time);
@@ -165,14 +191,18 @@ public class TimedEventsProcedureTest extends GraphAwareIntegrationTest {
     
     private String getUrl() {
         return baseUrl() + "/timetree/";
-    }    
-    
-    private long dateToMillis(int year, int month, int day) {
-        return dateToDateTime(year, month, day).getMillis();
     }
 
-    private DateTime dateToDateTime(int year, int month, int day) {
-        return new DateTime(year, month, day, 0, 0, DateTimeZone.UTC);
+    private long dateToMillis(int year, int month, int day) {
+        return dateToMillis(year, month, day, 0);
+    }
+    
+    private long dateToMillis(int year, int month, int day, int hour) {
+        return dateToDateTime(year, month, day, hour).getMillis();
+    }
+
+    private DateTime dateToDateTime(int year, int month, int day, int hour) {
+        return new DateTime(year, month, day, hour, 0, DateTimeZone.UTC);
     }
 
    

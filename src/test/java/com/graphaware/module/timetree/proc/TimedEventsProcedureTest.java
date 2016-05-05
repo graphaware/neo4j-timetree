@@ -20,11 +20,8 @@ import com.graphaware.module.timetree.domain.Resolution;
 import com.graphaware.module.timetree.domain.TimeInstant;
 import com.graphaware.test.integration.GraphAwareIntegrationTest;
 
-import java.util.ArrayList;
 import java.util.HashMap;
-import java.util.List;
 import java.util.Map;
-import java.util.stream.LongStream;
 
 import org.apache.http.HttpStatus;
 import org.joda.time.DateTime;
@@ -130,6 +127,30 @@ public class TimedEventsProcedureTest extends GraphAwareIntegrationTest {
         try (Transaction tx = getDatabase().beginTx()) {
             Result rs = getDatabase().execute("CALL ga.timetree.events.single(" +
                     "{time: {params}.time, resolution: {params}.resolution, timezone: {params}.timezone, relationshipTypes: [{params}.relationshipType], direction: {params}.direction}) " +
+                    "YIELD node, relationshipType, direction RETURN *", getParamsMapForTime(time));
+            while (rs.hasNext()) {
+                ++i;
+                Map<String, Object> record = rs.next();
+                Node node  = (Node) record.get("node");
+                assertEquals(time, node.getProperty(TIME_PROPERTY));
+                String relationshipType = record.get("relationshipType").toString();
+                assertEquals(DEFAULT_REL_TYPE, relationshipType);
+                String direction = record.get("direction").toString();
+                assertEquals(Direction.INCOMING.toString(), direction);
+            }
+            tx.success();
+        }
+        assertEquals(1, i);
+    }
+
+    @Test
+    public void testEventsAutoAttachedCanBeRetrievedViaProcedureWithOnlyTimeInMap() {
+        long time = System.currentTimeMillis();
+        createEvent(time);
+        int i = 0;
+        try (Transaction tx = getDatabase().beginTx()) {
+            Result rs = getDatabase().execute("CALL ga.timetree.events.single(" +
+                    "{time: {params}.time}) " +
                     "YIELD node, relationshipType, direction RETURN *", getParamsMapForTime(time));
             while (rs.hasNext()) {
                 ++i;

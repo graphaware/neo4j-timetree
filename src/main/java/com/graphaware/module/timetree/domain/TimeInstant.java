@@ -186,4 +186,18 @@ public class TimeInstant {
 
         return instant;
     }
+    
+    public static TimeInstant createInstant(long time, String timezone, String resolution) {
+        TimeInstant instant = TimeInstant.instant(time);
+
+        if (resolution != null) {
+            instant = instant.with(Resolution.valueOf(resolution.toUpperCase()));
+        }
+
+        if (timezone != null) {
+            instant = instant.with(DateTimeZone.forTimeZone(TimeZone.getTimeZone(timezone)));
+        }
+
+        return instant;
+    }
 }

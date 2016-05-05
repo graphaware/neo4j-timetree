@@ -64,5 +64,9 @@ public class TimeTreeProcedures {
         
         TimedEventsProcedure timedEventsProcedures = new TimedEventsProcedure(database, timedEvents);
         procedures.register(timedEventsProcedures.getEvents());
+        procedures.register(timedEventsProcedures.getEventsWithCustomRoot());
+        procedures.register(timedEventsProcedures.getRangeEvents());
+        procedures.register(timedEventsProcedures.getRangeEventsWithCustomRoot());
+        procedures.register(timedEventsProcedures.getAttach());
     }
 }

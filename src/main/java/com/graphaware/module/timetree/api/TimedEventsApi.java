@@ -24,6 +24,7 @@ import com.graphaware.module.timetree.TimedEvents;
 import com.graphaware.module.timetree.domain.Event;
 import com.graphaware.module.timetree.domain.TimeInstant;
 import com.graphaware.module.timetree.logic.TimedEventsBusinessLogic;
+import com.graphaware.module.timetree.logic.TimedEventsBusinessLogic.EventAttachedResult;
 import org.neo4j.graphdb.*;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -75,31 +76,17 @@ public class TimedEventsApi {
     @RequestMapping(value = "/single/event", method = RequestMethod.POST)
     @ResponseBody
     public JsonNode attachEvent(@RequestBody TimedEventVO event, HttpServletResponse response) {
-        event.validate();
-
-        long id;
-        try (Transaction tx = database.beginTx()) {
-            Node eventNode = event.getEvent().getNode().producePropertyContainer(database);
-            id = eventNode.getId();
-
-            boolean attached = timedEvents.attachEvent(
-                    eventNode,
-                    RelationshipType.withName(event.getEvent().getRelationshipType()),
-                    resolveDirection(event.getEvent().getDirection()),
-                    TimeInstant.fromValueObject(event.getTimeInstant()));
-
-            if (attached) {
-                response.setStatus(HttpStatus.CREATED.value());
-            } else {
-                response.setStatus(HttpStatus.OK.value());
-            }
-
-            tx.success();
+        
+        EventAttachedResult res = timedEventsLogic.attachEvent(event);
+        
+        if (res.isAttached()) {
+            response.setStatus(HttpStatus.CREATED.value());
+        } else {
+            response.setStatus(HttpStatus.OK.value());
         }
-
         JsonNode result;
         try (Transaction tx = database.beginTx()) {
-            result = new LongIdJsonNode(database.getNodeById(id));
+            result = new LongIdJsonNode(database.getNodeById(res.getId()));
             tx.success();
         }
 
@@ -117,7 +104,7 @@ public class TimedEventsApi {
             @RequestParam(required = false) String direction) {
 
 
-        List<Event> events = timedEventsLogic.getEvents(startTime, resolution, timezone, endTime, relationshipTypes, direction);
+        List<Event> events = timedEventsLogic.getEvents(startTime, endTime, resolution, timezone, relationshipTypes, direction);
         List<EventVO> result = convertEvents(events);
         return result;
     }
@@ -134,7 +121,7 @@ public class TimedEventsApi {
             @RequestParam(required = false) String direction) {
 
 
-        List<Event> events = timedEventsLogic.getEventsCustomRoot(time, resolution, timezone, rootNodeId, relationshipTypes, direction);
+        List<Event> events = timedEventsLogic.getEventsCustomRoot(rootNodeId,time, resolution, timezone, relationshipTypes, direction);
         List<EventVO> result = convertEvents(events);
         return result;
     }
@@ -150,7 +137,7 @@ public class TimedEventsApi {
             @RequestParam(required = false) Set<String> relationshipTypes,
             @RequestParam(required = false) String direction) {
 
-        List<Event> events = timedEventsLogic.getEventsCustomRoot(startTime, resolution, timezone, endTime, rootNodeId, relationshipTypes, direction);
+        List<Event> events = timedEventsLogic.getEventsCustomRoot(rootNodeId, startTime, endTime, resolution, timezone, relationshipTypes, direction);
         List<EventVO> result = convertEvents(events);
         return result;
     }
@@ -233,4 +220,5 @@ public class TimedEventsApi {
         LOG.warn("Not Found: " + e.getMessage(), e);
         return Collections.singletonMap("message", e.getMessage());
     }
+
 }

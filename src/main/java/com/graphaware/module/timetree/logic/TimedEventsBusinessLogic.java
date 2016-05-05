@@ -19,6 +19,8 @@ import com.graphaware.module.timetree.CustomRootTimeTree;
 import com.graphaware.module.timetree.TimeTreeBackedEvents;
 import com.graphaware.module.timetree.TimedEvents;
 import com.graphaware.module.timetree.api.TimeInstantVO;
+import com.graphaware.module.timetree.api.TimedEventVO;
+import com.graphaware.module.timetree.api.TimedEventsApi;
 import com.graphaware.module.timetree.domain.Event;
 import com.graphaware.module.timetree.domain.TimeInstant;
 import java.util.Collection;
@@ -27,6 +29,7 @@ import java.util.List;
 import java.util.Set;
 import org.neo4j.graphdb.Direction;
 import org.neo4j.graphdb.GraphDatabaseService;
+import org.neo4j.graphdb.Node;
 import org.neo4j.graphdb.RelationshipType;
 import org.neo4j.graphdb.Transaction;
 
@@ -50,7 +53,7 @@ public class TimedEventsBusinessLogic {
         return events;
     }
     
-    public List<Event> getEvents(long startTime, String resolution, String timezone, long endTime, Set<String> relationshipTypes, String direction) {
+    public List<Event> getEvents(long startTime, long endTime, String resolution, String timezone, Collection<String> relationshipTypes, String direction) {
       TimeInstant startTimeInstant = TimeInstant.fromValueObject(new TimeInstantVO(startTime, resolution, timezone));
       TimeInstant endTimeInstant = TimeInstant.fromValueObject(new TimeInstantVO(endTime, resolution, timezone));
       List<Event> events;
@@ -61,7 +64,7 @@ public class TimedEventsBusinessLogic {
         return events;
     }
     
-    public List<Event> getEventsCustomRoot(long time, String resolution, String timezone, long rootNodeId, Set<String> relationshipTypes, String direction) {
+    public List<Event> getEventsCustomRoot(long rootNodeId, long time, String resolution, String timezone, Collection<String> relationshipTypes, String direction) {
       TimeInstant timeInstant = TimeInstant.fromValueObject(new TimeInstantVO(time, resolution, timezone));
       List<Event> events;
       try (Transaction tx = database.beginTx()) {
@@ -72,7 +75,7 @@ public class TimedEventsBusinessLogic {
         return events;
     }
     
-    public List<Event> getEventsCustomRoot(long startTime, String resolution, String timezone, long endTime, long rootNodeId, Set<String> relationshipTypes, String direction) {
+    public List<Event> getEventsCustomRoot(long rootNodeId, long startTime, long endTime, String resolution, String timezone, Collection<String> relationshipTypes, String direction) {
       TimeInstant startTimeInstant = TimeInstant.fromValueObject(new TimeInstantVO(startTime, resolution, timezone));
       TimeInstant endTimeInstant = TimeInstant.fromValueObject(new TimeInstantVO(endTime, resolution, timezone));
       List<Event> events;
@@ -82,6 +85,40 @@ public class TimedEventsBusinessLogic {
           tx.success();
       }
         return events;
+    }
+    
+    public EventAttachedResult attachEvent(TimedEventVO event) {
+        EventAttachedResult res;
+        event.validate();
+        try (Transaction tx = database.beginTx()) {
+            Node eventNode = event.getEvent().getNode().producePropertyContainer(database);
+            long id = eventNode.getId();
+            boolean attached = timedEvents.attachEvent(
+                    eventNode,
+                    RelationshipType.withName(event.getEvent().getRelationshipType()),
+                    resolveDirection(event.getEvent().getDirection()),
+                    TimeInstant.fromValueObject(event.getTimeInstant()));
+            res  = new EventAttachedResult(id, attached);
+            tx.success();
+        }
+        return res;
+    }
+    
+    public boolean attachEvent(Node eventNode, 
+            RelationshipType relationshipType, 
+            String direction, 
+            long time, 
+            String timezone, 
+            String resolution) {
+        boolean attached;
+        try (Transaction tx = database.beginTx()) {
+            attached = timedEvents.attachEvent(eventNode,
+                    relationshipType,
+                    resolveDirection(direction),
+                    TimeInstant.createInstant(time, timezone, resolution));
+            tx.success();
+        }
+        return attached;
     }
 
     private Set<RelationshipType> getRelationshipTypes(Collection<String> strings) {
@@ -102,5 +139,33 @@ public class TimedEventsBusinessLogic {
         }
 
         return Direction.valueOf(direction.toUpperCase());
+    }
+    
+    public class EventAttachedResult {
+
+        private long id = -1;
+        private boolean attached = false;
+
+        public EventAttachedResult(long id, boolean attached) {
+            this.id = id;
+            this.attached = attached;
+        }        
+        
+        public long getId() {
+            return id;
+        }
+
+        public void setId(long id) {
+            this.id = id;
+        }
+
+        public boolean isAttached() {
+            return attached;
+        }
+
+        public void setAttached(boolean attached) {
+            this.attached = attached;
+        }
+        
     }
 }

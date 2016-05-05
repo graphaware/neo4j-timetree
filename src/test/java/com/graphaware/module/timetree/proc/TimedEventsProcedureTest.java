@@ -95,7 +95,7 @@ public class TimedEventsProcedureTest extends GraphAwareIntegrationTest {
         Map<String, Object> params = new HashMap<>();
         params.put("time", timeInstant.getTime());
         try( Transaction tx = getDatabase().beginTx()) {
-            Result result = getDatabase().execute("CALL ga.timedevents.single({time}, null, null, null, null) YIELD node, relationshipType, direction", params);
+            Result result = getDatabase().execute("CALL ga.timetree.events.single({time}, null, null, null, null) YIELD node, relationshipType, direction", params);
             int count = 0;
             while (result.hasNext()) {
                 Map<String, Object> next = result.next();

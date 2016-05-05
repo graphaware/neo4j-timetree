@@ -197,13 +197,38 @@ public class TimedEventsProcedureTest extends GraphAwareIntegrationTest {
         Map<String, Object> map = getParamsMapForTime(t);
         Map<String, Object> params = (Map<String, Object>) map.get("params");
         params.remove("time");
-        params.put("start_time", t);
-        params.put("end_time", t + 100000);
+        params.put("from", t);
+        params.put("to", t + 100000);
 
         int i = 0;
         try (Transaction tx = getDatabase().beginTx()) {
             Result rs = getDatabase().execute("CALL ga.timetree.events.range(" +
                     "{params}.start_time, {params}.end_time, {params}.resolution, {params}.timezone, {params}.relationshipType, {params}.direction) " +
+                    "YIELD node, relationshipType, direction RETURN *", map);
+            while (rs.hasNext()) {
+                Map<String, Object> record = rs.next();
+                ++i;
+            }
+            tx.success();
+        }
+        assertEquals(10, i);
+    }
+
+    @Test
+    public void testMultipleAutoAttachedEventsAreReturnedWithProcedureInRangeAndOnlyFromToInMap() {
+        long t = dateToMillis(2016, 1, 1, 1);
+        for (int i = 0; i < 10; ++i) {
+            createEvent(t + (i*10000));
+        }
+        Map<String, Object> map = new HashMap<>();
+        Map<String, Object> params = new HashMap<>();
+        params.put("from", t);
+        params.put("to", t + 100000);
+        map.put("params", params);
+
+        int i = 0;
+        try (Transaction tx = getDatabase().beginTx()) {
+            Result rs = getDatabase().execute("CALL ga.timetree.events.range({params}) " +
                     "YIELD node, relationshipType, direction RETURN *", map);
             while (rs.hasNext()) {
                 Map<String, Object> record = rs.next();

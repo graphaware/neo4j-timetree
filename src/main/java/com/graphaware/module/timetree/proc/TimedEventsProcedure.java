@@ -16,7 +16,6 @@
 package com.graphaware.module.timetree.proc;
 
 import com.graphaware.module.timetree.TimedEvents;
-import com.graphaware.module.timetree.api.TimedEventVO;
 import com.graphaware.module.timetree.domain.Event;
 import com.graphaware.module.timetree.logic.TimedEventsBusinessLogic;
 import java.util.Collections;
@@ -41,14 +40,14 @@ public class TimedEventsProcedure {
     private static final String PARAMETER_NAME_TIME = "time";
     private static final String PARAMETER_NAME_RESOLUTION = "resolution";
     private static final String PARAMETER_NAME_TIMEZONE = "timezone";
-    private static final String PARAMETER_NAME_STAR_TIME = "starTime";
-    private static final String PARAMETER_NAME_END_TIME = "endTime";
+    private static final String PARAMETER_NAME_START_TIME = "from";
+    private static final String PARAMETER_NAME_END_TIME = "to";
     private static final String PARAMETER_NAME_ROOT = "root";
     private static final String PARAMETER_NAME_RELATIONSHIP_TYPE = "relationshipType";
     private static final String PARAMETER_NAME_NODE = "node";
     private static final String PARAMETER_NAME_DIRECTION = "direction";
     private static final String PARAMETER_NAME_RELATIONSHIP_TYPES = "relationshipTypes";
-    private static final String PARAMATER_NAME_INPUT = "input";
+    private static final String PARAMETER_NAME_INPUT = "input";
 
     public TimedEventsProcedure(GraphDatabaseService database, TimedEvents timedEvents) {
         this.timedEventsLogic = new TimedEventsBusinessLogic(database, timedEvents);
@@ -57,7 +56,7 @@ public class TimedEventsProcedure {
     public CallableProcedure.BasicProcedure getEvents() {
         return new CallableProcedure.BasicProcedure(procedureSignature(getProcedureName("single"))
                 .mode(ProcedureSignature.Mode.READ_WRITE)
-                .in(PARAMATER_NAME_INPUT, Neo4jTypes.NTMap)
+                .in(PARAMETER_NAME_INPUT, Neo4jTypes.NTMap)
                 .out(PARAMETER_NAME_NODE, Neo4jTypes.NTNode)
                 .out(PARAMETER_NAME_RELATIONSHIP_TYPE, Neo4jTypes.NTString)
                 .out(PARAMETER_NAME_DIRECTION, Neo4jTypes.NTString)
@@ -125,12 +124,7 @@ public class TimedEventsProcedure {
     public CallableProcedure.BasicProcedure getRangeEvents() {
         return new CallableProcedure.BasicProcedure(procedureSignature(getProcedureName("range"))
                 .mode(ProcedureSignature.Mode.READ_WRITE)
-                .in(PARAMETER_NAME_STAR_TIME, Neo4jTypes.NTNumber)
-                .in(PARAMETER_NAME_END_TIME, Neo4jTypes.NTNumber)
-                .in(PARAMETER_NAME_RESOLUTION, Neo4jTypes.NTString)
-                .in(PARAMETER_NAME_TIMEZONE, Neo4jTypes.NTString)
-                .in(PARAMETER_NAME_RELATIONSHIP_TYPES, Neo4jTypes.NTList(Neo4jTypes.NTString))
-                .in(PARAMETER_NAME_DIRECTION, Neo4jTypes.NTString)
+                .in(PARAMETER_NAME_INPUT, Neo4jTypes.NTMap)
                 .out(PARAMETER_NAME_NODE, Neo4jTypes.NTNode)
                 .out(PARAMETER_NAME_RELATIONSHIP_TYPE, Neo4jTypes.NTString)
                 .out(PARAMETER_NAME_DIRECTION, Neo4jTypes.NTString)
@@ -138,7 +132,14 @@ public class TimedEventsProcedure {
 
             @Override
             public RawIterator<Object[], ProcedureException> apply(CallableProcedure.Context ctx, Object[] input) throws ProcedureException {
-                List<Event> events = timedEventsLogic.getEvents((long) input[0], (long) input[1], (String) input[2], (String) input[3], (List<String>) input[4], (String) input[5]);
+                Map<String, Object> inputParams = (Map) input[0];
+                List<Event> events = timedEventsLogic.getEvents(
+                        (long) inputParams.get(PARAMETER_NAME_START_TIME),
+                        (long) inputParams.get(PARAMETER_NAME_END_TIME),
+                        (String) inputParams.get(PARAMETER_NAME_RESOLUTION),
+                        (String) inputParams.get(PARAMETER_NAME_TIMEZONE),
+                        (List<String>) inputParams.get(PARAMETER_NAME_RELATIONSHIP_TYPES),
+                        (String) inputParams.get(PARAMETER_NAME_DIRECTION));
                 List<Object[]> collector = getObjectArray(events);
                 return Iterators.asRawIterator(collector.iterator());
             }
@@ -172,7 +173,7 @@ public class TimedEventsProcedure {
         return new CallableProcedure.BasicProcedure(procedureSignature(getProcedureName("rangeWithCustomRoot"))
                 .mode(ProcedureSignature.Mode.READ_WRITE)
                 .in(PARAMETER_NAME_ROOT, Neo4jTypes.NTNode)
-                .in(PARAMETER_NAME_STAR_TIME, Neo4jTypes.NTNumber)
+                .in(PARAMETER_NAME_START_TIME, Neo4jTypes.NTNumber)
                 .in(PARAMETER_NAME_END_TIME, Neo4jTypes.NTNumber)
                 .in(PARAMETER_NAME_RESOLUTION, Neo4jTypes.NTString)
                 .in(PARAMETER_NAME_TIMEZONE, Neo4jTypes.NTString)

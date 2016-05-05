@@ -121,6 +121,31 @@ public class TimedEventsBusinessLogic {
         return attached;
     }
 
+    public boolean attachEventWithCustomRoot(
+            Node root,
+            Node eventNode,
+            RelationshipType relationshipType,
+            String direction,
+            long time,
+            String timezone,
+            String resolution) {
+
+        boolean attached;
+        try (Transaction tx = database.beginTx()) {
+            CustomRootTimeTree timeTree = new CustomRootTimeTree(root);
+            TimedEvents customTimedEvents = new TimeTreeBackedEvents(timeTree);
+            attached = customTimedEvents.attachEvent(
+                    eventNode,
+                    relationshipType,
+                    resolveDirection(direction),
+                    TimeInstant.createInstant(time, timezone, resolution)
+            );
+            tx.success();
+        }
+
+        return attached;
+    }
+
     private Set<RelationshipType> getRelationshipTypes(Collection<String> strings) {
         if (strings == null) {
             return null;

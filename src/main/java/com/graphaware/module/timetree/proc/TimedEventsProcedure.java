@@ -98,6 +98,30 @@ public class TimedEventsProcedure {
         };
     }
 
+    public CallableProcedure.BasicProcedure getAttachWithCustomRoot() {
+        return new CallableProcedure.BasicProcedure(procedureSignature(getProcedureName("attachWithCustomRoot"))
+                .mode(ProcedureSignature.Mode.READ_WRITE)
+                .in(PARAMETER_NAME_NODE, Neo4jTypes.NTNode)
+                .in(PARAMETER_NAME_ROOT, Neo4jTypes.NTNode)
+                .in(PARAMETER_NAME_TIME, Neo4jTypes.NTNumber)
+                .in(PARAMETER_NAME_RELATIONSHIP_TYPE, Neo4jTypes.NTString)
+                .in(PARAMETER_NAME_RESOLUTION, Neo4jTypes.NTString)
+                .in(PARAMETER_NAME_TIMEZONE, Neo4jTypes.NTString)
+                .in(PARAMETER_NAME_DIRECTION, Neo4jTypes.NTString)
+                .out(PARAMETER_NAME_NODE, Neo4jTypes.NTNode)
+                .build()) {
+
+            @Override
+            public RawIterator<Object[], ProcedureException> apply(CallableProcedure.Context ctx, Object[] input) throws ProcedureException {
+                Node eventNode = (Node) input[0];
+                Node rootNode = (Node) input[1];
+                RelationshipType relationshipType = RelationshipType.withName(input[3].toString());
+                boolean attached = timedEventsLogic.attachEventWithCustomRoot(eventNode, rootNode, relationshipType, (String) input[5], (long) input[2], (String) input[5], (String) input[4]);
+                return Iterators.asRawIterator(Collections.<Object[]>singleton(new Object[]{eventNode}).iterator());
+            }
+        };
+    }
+
     public CallableProcedure.BasicProcedure getRangeEvents() {
         return new CallableProcedure.BasicProcedure(procedureSignature(getProcedureName("range"))
                 .mode(ProcedureSignature.Mode.READ_WRITE)

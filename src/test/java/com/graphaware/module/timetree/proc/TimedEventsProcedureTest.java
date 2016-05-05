@@ -193,6 +193,26 @@ public class TimedEventsProcedureTest extends GraphAwareIntegrationTest {
         assertEquals(10, i);
     }
 
+    @Test
+    public void testAttachWithCustomRoot() {
+        try (Transaction tx = getDatabase().beginTx()) {
+            getDatabase().execute("CREATE (n:Person {name:'me'}) " +
+                    "CREATE (e:Event {id: 123}) " +
+                    "WITH n, e " +
+                    "CALL ga.timetree.events.attachWithCustomRoot(e, n, timestamp(), 'OCCURED_ON', null,null,null) YIELD node RETURN *");
+            tx.success();
+        }
+
+        try (Transaction tx = getDatabase().beginTx()) {
+            Node node = getDatabase().findNode(Label.label("Person"), "name", "me");
+            Node year = node.getSingleRelationship(RelationshipType.withName("CHILD"), Direction.OUTGOING).getEndNode();
+            assertTrue(year.hasLabel(Label.label("Year")));
+            Node event = getDatabase().findNode(Label.label("Event"), "id", 123);
+            Node instant = event.getSingleRelationship(RelationshipType.withName("OCCURED_ON"), Direction.BOTH).getEndNode();
+            System.out.println(instant.getLabels());
+        }
+    }
+
     private Map<String, Object> getParamsMapForTime(long time) {
         Map<String, Object> params = new HashMap<>();
         params.put("time", time);

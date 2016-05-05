@@ -7,7 +7,7 @@ import com.graphaware.test.integration.GraphAwareIntegrationTest;
 import org.junit.Test;
 import org.neo4j.graphdb.*;
 
-import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.*;
 
 public class TimedEventsLogicTest extends GraphAwareIntegrationTest {
 
@@ -21,6 +21,12 @@ public class TimedEventsLogicTest extends GraphAwareIntegrationTest {
         boolean attached = logic.attachEventWithCustomRoot(getNodeById(rootId), createEvent(),
                 RelationshipType.withName("SENT_ON"), Direction.OUTGOING.toString(), System.currentTimeMillis(), null, null);
         assertEquals(true, attached);
+        try (Transaction tx = getDatabase().beginTx()) {
+            Node root = getDatabase().getNodeById(rootId);
+            Node year = root.getSingleRelationship(RelationshipType.withName("CHILD"), Direction.OUTGOING).getEndNode();
+            assertTrue(year.hasLabel(Label.label("Year")));
+            tx.success();
+        }
     }
 
     private Node createEvent() {

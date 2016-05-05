@@ -251,7 +251,7 @@ public class TimedEventsProcedureTest extends GraphAwareIntegrationTest {
             getDatabase().execute("CREATE (n:Person {name:'me'}) " +
                     "CREATE (e:Event {id: 123}) " +
                     "WITH n, e " +
-                    "CALL ga.timetree.events.attachWithCustomRoot(e, n, timestamp(), 'OCCURED_ON', null,null,null) YIELD node RETURN *");
+                    "CALL ga.timetree.events.attach({node: e, root: n, time: timestamp(), relationshipType: 'OCCURED_ON'}) YIELD node RETURN *");
             tx.success();
         }
 

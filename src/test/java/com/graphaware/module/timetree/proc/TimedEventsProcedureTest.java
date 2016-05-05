@@ -208,8 +208,8 @@ public class TimedEventsProcedureTest extends GraphAwareIntegrationTest {
             Node year = node.getSingleRelationship(RelationshipType.withName("CHILD"), Direction.OUTGOING).getEndNode();
             assertTrue(year.hasLabel(Label.label("Year")));
             Node event = getDatabase().findNode(Label.label("Event"), "id", 123);
-            Node instant = event.getSingleRelationship(RelationshipType.withName("OCCURED_ON"), Direction.BOTH).getEndNode();
-            System.out.println(instant.getLabels());
+            Node instant = event.getSingleRelationship(RelationshipType.withName("OCCURED_ON"), Direction.OUTGOING).getStartNode();
+            tx.success();
         }
     }
 

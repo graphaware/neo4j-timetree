@@ -25,6 +25,14 @@ public class TimedEventsLogicTest extends GraphAwareIntegrationTest {
             Node root = getDatabase().getNodeById(rootId);
             Node year = root.getSingleRelationship(RelationshipType.withName("CHILD"), Direction.OUTGOING).getEndNode();
             assertTrue(year.hasLabel(Label.label("Year")));
+
+            ResourceIterator<Node> events = getDatabase().findNodes(Label.label("Event"));
+            while (events.hasNext()) {
+                Node e = events.next();
+                Node day = e.getSingleRelationship(RelationshipType.withName("SENT_ON"), Direction.INCOMING).getStartNode();
+                assertTrue(day.hasLabel(Label.label("Day")));
+            }
+
             tx.success();
         }
     }
@@ -32,7 +40,7 @@ public class TimedEventsLogicTest extends GraphAwareIntegrationTest {
     private Node createEvent() {
         Node node;
         try (Transaction tx = getDatabase().beginTx()) {
-            node = getDatabase().createNode();
+            node = getDatabase().createNode(Label.label("Event"));
             tx.success();
         }
 

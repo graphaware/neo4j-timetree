@@ -115,8 +115,8 @@ public class TimedEventsProcedure {
             public RawIterator<Object[], ProcedureException> apply(CallableProcedure.Context ctx, Object[] input) throws ProcedureException {
                 Node eventNode = (Node) input[0];
                 Node rootNode = (Node) input[1];
-                RelationshipType relationshipType = RelationshipType.withName(input[3].toString());
-                boolean attached = timedEventsLogic.attachEventWithCustomRoot(eventNode, rootNode, relationshipType, (String) input[5], (long) input[2], (String) input[5], (String) input[4]);
+                RelationshipType relationshipType = RelationshipType.withName((String) input[3]);
+                timedEventsLogic.attachEventWithCustomRoot(rootNode, eventNode, relationshipType, (String) input[5], (long) input[2], (String) input[5], (String) input[4]);
                 return Iterators.asRawIterator(Collections.<Object[]>singleton(new Object[]{eventNode}).iterator());
             }
         };

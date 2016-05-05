@@ -40,8 +40,8 @@ public class TimedEventsProcedure {
     private static final String PARAMETER_NAME_TIME = "time";
     private static final String PARAMETER_NAME_RESOLUTION = "resolution";
     private static final String PARAMETER_NAME_TIMEZONE = "timezone";
-    private static final String PARAMETER_NAME_START_TIME = "from";
-    private static final String PARAMETER_NAME_END_TIME = "to";
+    private static final String PARAMETER_NAME_START_TIME = "start";
+    private static final String PARAMETER_NAME_END_TIME = "end";
     private static final String PARAMETER_NAME_ROOT = "root";
     private static final String PARAMETER_NAME_RELATIONSHIP_TYPE = "relationshipType";
     private static final String PARAMETER_NAME_NODE = "node";

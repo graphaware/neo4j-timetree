@@ -25,22 +25,25 @@ import org.apache.http.HttpStatus;
 import org.joda.time.DateTime;
 import org.joda.time.DateTimeZone;
 import org.json.JSONException;
-import org.junit.Assert;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertNotNull;
 import static org.junit.Assert.assertTrue;
 import org.junit.Test;
-import org.neo4j.graphdb.Node;
-import org.neo4j.graphdb.Relationship;
-import org.neo4j.graphdb.RelationshipType;
-import org.neo4j.graphdb.ResourceIterator;
-import org.neo4j.graphdb.Result;
-import org.neo4j.graphdb.Transaction;
+import org.neo4j.graphdb.*;
 
 /**
  * Procedure test for {@link com.graphaware.module.timetree.proc.TimeTreeProcedure}.
  */
 public class TimedEventsProcedureTest extends GraphAwareIntegrationTest {
+
+    private static final String EMAIL = "Email";
+    private static final String TIME_PROPERTY = "time";
+    private static final String DEFAULT_REL_TYPE = "SENT_ON";
+
+    @Override
+    protected String configFile() {
+        return "neo4j-timetree.properties";
+    }
 
     @Test
     public void testGetOrCreateInstant() throws JSONException {
@@ -112,6 +115,52 @@ public class TimedEventsProcedureTest extends GraphAwareIntegrationTest {
             tx.success();
         }
         
+    }
+
+    @Test
+    public void testEventsAutoAttachedCanBeRetrievedViaProcedure() {
+        long time = System.currentTimeMillis();
+        createEvent(time);
+        int i = 0;
+        try (Transaction tx = getDatabase().beginTx()) {
+            Result rs = getDatabase().execute("CALL ga.timetree.events.single(" +
+                    "{params}.time, {params}.resolution, {params}.timezone, {params}.relationshipType, {params}.direction) " +
+                    "YIELD node, relationshipType, direction RETURN *", getParamsMapForTime(time));
+            while (rs.hasNext()) {
+                ++i;
+                Map<String, Object> record = rs.next();
+                Node node  = (Node) record.get("node");
+                assertEquals(time, node.getProperty(TIME_PROPERTY));
+                String relationshipType = record.get("relationshipType").toString();
+                assertEquals(DEFAULT_REL_TYPE, relationshipType);
+                String direction = record.get("direction").toString();
+                assertEquals(Direction.INCOMING.toString(), direction);
+            }
+            tx.success();
+        }
+        assertEquals(1, i);
+    }
+
+    private Map<String, Object> getParamsMapForTime(long time) {
+        Map<String, Object> params = new HashMap<>();
+        params.put("time", time);
+        params.put("resolution", null);
+        params.put("timezone", null);
+        params.put("relationshipType", null);
+        params.put("direction", null);
+
+        Map<String, Object> map = new HashMap<>();
+        map.put("params", params);
+
+        return map;
+    }
+
+    private void createEvent(long time) {
+        try (Transaction tx = getDatabase().beginTx()) {
+            Node n = getDatabase().createNode(Label.label(EMAIL));
+            n.setProperty(TIME_PROPERTY, time);
+            tx.success();
+        }
     }
     
     private String getUrl() {

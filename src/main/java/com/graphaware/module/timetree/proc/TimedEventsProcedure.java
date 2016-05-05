@@ -61,7 +61,7 @@ public class TimedEventsProcedure {
                 .in(PARAMETER_NAME_RELATIONSHIP_TYPES, Neo4jTypes.NTList(Neo4jTypes.NTString))
                 .in(PARAMETER_NAME_DIRECTION, Neo4jTypes.NTString)
                 .out(PARAMETER_NAME_NODE, Neo4jTypes.NTNode)
-                .out(PARAMETER_NAME_RELATIONSHIP_TYPE, Neo4jTypes.NTRelationship)
+                .out(PARAMETER_NAME_RELATIONSHIP_TYPE, Neo4jTypes.NTString)
                 .out(PARAMETER_NAME_DIRECTION, Neo4jTypes.NTString)
                 .build()) {
 
@@ -105,7 +105,7 @@ public class TimedEventsProcedure {
                 .in(PARAMETER_NAME_RELATIONSHIP_TYPES, Neo4jTypes.NTList(Neo4jTypes.NTString))
                 .in(PARAMETER_NAME_DIRECTION, Neo4jTypes.NTString)
                 .out(PARAMETER_NAME_NODE, Neo4jTypes.NTNode)
-                .out(PARAMETER_NAME_RELATIONSHIP_TYPE, Neo4jTypes.NTRelationship)
+                .out(PARAMETER_NAME_RELATIONSHIP_TYPE, Neo4jTypes.NTString)
                 .out(PARAMETER_NAME_DIRECTION, Neo4jTypes.NTString)
                 .build()) {
 
@@ -128,7 +128,7 @@ public class TimedEventsProcedure {
                 .in(PARAMETER_NAME_RELATIONSHIP_TYPES, Neo4jTypes.NTList(Neo4jTypes.NTString))
                 .in(PARAMETER_NAME_DIRECTION, Neo4jTypes.NTString)
                 .out(PARAMETER_NAME_NODE, Neo4jTypes.NTNode)
-                .out(PARAMETER_NAME_RELATIONSHIP_TYPE, Neo4jTypes.NTRelationship)
+                .out(PARAMETER_NAME_RELATIONSHIP_TYPE, Neo4jTypes.NTString)
                 .out(PARAMETER_NAME_DIRECTION, Neo4jTypes.NTString)
                 .build()) {
 
@@ -152,7 +152,7 @@ public class TimedEventsProcedure {
                 .in(PARAMETER_NAME_RELATIONSHIP_TYPES, Neo4jTypes.NTList(Neo4jTypes.NTString))
                 .in(PARAMETER_NAME_DIRECTION, Neo4jTypes.NTString)
                 .out(PARAMETER_NAME_NODE, Neo4jTypes.NTNode)
-                .out(PARAMETER_NAME_RELATIONSHIP_TYPE, Neo4jTypes.NTRelationship)
+                .out(PARAMETER_NAME_RELATIONSHIP_TYPE, Neo4jTypes.NTString)
                 .out(PARAMETER_NAME_DIRECTION, Neo4jTypes.NTString)
                 .build()) {
 
@@ -167,7 +167,8 @@ public class TimedEventsProcedure {
 
     private List<Object[]> getObjectArray(List<Event> events) {
         List<Object[]> collector = events.stream()
-                .map((event) -> new Object[]{event.getNode(), event.getRelationshipType(), event.getDirection().name()})
+                .map((event) -> new Object[]{event.getNode(), event.getRelationshipType() != null ? event.getRelationshipType().toString() : "", 
+                    event.getDirection().name()})
                 .collect(Collectors.toList());
         return collector;
     }

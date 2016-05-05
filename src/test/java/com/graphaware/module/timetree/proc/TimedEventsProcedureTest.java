@@ -109,9 +109,9 @@ public class TimedEventsProcedureTest extends GraphAwareIntegrationTest {
                 Map<String, Object> next = result.next();
                 assertNotNull(next.get("node"));
                 assertTrue(
-                        RelationshipType.withName("AT_TIME").equals(next.get("relationshipType")) ||
-                        RelationshipType.withName("AT_BAD_TIME").equals(next.get("relationshipType")) ||
-                        RelationshipType.withName("AT_OTHER_TIME").equals(next.get("relationshipType"))
+                        "AT_TIME".equals(next.get("relationshipType")) ||
+                        "AT_BAD_TIME".equals(next.get("relationshipType")) ||
+                        "AT_OTHER_TIME".equals(next.get("relationshipType"))
                 );
                 assertEquals("INCOMING", next.get("direction"));
                 count++;

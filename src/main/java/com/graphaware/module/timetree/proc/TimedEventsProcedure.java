@@ -66,11 +66,21 @@ public class TimedEventsProcedure {
             @Override
             public RawIterator<Object[], ProcedureException> apply(CallableProcedure.Context ctx, Object[] input) throws ProcedureException {
                 Map<String, Object> inputParams = (Map) input[0];
-                List<Event> events = timedEventsLogic.getEvents((long) inputParams.get(PARAMETER_NAME_TIME), 
-                        (String) inputParams.get(PARAMETER_NAME_RESOLUTION), 
-                        (String) inputParams.get(PARAMETER_NAME_TIMEZONE), 
-                        (List<String>) inputParams.get(PARAMETER_NAME_RELATIONSHIP_TYPES), 
-                        (String) inputParams.get(PARAMETER_NAME_DIRECTION));
+                List<Event> events;
+                if (inputParams.containsKey(PARAMETER_NAME_ROOT)) {
+                    events = timedEventsLogic.getEventsCustomRoot(((Node) inputParams.get(PARAMETER_NAME_NODE)).getId(), 
+                            (long) inputParams.get(PARAMETER_NAME_TIME),
+                            (String) inputParams.get(PARAMETER_NAME_RESOLUTION),
+                            (String) inputParams.get(PARAMETER_NAME_TIMEZONE),
+                            (List<String>) inputParams.get(PARAMETER_NAME_RELATIONSHIP_TYPES),
+                            (String) inputParams.get(PARAMETER_NAME_DIRECTION));
+                } else {
+                    events = timedEventsLogic.getEvents((long) inputParams.get(PARAMETER_NAME_TIME),
+                            (String) inputParams.get(PARAMETER_NAME_RESOLUTION),
+                            (String) inputParams.get(PARAMETER_NAME_TIMEZONE),
+                            (List<String>) inputParams.get(PARAMETER_NAME_RELATIONSHIP_TYPES),
+                            (String) inputParams.get(PARAMETER_NAME_DIRECTION));
+                }
                 List<Object[]> collector = getObjectArray(events);
                 return Iterators.asRawIterator(collector.iterator());
             }
@@ -153,53 +163,6 @@ public class TimedEventsProcedure {
                             (List<String>) inputParams.get(PARAMETER_NAME_RELATIONSHIP_TYPES),
                             (String) inputParams.get(PARAMETER_NAME_DIRECTION));
                 }
-                List<Object[]> collector = getObjectArray(events);
-                return Iterators.asRawIterator(collector.iterator());
-            }
-        };
-    }
-
-    public CallableProcedure.BasicProcedure getEventsWithCustomRoot() {
-        return new CallableProcedure.BasicProcedure(procedureSignature(getProcedureName("singleWithCustomRoot"))
-                .mode(ProcedureSignature.Mode.READ_WRITE)
-                .in(PARAMETER_NAME_ROOT, Neo4jTypes.NTNode)
-                .in(PARAMETER_NAME_TIME, Neo4jTypes.NTNumber)
-                .in(PARAMETER_NAME_RESOLUTION, Neo4jTypes.NTString)
-                .in(PARAMETER_NAME_TIMEZONE, Neo4jTypes.NTString)
-                .in(PARAMETER_NAME_RELATIONSHIP_TYPES, Neo4jTypes.NTList(Neo4jTypes.NTString))
-                .in(PARAMETER_NAME_DIRECTION, Neo4jTypes.NTString)
-                .out(PARAMETER_NAME_NODE, Neo4jTypes.NTNode)
-                .out(PARAMETER_NAME_RELATIONSHIP_TYPE, Neo4jTypes.NTString)
-                .out(PARAMETER_NAME_DIRECTION, Neo4jTypes.NTString)
-                .build()) {
-
-            @Override
-            public RawIterator<Object[], ProcedureException> apply(CallableProcedure.Context ctx, Object[] input) throws ProcedureException {
-                List<Event> events = timedEventsLogic.getEventsCustomRoot(((Node) input[0]).getId(), (long) input[1], (String) input[2], (String) input[3], (List<String>) input[4], (String) input[5]);
-                List<Object[]> collector = getObjectArray(events);
-                return Iterators.asRawIterator(collector.iterator());
-            }
-        };
-    }
-
-    public CallableProcedure.BasicProcedure getRangeEventsWithCustomRoot() {
-        return new CallableProcedure.BasicProcedure(procedureSignature(getProcedureName("rangeWithCustomRoot"))
-                .mode(ProcedureSignature.Mode.READ_WRITE)
-                .in(PARAMETER_NAME_ROOT, Neo4jTypes.NTNode)
-                .in(PARAMETER_NAME_START_TIME, Neo4jTypes.NTNumber)
-                .in(PARAMETER_NAME_END_TIME, Neo4jTypes.NTNumber)
-                .in(PARAMETER_NAME_RESOLUTION, Neo4jTypes.NTString)
-                .in(PARAMETER_NAME_TIMEZONE, Neo4jTypes.NTString)
-                .in(PARAMETER_NAME_RELATIONSHIP_TYPES, Neo4jTypes.NTList(Neo4jTypes.NTString))
-                .in(PARAMETER_NAME_DIRECTION, Neo4jTypes.NTString)
-                .out(PARAMETER_NAME_NODE, Neo4jTypes.NTNode)
-                .out(PARAMETER_NAME_RELATIONSHIP_TYPE, Neo4jTypes.NTString)
-                .out(PARAMETER_NAME_DIRECTION, Neo4jTypes.NTString)
-                .build()) {
-
-            @Override
-            public RawIterator<Object[], ProcedureException> apply(CallableProcedure.Context ctx, Object[] input) throws ProcedureException {
-                List<Event> events = timedEventsLogic.getEventsCustomRoot(((Node) input[0]).getId(), (long) input[1], (long) input[2], (String) input[3], (String) input[4], (List<String>) input[5], (String) input[6]);
                 List<Object[]> collector = getObjectArray(events);
                 return Iterators.asRawIterator(collector.iterator());
             }

@@ -128,9 +128,10 @@ public class TimedEventsBusinessLogic {
 
         Set<RelationshipType> result = new HashSet<>();
         for (String type : strings) {
-            result.add(RelationshipType.withName(type));
+            if (type != null)
+                result.add(RelationshipType.withName(type));
         }
-        return result;
+        return result.size() > 0 ? result : null;
     }
     
     private Direction resolveDirection(String direction) {

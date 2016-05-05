@@ -21,6 +21,7 @@ import com.graphaware.module.timetree.domain.Event;
 import com.graphaware.module.timetree.logic.TimedEventsBusinessLogic;
 import java.util.Collections;
 import java.util.List;
+import java.util.Map;
 import java.util.stream.Collectors;
 import org.neo4j.collection.RawIterator;
 import org.neo4j.graphdb.GraphDatabaseService;
@@ -47,6 +48,7 @@ public class TimedEventsProcedure {
     private static final String PARAMETER_NAME_NODE = "node";
     private static final String PARAMETER_NAME_DIRECTION = "direction";
     private static final String PARAMETER_NAME_RELATIONSHIP_TYPES = "relationshipTypes";
+    private static final String PARAMATER_NAME_INPUT = "input";
 
     public TimedEventsProcedure(GraphDatabaseService database, TimedEvents timedEvents) {
         this.timedEventsLogic = new TimedEventsBusinessLogic(database, timedEvents);
@@ -55,11 +57,7 @@ public class TimedEventsProcedure {
     public CallableProcedure.BasicProcedure getEvents() {
         return new CallableProcedure.BasicProcedure(procedureSignature(getProcedureName("single"))
                 .mode(ProcedureSignature.Mode.READ_WRITE)
-                .in(PARAMETER_NAME_TIME, Neo4jTypes.NTNumber)
-                .in(PARAMETER_NAME_RESOLUTION, Neo4jTypes.NTString)
-                .in(PARAMETER_NAME_TIMEZONE, Neo4jTypes.NTString)
-                .in(PARAMETER_NAME_RELATIONSHIP_TYPES, Neo4jTypes.NTList(Neo4jTypes.NTString))
-                .in(PARAMETER_NAME_DIRECTION, Neo4jTypes.NTString)
+                .in(PARAMATER_NAME_INPUT, Neo4jTypes.NTMap)
                 .out(PARAMETER_NAME_NODE, Neo4jTypes.NTNode)
                 .out(PARAMETER_NAME_RELATIONSHIP_TYPE, Neo4jTypes.NTString)
                 .out(PARAMETER_NAME_DIRECTION, Neo4jTypes.NTString)
@@ -67,7 +65,12 @@ public class TimedEventsProcedure {
 
             @Override
             public RawIterator<Object[], ProcedureException> apply(CallableProcedure.Context ctx, Object[] input) throws ProcedureException {
-                List<Event> events = timedEventsLogic.getEvents((long) input[0], (String) input[1], (String) input[2], (List<String>) input[3], (String) input[4]);
+                Map<String, Object> inputParams = (Map) input[0];
+                List<Event> events = timedEventsLogic.getEvents((long) inputParams.get(PARAMETER_NAME_TIME), 
+                        (String) inputParams.get(PARAMETER_NAME_RESOLUTION), 
+                        (String) inputParams.get(PARAMETER_NAME_TIMEZONE), 
+                        (List<String>) inputParams.get(PARAMETER_NAME_RELATIONSHIP_TYPES), 
+                        (String) inputParams.get(PARAMETER_NAME_DIRECTION));
                 List<Object[]> collector = getObjectArray(events);
                 return Iterators.asRawIterator(collector.iterator());
             }

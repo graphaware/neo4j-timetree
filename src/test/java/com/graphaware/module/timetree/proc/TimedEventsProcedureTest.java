@@ -103,7 +103,7 @@ public class TimedEventsProcedureTest extends GraphAwareIntegrationTest {
         Map<String, Object> params = new HashMap<>();
         params.put("time", timeInstant.getTime());
         try( Transaction tx = getDatabase().beginTx()) {
-            Result result = getDatabase().execute("CALL ga.timetree.events.single({time}, null, null, null, null) YIELD node, relationshipType, direction", params);
+            Result result = getDatabase().execute("CALL ga.timetree.events.single({time: {time}}) YIELD node, relationshipType, direction", params);
             int count = 0;
             while (result.hasNext()) {
                 Map<String, Object> next = result.next();
@@ -129,7 +129,7 @@ public class TimedEventsProcedureTest extends GraphAwareIntegrationTest {
         int i = 0;
         try (Transaction tx = getDatabase().beginTx()) {
             Result rs = getDatabase().execute("CALL ga.timetree.events.single(" +
-                    "{params}.time, {params}.resolution, {params}.timezone, {params}.relationshipType, {params}.direction) " +
+                    "{time: {params}.time, resolution: {params}.resolution, timezone: {params}.timezone, relationshipTypes: [{params}.relationshipType], direction: {params}.direction}) " +
                     "YIELD node, relationshipType, direction RETURN *", getParamsMapForTime(time));
             while (rs.hasNext()) {
                 ++i;
@@ -156,7 +156,7 @@ public class TimedEventsProcedureTest extends GraphAwareIntegrationTest {
         int i = 0;
         try (Transaction tx = getDatabase().beginTx()) {
             Result rs = getDatabase().execute("CALL ga.timetree.events.single(" +
-                    "{params}.time, {params}.resolution, {params}.timezone, {params}.relationshipType, {params}.direction) " +
+                    "{time: {params}.time, resolution: {params}.resolution, timezone: {params}.timezone, relationshipTypes: [{params}.relationshipType], direction: {params}.direction}) " +
                     "YIELD node, relationshipType, direction RETURN *", getParamsMapForTime(t));
             while (rs.hasNext()) {
                 Map<String, Object> record = rs.next();

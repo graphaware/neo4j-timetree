@@ -96,7 +96,7 @@ public class TimeTreeProcedure extends TimeTreeBaseProcedure {
                 Map<String, Object> inputParams = (Map) input[0];
                 boolean create = (boolean) inputParams.getOrDefault(PARAMETER_NAME_CREATE, false);
                 Node rootNode = (Node) inputParams.getOrDefault(PARAMETER_NAME_ROOT, null);
-                long startTime = (long) inputParams.get(PARAMETER_NAME_STAR_TIME);
+                long startTime = (long) inputParams.get(PARAMETER_NAME_START_TIME);
                 long endTime = (long) inputParams.get(PARAMETER_NAME_END_TIME);
                 String resolution = (String) inputParams.get(PARAMETER_NAME_RESOLUTION);
                 String timesone = (String) inputParams.get(PARAMETER_NAME_TIMEZONE);

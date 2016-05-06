@@ -27,7 +27,6 @@ public class TimeTreeBaseProcedure {
     protected static final String PARAMETER_NAME_RELATIONSHIP_TYPES = "relationshipTypes";
     protected static final String PARAMETER_NAME_INPUT = "input";
     protected static final String PARAMETER_NAME_INSTANT = "instant";
-    protected static final String PARAMETER_NAME_STAR_TIME = "start";
     protected static final String PARAMETER_NAME_INSTANTS = "instants";
     protected static final String PARAMETER_NAME_CREATE = "create";
 

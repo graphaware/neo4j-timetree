@@ -18,6 +18,9 @@ package com.graphaware.module.timetree.proc;
 import com.graphaware.module.timetree.TimedEvents;
 import com.graphaware.module.timetree.domain.Event;
 import com.graphaware.module.timetree.logic.TimedEventsBusinessLogic;
+import static com.graphaware.module.timetree.proc.TimeTreeBaseProcedure.PARAMETER_NAME_END_TIME;
+import static com.graphaware.module.timetree.proc.TimeTreeBaseProcedure.PARAMETER_NAME_START_TIME;
+import static com.graphaware.module.timetree.proc.TimeTreeBaseProcedure.PARAMETER_NAME_TIME;
 
 import java.util.Collections;
 import java.util.List;
@@ -35,20 +38,9 @@ import org.neo4j.kernel.api.proc.ProcedureSignature;
 import static org.neo4j.kernel.api.proc.ProcedureSignature.procedureName;
 import static org.neo4j.kernel.api.proc.ProcedureSignature.procedureSignature;
 
-public class TimedEventsProcedure {
+public class TimedEventsProcedure extends TimeTreeBaseProcedure {
 
     private final TimedEventsBusinessLogic timedEventsLogic;
-    private static final String PARAMETER_NAME_TIME = "time";
-    private static final String PARAMETER_NAME_RESOLUTION = "resolution";
-    private static final String PARAMETER_NAME_TIMEZONE = "timezone";
-    private static final String PARAMETER_NAME_START_TIME = "start";
-    private static final String PARAMETER_NAME_END_TIME = "end";
-    private static final String PARAMETER_NAME_ROOT = "root";
-    private static final String PARAMETER_NAME_RELATIONSHIP_TYPE = "relationshipType";
-    private static final String PARAMETER_NAME_NODE = "node";
-    private static final String PARAMETER_NAME_DIRECTION = "direction";
-    private static final String PARAMETER_NAME_RELATIONSHIP_TYPES = "relationshipTypes";
-    private static final String PARAMETER_NAME_INPUT = "input";
 
     public TimedEventsProcedure(GraphDatabaseService database, TimedEvents timedEvents) {
         this.timedEventsLogic = new TimedEventsBusinessLogic(database, timedEvents);
@@ -65,10 +57,12 @@ public class TimedEventsProcedure {
 
             @Override
             public RawIterator<Object[], ProcedureException> apply(CallableProcedure.Context ctx, Object[] input) throws ProcedureException {
+                checkIsMap(input[0]);
                 Map<String, Object> inputParams = (Map) input[0];
+                checkTime(inputParams, PARAMETER_NAME_TIME);
                 List<Event> events;
                 if (inputParams.containsKey(PARAMETER_NAME_ROOT)) {
-                    events = timedEventsLogic.getEventsCustomRoot(((Node) inputParams.get(PARAMETER_NAME_NODE)).getId(), 
+                    events = timedEventsLogic.getEventsCustomRoot(((Node) inputParams.get(PARAMETER_NAME_NODE)).getId(),
                             (long) inputParams.get(PARAMETER_NAME_TIME),
                             (String) inputParams.get(PARAMETER_NAME_RESOLUTION),
                             (String) inputParams.get(PARAMETER_NAME_TIMEZONE),
@@ -86,7 +80,7 @@ public class TimedEventsProcedure {
             }
         };
     }
-    
+
     public CallableProcedure.BasicProcedure getAttach() {
         return new CallableProcedure.BasicProcedure(procedureSignature(getProcedureName("attach"))
                 .mode(ProcedureSignature.Mode.READ_WRITE)
@@ -96,8 +90,11 @@ public class TimedEventsProcedure {
 
             @Override
             public RawIterator<Object[], ProcedureException> apply(CallableProcedure.Context ctx, Object[] input) throws ProcedureException {
+                checkIsMap(input[0]);
                 Map<String, Object> inputParams = (Map) input[0];
+                checkTime(inputParams, PARAMETER_NAME_TIME);
                 Node eventNode = (Node) inputParams.get(PARAMETER_NAME_NODE);
+                checkEventNode(eventNode);
                 boolean attachEvent;
                 if (inputParams.containsKey(PARAMETER_NAME_ROOT)) {
                     attachEvent = timedEventsLogic.attachEventWithCustomRoot((Node) inputParams.get(PARAMETER_NAME_ROOT),
@@ -131,7 +128,10 @@ public class TimedEventsProcedure {
 
             @Override
             public RawIterator<Object[], ProcedureException> apply(CallableProcedure.Context ctx, Object[] input) throws ProcedureException {
+                checkIsMap(input[0]);
                 Map<String, Object> inputParams = (Map) input[0];
+                checkTime(inputParams, PARAMETER_NAME_START_TIME);
+                checkTime(inputParams, PARAMETER_NAME_END_TIME);
                 List<Event> events;
                 if (inputParams.containsKey(PARAMETER_NAME_ROOT)) {
                     events = timedEventsLogic.getEventsCustomRoot(
@@ -159,19 +159,24 @@ public class TimedEventsProcedure {
 
     private List<Object[]> getObjectArray(List<Event> events) {
         List<Object[]> collector = events.stream()
-                .map((event) -> new Object[]{event.getNode(), event.getRelationshipType() != null ? event.getRelationshipType().toString() : "", 
-                    event.getDirection().name()})
+                .map((event) -> new Object[]{event.getNode(), event.getRelationshipType() != null ? event.getRelationshipType().toString() : "",
+            event.getDirection().name()})
                 .collect(Collectors.toList());
         return collector;
     }
 
-    private static ProcedureSignature.ProcedureName getProcedureName(String... procedureName) {
+    private void checkEventNode(Node eventNode) {
+        if (eventNode == null)
+            throw new RuntimeException("Event node is necessary. Parameter " + PARAMETER_NAME_NODE + " is missing");
+    }
+
+    protected static ProcedureSignature.ProcedureName getProcedureName(String... procedureName) {
         String namespace[] = new String[3 + procedureName.length];
         int i = 0;
         namespace[i++] = "ga";
         namespace[i++] = "timetree";
         namespace[i++] = "events";
-        
+
         for (String value : procedureName) {
             namespace[i++] = value;
         }

@@ -19,6 +19,7 @@ import com.graphaware.module.timetree.logic.TimeTreeBusinessLogic;
 import java.util.Collections;
 import java.util.HashSet;
 import java.util.List;
+import java.util.Map;
 import java.util.Set;
 import org.neo4j.collection.RawIterator;
 import org.neo4j.graphdb.GraphDatabaseService;
@@ -32,16 +33,8 @@ import org.neo4j.kernel.api.proc.ProcedureSignature;
 import static org.neo4j.kernel.api.proc.ProcedureSignature.procedureName;
 import static org.neo4j.kernel.api.proc.ProcedureSignature.procedureSignature;
 
-public class TimeTreeProcedure {
+public class TimeTreeProcedure extends TimeTreeBaseProcedure {
 
-    private static final String PARAMETER_NAME_TIME = "time";
-    private static final String PARAMETER_NAME_RESOLUTION = "resolution";
-    private static final String PARAMETER_NAME_TIMEZONE = "timezone";
-    private static final String PARAMETER_NAME_INSTANT = "instant";
-    private static final String PARAMETER_NAME_STAR_TIME = "starTime";
-    private static final String PARAMETER_NAME_END_TIME = "endTime";
-    private static final String PARAMETER_NAME_INSTANTS = "instants";
-    private static final String PARAMETER_NAME_ROOT = "root";
 
     private final TimeTreeBusinessLogic timeTree;
 
@@ -50,234 +43,126 @@ public class TimeTreeProcedure {
 
     }
 
-    public CallableProcedure.BasicProcedure getOrCreateInstant() {
-        return new CallableProcedure.BasicProcedure(procedureSignature(getProcedureName("mergeInstant"))
+    public CallableProcedure.BasicProcedure get() {
+        return new CallableProcedure.BasicProcedure(procedureSignature(getProcedureName("single"))
                 .mode(ProcedureSignature.Mode.READ_WRITE)
-                .in(PARAMETER_NAME_TIME, Neo4jTypes.NTNumber)
-                .in(PARAMETER_NAME_RESOLUTION, Neo4jTypes.NTString)
-                .in(PARAMETER_NAME_TIMEZONE, Neo4jTypes.NTString)
+                .in(PARAMETER_NAME_INPUT, Neo4jTypes.NTMap)
                 .out(PARAMETER_NAME_INSTANT, Neo4jTypes.NTNode).build()) {
 
             @Override
             public RawIterator<Object[], ProcedureException> apply(Context ctx, Object[] input) throws ProcedureException {
-                Node instant = timeTree.getOrCreateInstant((long) input[0], (String) input[1], (String) input[2]);
-                return Iterators.asRawIterator(Collections.<Object[]>singleton(new Object[]{instant}).iterator());
+                validateSingleParamter(input[0]);
+                Map<String, Object> inputParams = (Map) input[0];
+                boolean create = (boolean) inputParams.getOrDefault(PARAMETER_NAME_CREATE, false);
+                Node rootNode = (Node) inputParams.getOrDefault(PARAMETER_NAME_ROOT, null);
+                long time = (long) inputParams.get(PARAMETER_NAME_TIME);
+                String resolution = (String) inputParams.get(PARAMETER_NAME_RESOLUTION);
+                String timesone = (String) inputParams.get(PARAMETER_NAME_TIMEZONE);
+
+                return getInstant(create, rootNode, time, resolution, timesone);
             }
         };
     }
 
-    public CallableProcedure.BasicProcedure getInstant() {
-        return new CallableProcedure.BasicProcedure(procedureSignature(getProcedureName("single"))
-                .mode(ProcedureSignature.Mode.READ_WRITE)
-                .in(PARAMETER_NAME_TIME, Neo4jTypes.NTNumber)
-                .in(PARAMETER_NAME_RESOLUTION, Neo4jTypes.NTString)
-                .in(PARAMETER_NAME_TIMEZONE, Neo4jTypes.NTString)
-                .out(PARAMETER_NAME_INSTANT, Neo4jTypes.NTNode).build()) {
-
-            @Override
-            public RawIterator<Object[], ProcedureException> apply(CallableProcedure.Context ctx, Object[] input) throws ProcedureException {
-                Node instant;
-                try {
-                    instant = timeTree.getInstant((long) input[0], (String) input[1], (String) input[2]);
-                } catch (NotFoundException ex) {
-                    return Iterators.asRawIterator(Collections.<Object[]>emptyIterator());
+    private RawIterator<Object[], ProcedureException> getInstant(boolean create, Node rootNode, long time, String resolution, String timesone) {
+        Node instant;
+        if (!create) {
+            try {
+                if (rootNode == null) {
+                    instant = timeTree.getInstant(time, resolution, timesone);
+                } else {
+                    instant = timeTree.getInstantWithCustomRoot(rootNode.getId(), time, resolution, timesone);
                 }
-                return Iterators.asRawIterator(Collections.<Object[]>singleton(new Object[]{instant}).iterator());
+            } catch (NotFoundException ex) {
+                return Iterators.asRawIterator(Collections.<Object[]>emptyIterator());
             }
-        };
+        } else if (rootNode == null) {
+            instant = timeTree.getOrCreateInstant(time, resolution, timesone);
+        } else {
+            instant = timeTree.getOrCreateInstantWithCustomRoot(rootNode.getId(), time, resolution, timesone);
+        }
+        return Iterators.asRawIterator(Collections.<Object[]>singleton(new Object[]{instant}).iterator());
     }
 
     public CallableProcedure.BasicProcedure getInstants() {
         return new CallableProcedure.BasicProcedure(procedureSignature(getProcedureName("range"))
                 .mode(ProcedureSignature.Mode.READ_WRITE)
-                .in(PARAMETER_NAME_STAR_TIME, Neo4jTypes.NTNumber)
-                .in(PARAMETER_NAME_END_TIME, Neo4jTypes.NTNumber)
-                .in(PARAMETER_NAME_RESOLUTION, Neo4jTypes.NTString)
-                .in(PARAMETER_NAME_TIMEZONE, Neo4jTypes.NTString)
+                .in(PARAMETER_NAME_INPUT, Neo4jTypes.NTMap)
                 .out(PARAMETER_NAME_INSTANTS, Neo4jTypes.NTNode).build()) {
 
             @Override
             public RawIterator<Object[], ProcedureException> apply(CallableProcedure.Context ctx, Object[] input) throws ProcedureException {
-                List<Node> instants = timeTree.getInstants((long) input[0], (long) input[1], (String) input[2], (String) input[3]);
-                Set<Object[]> result = new HashSet<>();
-                instants.stream().forEach((node) -> result.add(new Object[]{node}));
-                return Iterators.asRawIterator(result.iterator());
-            }
-        };
-    }
+                validateRangeParameters(input[0]);
+                Map<String, Object> inputParams = (Map) input[0];
+                boolean create = (boolean) inputParams.getOrDefault(PARAMETER_NAME_CREATE, false);
+                Node rootNode = (Node) inputParams.getOrDefault(PARAMETER_NAME_ROOT, null);
+                long startTime = (long) inputParams.get(PARAMETER_NAME_STAR_TIME);
+                long endTime = (long) inputParams.get(PARAMETER_NAME_END_TIME);
+                String resolution = (String) inputParams.get(PARAMETER_NAME_RESOLUTION);
+                String timesone = (String) inputParams.get(PARAMETER_NAME_TIMEZONE);
 
-    public CallableProcedure.BasicProcedure getOrCreateInstants() {
-        return new CallableProcedure.BasicProcedure(procedureSignature(getProcedureName("mergeInstants"))
-                .mode(ProcedureSignature.Mode.READ_WRITE)
-                .in(PARAMETER_NAME_STAR_TIME, Neo4jTypes.NTNumber)
-                .in(PARAMETER_NAME_END_TIME, Neo4jTypes.NTNumber)
-                .in(PARAMETER_NAME_RESOLUTION, Neo4jTypes.NTString)
-                .in(PARAMETER_NAME_TIMEZONE, Neo4jTypes.NTString)
-                .out(PARAMETER_NAME_INSTANTS, Neo4jTypes.NTNode).build()) {
-
-            @Override
-            public RawIterator<Object[], ProcedureException> apply(CallableProcedure.Context ctx, Object[] input) throws ProcedureException {
-                List<Node> instants = timeTree.getOrCreateInstants((long) input[0], (long) input[1], (String) input[2], (String) input[3]);
-                Set<Object[]> result = new HashSet<>();
-                instants.stream().forEach((node) -> result.add(new Object[]{node}));
-                return Iterators.asRawIterator(result.iterator());
-            }
-        };
-    }
-
-    public CallableProcedure.BasicProcedure getInstantWithCustomRoot() {
-        return new CallableProcedure.BasicProcedure(procedureSignature(getProcedureName("singleWithRoot"))
-                .mode(ProcedureSignature.Mode.READ_WRITE)
-                .in(PARAMETER_NAME_ROOT, Neo4jTypes.NTNode)
-                .in(PARAMETER_NAME_TIME, Neo4jTypes.NTNumber)
-                .in(PARAMETER_NAME_RESOLUTION, Neo4jTypes.NTString)
-                .in(PARAMETER_NAME_TIMEZONE, Neo4jTypes.NTString)
-                .out(PARAMETER_NAME_INSTANT, Neo4jTypes.NTNode).build()) {
-
-            @Override
-            public RawIterator<Object[], ProcedureException> apply(CallableProcedure.Context ctx, Object[] input) throws ProcedureException {
-                Node instant;
-                try {
-                    instant = timeTree.getInstantWithCustomRoot(((Node) input[0]).getId(), (long) input[1], (String) input[2], (String) input[3]);
-                } catch (NotFoundException ex) {
-                    return Iterators.asRawIterator(Collections.<Object[]>emptyIterator());
+                List<Node> instants;
+                if (!create) {
+                    try {
+                        if (rootNode == null) {
+                            instants = timeTree.getInstants(startTime, endTime, resolution, timesone);
+                        } else {
+                            instants = timeTree.getInstantsWithCustomRoot(rootNode.getId(), startTime, endTime, resolution, timesone);
+                        }
+                    } catch (NotFoundException ex) {
+                        return Iterators.asRawIterator(Collections.<Object[]>emptyIterator());
+                    }
+                } else if (rootNode == null) {
+                    instants = timeTree.getOrCreateInstants(startTime, endTime, resolution, timesone);
+                } else {
+                    instants = timeTree.getOrCreateInstantsWithCustomRoot(rootNode.getId(), startTime, endTime, resolution, timesone);
                 }
-                return Iterators.asRawIterator(Collections.<Object[]>singleton(new Object[]{instant}).iterator());
-            }
-        };
-    }
 
-    public CallableProcedure.BasicProcedure getOrCreateInstantWithCustomRoot() {
-        return new CallableProcedure.BasicProcedure(procedureSignature(getProcedureName("mergeInstantWithRoot"))
-                .mode(ProcedureSignature.Mode.READ_WRITE)
-                .in(PARAMETER_NAME_ROOT, Neo4jTypes.NTNode)
-                .in(PARAMETER_NAME_TIME, Neo4jTypes.NTNumber)
-                .in(PARAMETER_NAME_RESOLUTION, Neo4jTypes.NTString)
-                .in(PARAMETER_NAME_TIMEZONE, Neo4jTypes.NTString)
-                .out(PARAMETER_NAME_INSTANT, Neo4jTypes.NTNode).build()) {
-
-            @Override
-            public RawIterator<Object[], ProcedureException> apply(CallableProcedure.Context ctx, Object[] input) throws ProcedureException {
-                Node instant = timeTree.getOrCreateInstantWithCustomRoot(((Node) input[0]).getId(), (long) input[1], (String) input[2], (String) input[3]);
-                return Iterators.asRawIterator(Collections.<Object[]>singleton(new Object[]{instant}).iterator());
-            }
-        };
-    }
-
-    public CallableProcedure.BasicProcedure getInstantsWithCustomRoot() {
-        return new CallableProcedure.BasicProcedure(procedureSignature(getProcedureName("rangeWithRoot"))
-                .mode(ProcedureSignature.Mode.READ_WRITE)
-                .in(PARAMETER_NAME_ROOT, Neo4jTypes.NTNode)
-                .in(PARAMETER_NAME_STAR_TIME, Neo4jTypes.NTNumber)
-                .in(PARAMETER_NAME_END_TIME, Neo4jTypes.NTNumber)
-                .in(PARAMETER_NAME_RESOLUTION, Neo4jTypes.NTString)
-                .in(PARAMETER_NAME_TIMEZONE, Neo4jTypes.NTString)
-                .out(PARAMETER_NAME_INSTANTS, Neo4jTypes.NTNode).build()) {
-
-            @Override
-            public RawIterator<Object[], ProcedureException> apply(CallableProcedure.Context ctx, Object[] input) throws ProcedureException {
-                List<Node> instants = timeTree.getInstantsWithCustomRoot(((Node) input[0]).getId(), (long) input[1], (long) input[2], (String) input[3], (String) input[4]);
                 Set<Object[]> result = new HashSet<>();
                 instants.stream().forEach((node) -> result.add(new Object[]{node}));
                 return Iterators.asRawIterator(result.iterator());
             }
+
         };
     }
 
-    public CallableProcedure.BasicProcedure getOrCreateInstantsWithCustomRoot() {
-        return new CallableProcedure.BasicProcedure(procedureSignature(getProcedureName("mergeInstantsWithRoot"))
-                .mode(ProcedureSignature.Mode.READ_WRITE)
-                .in(PARAMETER_NAME_ROOT, Neo4jTypes.NTNode)
-                .in(PARAMETER_NAME_STAR_TIME, Neo4jTypes.NTNumber)
-                .in(PARAMETER_NAME_END_TIME, Neo4jTypes.NTNumber)
-                .in(PARAMETER_NAME_RESOLUTION, Neo4jTypes.NTString)
-                .in(PARAMETER_NAME_TIMEZONE, Neo4jTypes.NTString)
-                .out(PARAMETER_NAME_INSTANTS, Neo4jTypes.NTNode).build()) {
-
-            @Override
-            public RawIterator<Object[], ProcedureException> apply(CallableProcedure.Context ctx, Object[] input) throws ProcedureException {
-                List<Node> instants = timeTree.getOrCreateInstantsWithCustomRoot(((Node) input[0]).getId(), (long) input[1], (long) input[2], (String) input[3], (String) input[4]);
-                Set<Object[]> result = new HashSet<>();
-                instants.stream().forEach((node) -> result.add(new Object[]{node}));
-                return Iterators.asRawIterator(result.iterator());
-            }
-        };
-    }
-
+    
     public CallableProcedure.BasicProcedure now() {
         return new CallableProcedure.BasicProcedure(procedureSignature(getProcedureName("now"))
                 .mode(ProcedureSignature.Mode.READ_WRITE)
-                .in(PARAMETER_NAME_RESOLUTION, Neo4jTypes.NTString)
-                .in(PARAMETER_NAME_TIMEZONE, Neo4jTypes.NTString)
+                .in(PARAMETER_NAME_INPUT, Neo4jTypes.NTMap)
                 .out(PARAMETER_NAME_INSTANT, Neo4jTypes.NTNode).build()) {
 
             @Override
             public RawIterator<Object[], ProcedureException> apply(CallableProcedure.Context ctx, Object[] input) throws ProcedureException {
-                Node instant;
-                try {
-                    instant = timeTree.getInstant(System.currentTimeMillis(), (String) input[0], (String) input[1]);
-                } catch (NotFoundException ex) {
-                    return Iterators.asRawIterator(Collections.<Object[]>emptyIterator());
-                }
-                return Iterators.asRawIterator(Collections.<Object[]>singleton(new Object[]{instant}).iterator());
+                validateSingleParamter(input[0]);
+                Map<String, Object> inputParams = (Map) input[0];
+                boolean create = (boolean) inputParams.getOrDefault(PARAMETER_NAME_CREATE, false);
+                Node rootNode = (Node) inputParams.getOrDefault(PARAMETER_NAME_ROOT, null);
+                String resolution = (String) inputParams.get(PARAMETER_NAME_RESOLUTION);
+                String timesone = (String) inputParams.get(PARAMETER_NAME_TIMEZONE);
+
+                return getInstant(create, rootNode, System.currentTimeMillis(), resolution, timesone);
             }
         };
     }
 
-    public CallableProcedure.BasicProcedure mergeNow() {
-        return new CallableProcedure.BasicProcedure(procedureSignature(getProcedureName("mergeNow"))
-                .mode(ProcedureSignature.Mode.READ_WRITE)
-                .in(PARAMETER_NAME_RESOLUTION, Neo4jTypes.NTString)
-                .in(PARAMETER_NAME_TIMEZONE, Neo4jTypes.NTString)
-                .out(PARAMETER_NAME_INSTANT, Neo4jTypes.NTNode).build()) {
-
-            @Override
-            public RawIterator<Object[], ProcedureException> apply(CallableProcedure.Context ctx, Object[] input) throws ProcedureException {
-                Node instant = timeTree.getOrCreateInstant(System.currentTimeMillis(), (String) input[0], (String) input[1]);
-                return Iterators.asRawIterator(Collections.<Object[]>singleton(new Object[]{instant}).iterator());
-            }
-        };
+    protected void validateSingleParamter(Object object) {
+        checkIsMap(object);
+        Map<String, Object> inputParams = (Map) object;
+        checkCreate(inputParams);
+        checkTime(inputParams, PARAMETER_NAME_TIME);
     }
 
-    public CallableProcedure.BasicProcedure nowWithRoot() {
-        return new CallableProcedure.BasicProcedure(procedureSignature(getProcedureName("nowWithRoot"))
-                .mode(ProcedureSignature.Mode.READ_WRITE)
-                .in(PARAMETER_NAME_ROOT, Neo4jTypes.NTNode)
-                .in(PARAMETER_NAME_RESOLUTION, Neo4jTypes.NTString)
-                .in(PARAMETER_NAME_TIMEZONE, Neo4jTypes.NTString)
-                .out(PARAMETER_NAME_INSTANT, Neo4jTypes.NTNode).build()) {
-
-            @Override
-            public RawIterator<Object[], ProcedureException> apply(CallableProcedure.Context ctx, Object[] input) throws ProcedureException {
-                Node instant;
-                try {
-                    instant = timeTree.getInstantWithCustomRoot(((Node) input[0]).getId(), System.currentTimeMillis(), (String) input[1], (String) input[2]);
-                } catch (NotFoundException ex) {
-                    return Iterators.asRawIterator(Collections.<Object[]>emptyIterator());
-                }
-                return Iterators.asRawIterator(Collections.<Object[]>singleton(new Object[]{instant}).iterator());
-            }
-        };
+    protected void validateRangeParameters(Object object) {
+        checkIsMap(object);
+        Map<String, Object> inputParams = (Map) object;
+        checkCreate(inputParams);
+        checkTime(inputParams, PARAMETER_NAME_START_TIME);
+        checkTime(inputParams, PARAMETER_NAME_END_TIME);
     }
-
-    public CallableProcedure.BasicProcedure mergeNowWithRoot() {
-        return new CallableProcedure.BasicProcedure(procedureSignature(getProcedureName("mergeNowWithRoot"))
-                .mode(ProcedureSignature.Mode.READ_WRITE)
-                .in(PARAMETER_NAME_ROOT, Neo4jTypes.NTNode)
-                .in(PARAMETER_NAME_RESOLUTION, Neo4jTypes.NTString)
-                .in(PARAMETER_NAME_TIMEZONE, Neo4jTypes.NTString)
-                .out(PARAMETER_NAME_INSTANT, Neo4jTypes.NTNode).build()) {
-
-            @Override
-            public RawIterator<Object[], ProcedureException> apply(CallableProcedure.Context ctx, Object[] input) throws ProcedureException {
-                Node instant = timeTree.getOrCreateInstantWithCustomRoot(((Node) input[0]).getId(), System.currentTimeMillis(), (String) input[1], (String) input[2]);
-                return Iterators.asRawIterator(Collections.<Object[]>singleton(new Object[]{instant}).iterator());
-            }
-        };
-    }
-
-    private static ProcedureSignature.ProcedureName getProcedureName(String procedureName) {
+    
+    protected static ProcedureSignature.ProcedureName getProcedureName(String procedureName) {
         return procedureName("ga", "timetree", procedureName);
     }
-
 }

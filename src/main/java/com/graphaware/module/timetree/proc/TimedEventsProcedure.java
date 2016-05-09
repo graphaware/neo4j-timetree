@@ -19,6 +19,7 @@ import com.graphaware.module.timetree.TimedEvents;
 import com.graphaware.module.timetree.domain.Event;
 import com.graphaware.module.timetree.logic.TimedEventsBusinessLogic;
 import static com.graphaware.module.timetree.proc.TimeTreeBaseProcedure.PARAMETER_NAME_END_TIME;
+import static com.graphaware.module.timetree.proc.TimeTreeBaseProcedure.PARAMETER_NAME_ROOT;
 import static com.graphaware.module.timetree.proc.TimeTreeBaseProcedure.PARAMETER_NAME_START_TIME;
 import static com.graphaware.module.timetree.proc.TimeTreeBaseProcedure.PARAMETER_NAME_TIME;
 
@@ -62,7 +63,7 @@ public class TimedEventsProcedure extends TimeTreeBaseProcedure {
                 checkTime(inputParams, PARAMETER_NAME_TIME);
                 List<Event> events;
                 if (inputParams.containsKey(PARAMETER_NAME_ROOT)) {
-                    events = timedEventsLogic.getEventsCustomRoot(((Node) inputParams.get(PARAMETER_NAME_NODE)).getId(),
+                    events = timedEventsLogic.getEventsCustomRoot(((Node) inputParams.get(PARAMETER_NAME_ROOT)).getId(),
                             (long) inputParams.get(PARAMETER_NAME_TIME),
                             (String) inputParams.get(PARAMETER_NAME_RESOLUTION),
                             (String) inputParams.get(PARAMETER_NAME_TIMEZONE),

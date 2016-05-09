@@ -19,6 +19,7 @@ package com.graphaware.module.timetree.proc;
 import com.graphaware.module.timetree.domain.Resolution;
 import com.graphaware.module.timetree.domain.TimeInstant;
 import com.graphaware.test.integration.GraphAwareIntegrationTest;
+import static com.graphaware.test.unit.GraphUnit.assertSameGraph;
 import java.util.Calendar;
 
 import java.util.HashMap;
@@ -284,6 +285,37 @@ public class TimedEventsProcedureTest extends GraphAwareIntegrationTest {
             tx.success();
         }
     }
+    
+    @Test
+    public void eventAndTimeInstantAtCustomRootShouldBeCreatedWhenEventIsAttached() {
+        long customRootId;
+        long time = System.currentTimeMillis();
+        try (Transaction tx = getDatabase().beginTx()) {
+            Node custom = getDatabase().createNode(Label.label("Person"));
+            customRootId = custom.getId();
+            getDatabase().execute("CREATE (n:Email {time: "+ time +", timeTreeRootId: " + customRootId + "})");
+            tx.success();
+        }        
+        int i = 0;
+        try (Transaction tx = getDatabase().beginTx()) {
+            Result rs = getDatabase().execute("MATCH (n:Person) WHERE id(n) = " + customRootId + " " +
+                    "CALL ga.timetree.events.single(" +
+                    "{root: n, time: " + time + "}) " +
+                    "YIELD node, relationshipType, direction RETURN *");
+            while (rs.hasNext()) {
+                ++i;
+                Map<String, Object> record = rs.next();
+                Node node  = (Node) record.get("node");
+                assertEquals(time, node.getProperty(TIME_PROPERTY));
+                String relationshipType = record.get("relationshipType").toString();
+                assertEquals(DEFAULT_REL_TYPE, relationshipType);
+                String direction = record.get("direction").toString();
+                assertEquals(Direction.INCOMING.toString(), direction);
+            }
+            tx.success();
+        }
+        assertEquals(1, i);
+    }
 
     private Map<String, Object> getParamsMapForTime(long time) {
         Map<String, Object> params = new HashMap<>();
@@ -291,6 +323,20 @@ public class TimedEventsProcedureTest extends GraphAwareIntegrationTest {
         params.put("resolution", null);
         params.put("timezone", null);
         params.put("relationshipType", null);
+        params.put("direction", null);
+
+        Map<String, Object> map = new HashMap<>();
+        map.put("params", params);
+
+        return map;
+    }
+    
+    private Map<String, Object> getCompleteParamsMapForTime(long time) {
+        Map<String, Object> params = new HashMap<>();
+        params.put("time", time);
+        params.put("resolution", "DAY");
+        params.put("timezone", "UTC");
+        params.put("relationshipType", "AT_TIME");
         params.put("direction", null);
 
         Map<String, Object> map = new HashMap<>();

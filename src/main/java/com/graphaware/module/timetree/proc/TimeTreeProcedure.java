@@ -135,8 +135,9 @@ public class TimeTreeProcedure extends TimeTreeBaseProcedure {
 
             @Override
             public RawIterator<Object[], ProcedureException> apply(CallableProcedure.Context ctx, Object[] input) throws ProcedureException {
-                validateSingleParamter(input[0]);
+                checkIsMap(input[0]);
                 Map<String, Object> inputParams = (Map) input[0];
+                checkCreate(inputParams);
                 boolean create = (boolean) inputParams.getOrDefault(PARAMETER_NAME_CREATE, false);
                 Node rootNode = (Node) inputParams.getOrDefault(PARAMETER_NAME_ROOT, null);
                 String resolution = (String) inputParams.get(PARAMETER_NAME_RESOLUTION);

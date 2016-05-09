@@ -19,6 +19,7 @@ package com.graphaware.module.timetree.proc;
 import com.graphaware.module.timetree.domain.Resolution;
 import com.graphaware.module.timetree.domain.TimeInstant;
 import com.graphaware.test.integration.GraphAwareIntegrationTest;
+import java.util.Calendar;
 
 import java.util.HashMap;
 import java.util.Map;
@@ -261,6 +262,25 @@ public class TimedEventsProcedureTest extends GraphAwareIntegrationTest {
             assertTrue(year.hasLabel(Label.label("Year")));
             Node event = getDatabase().findNode(Label.label("Event"), "id", 123);
             Node instant = event.getSingleRelationship(RelationshipType.withName("OCCURED_ON"), Direction.OUTGOING).getStartNode();
+            tx.success();
+        }
+    }
+    
+    @Test
+    public void testAttach() {
+        try (Transaction tx = getDatabase().beginTx()) {
+            getDatabase().execute("CREATE (e:Event {id: 123}) " +
+                    "WITH e " +
+                    "CALL ga.timetree.events.attach({node: e, time: timestamp(), relationshipType: 'OCCURED_ON'}) YIELD node RETURN *");
+            tx.success();
+        }
+
+        try (Transaction tx = getDatabase().beginTx()) {
+            Node event = getDatabase().findNode(Label.label("Event"), "id", 123);
+            Node instant = event.getSingleRelationship(RelationshipType.withName("OCCURED_ON"), Direction.OUTGOING).getEndNode();
+            Calendar cal = Calendar.getInstance();
+            int dayOfMonth = cal.get(Calendar.DAY_OF_MONTH);
+            assertEquals(instant.getProperty("value"), dayOfMonth);
             tx.success();
         }
     }

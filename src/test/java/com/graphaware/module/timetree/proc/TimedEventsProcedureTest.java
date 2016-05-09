@@ -357,9 +357,6 @@ public class TimedEventsProcedureTest extends GraphAwareIntegrationTest {
         return baseUrl() + "/timetree/";
     }
 
-    private long dateToMillis(int year, int month, int day) {
-        return dateToMillis(year, month, day, 0);
-    }
     
     private long dateToMillis(int year, int month, int day, int hour) {
         return dateToDateTime(year, month, day, hour).getMillis();

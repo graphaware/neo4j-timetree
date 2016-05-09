@@ -20,10 +20,8 @@ import com.graphaware.test.integration.GraphAwareIntegrationTest;
 import static com.graphaware.test.unit.GraphUnit.assertSameGraph;
 
 import java.util.Calendar;
-import java.util.Date;
 import java.util.HashMap;
 import java.util.Map;
-import org.apache.http.HttpStatus;
 import org.joda.time.DateTime;
 import org.joda.time.DateTimeZone;
 import org.json.JSONException;
@@ -39,8 +37,7 @@ import org.neo4j.graphdb.Result;
 import org.neo4j.graphdb.Transaction;
 
 
-import org.neo4j.graphdb.DynamicLabel;
-import org.neo4j.unsafe.impl.batchimport.input.DataException;
+import static org.neo4j.graphdb.Label.label;
 
 /**
  * Procedure test for {@link com.graphaware.module.timetree.proc.TimeTreeProcedure}.
@@ -121,7 +118,7 @@ public class TimeTreeProcedureTest extends GraphAwareIntegrationTest {
         }
         
         try (Transaction tx = getDatabase().beginTx()) {
-            getDatabase().createNode(DynamicLabel.label("CustomRoot"));
+            getDatabase().createNode(label("CustomRoot"));
             tx.success();
         }
 
@@ -160,7 +157,7 @@ public class TimeTreeProcedureTest extends GraphAwareIntegrationTest {
         }
 
         try (Transaction tx = getDatabase().beginTx()) {
-            getDatabase().createNode(DynamicLabel.label("CustomRoot"));
+            getDatabase().createNode(label("CustomRoot"));
             tx.success();
         }
 
@@ -251,7 +248,7 @@ public class TimeTreeProcedureTest extends GraphAwareIntegrationTest {
         }
         
         try (Transaction tx = getDatabase().beginTx()) {
-            getDatabase().createNode(DynamicLabel.label("CustomRoot"));
+            getDatabase().createNode(label("CustomRoot"));
             tx.success();
         }
         
@@ -307,7 +304,7 @@ public class TimeTreeProcedureTest extends GraphAwareIntegrationTest {
         }
         
         try (Transaction tx = getDatabase().beginTx()) {
-            getDatabase().createNode(DynamicLabel.label("CustomRoot"));
+            getDatabase().createNode(label("CustomRoot"));
             tx.success();
         }
         

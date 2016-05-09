@@ -28,6 +28,7 @@ import org.neo4j.graphdb.Node;
 import org.neo4j.graphdb.Transaction;
 
 import static com.graphaware.test.unit.GraphUnit.assertSameGraph;
+import static org.neo4j.graphdb.Label.label;
 import static org.skyscreamer.jsonassert.JSONAssert.assertEquals;
 
 /**
@@ -130,7 +131,7 @@ public class TimeTreeApiTest extends GraphAwareIntegrationTest {
         httpClient.post(getUrl() + "0/single/" + dateInMillis, HttpStatus.SC_NOT_FOUND);
 
         try (Transaction tx = getDatabase().beginTx()) {
-            getDatabase().createNode(DynamicLabel.label("CustomRoot"));
+            getDatabase().createNode(label("CustomRoot"));
             tx.success();
         }
 
@@ -176,7 +177,7 @@ public class TimeTreeApiTest extends GraphAwareIntegrationTest {
         httpClient.get(getUrl() + "0/range/" + startDateInMillis + "/" + endDateInMillis, HttpStatus.SC_NOT_FOUND);
 
         try (Transaction tx = getDatabase().beginTx()) {
-            getDatabase().createNode(DynamicLabel.label("CustomRoot"));
+            getDatabase().createNode(label("CustomRoot"));
             tx.success();
         }
 
@@ -332,7 +333,7 @@ public class TimeTreeApiTest extends GraphAwareIntegrationTest {
         httpClient.get(getUrl() + "/0/now", HttpStatus.SC_NOT_FOUND);
 
         try (Transaction tx = getDatabase().beginTx()) {
-            getDatabase().createNode(DynamicLabel.label("CustomRoot"));
+            getDatabase().createNode(label("CustomRoot"));
             tx.success();
         }
 
@@ -416,7 +417,7 @@ public class TimeTreeApiTest extends GraphAwareIntegrationTest {
     @Test
     public void whenTheCustomRootIsDeletedSubsequentRestApiCallsShouldThrowNotFoundException() throws JSONException {
         try (Transaction tx = getDatabase().beginTx()) {
-            getDatabase().createNode(DynamicLabel.label("CustomRoot"));
+            getDatabase().createNode(label("CustomRoot"));
             tx.success();
         }
 

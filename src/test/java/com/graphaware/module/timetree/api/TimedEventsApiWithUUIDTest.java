@@ -26,7 +26,6 @@ import org.joda.time.DateTime;
 import org.joda.time.DateTimeZone;
 import org.json.JSONException;
 import org.junit.Test;
-import org.neo4j.graphdb.DynamicLabel;
 import org.neo4j.graphdb.GraphDatabaseService;
 import org.neo4j.graphdb.Node;
 import org.neo4j.graphdb.Transaction;
@@ -37,6 +36,7 @@ import java.io.IOException;
 import java.util.concurrent.atomic.AtomicInteger;
 
 import static com.graphaware.test.unit.GraphUnit.assertSameGraph;
+import static org.neo4j.graphdb.Label.label;
 import static org.skyscreamer.jsonassert.JSONAssert.assertEquals;
 
 /**
@@ -294,12 +294,12 @@ public class TimedEventsApiWithUUIDTest extends GraphAwareIntegrationTest {
         Node event;
         long eventId;
         try (Transaction tx = getDatabase().beginTx()) {
-            getDatabase().createNode(DynamicLabel.label("CustomRoot"));
+            getDatabase().createNode(label("CustomRoot"));
             tx.success();
         }
 
         try (Transaction tx = getDatabase().beginTx()) {
-            event = getDatabase().createNode(DynamicLabel.label("Event"));
+            event = getDatabase().createNode(label("Event"));
             event.setProperty("name", "eventA");
             eventId = event.getId();
             tx.success();
@@ -350,7 +350,7 @@ public class TimedEventsApiWithUUIDTest extends GraphAwareIntegrationTest {
         Node event;
         long eventId;
         try (Transaction tx = getDatabase().beginTx()) {
-            getDatabase().createNode(DynamicLabel.label("CustomRoot"));
+            getDatabase().createNode(label("CustomRoot"));
             tx.success();
         }
 
@@ -461,7 +461,7 @@ public class TimedEventsApiWithUUIDTest extends GraphAwareIntegrationTest {
 
         long eventId1, eventId2;
         try (Transaction tx = getDatabase().beginTx()) {
-            getDatabase().createNode(DynamicLabel.label("CustomRoot"));
+            getDatabase().createNode(label("CustomRoot"));
             tx.success();
         }
 

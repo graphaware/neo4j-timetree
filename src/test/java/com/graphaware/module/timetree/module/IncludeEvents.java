@@ -17,15 +17,15 @@
 package com.graphaware.module.timetree.module;
 
 import com.graphaware.common.policy.BaseNodeInclusionPolicy;
-import org.neo4j.graphdb.DynamicLabel;
 import org.neo4j.graphdb.GraphDatabaseService;
 import org.neo4j.graphdb.Label;
+import static org.neo4j.graphdb.Label.label;
 import org.neo4j.graphdb.Node;
 import org.neo4j.helpers.collection.Iterators;
 
 public final class IncludeEvents extends BaseNodeInclusionPolicy {
 
-    private static final Label EVENT = DynamicLabel.label("Event");
+    private static final Label EVENT = label("Event");
 
     private static final IncludeEvents INSTANCE = new IncludeEvents();
 

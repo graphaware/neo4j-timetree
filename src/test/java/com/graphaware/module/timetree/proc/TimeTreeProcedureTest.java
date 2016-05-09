@@ -17,18 +17,26 @@
 package com.graphaware.module.timetree.proc;
 
 import com.graphaware.test.integration.GraphAwareIntegrationTest;
+import static com.graphaware.test.unit.GraphUnit.assertSameGraph;
 import java.util.HashMap;
 import java.util.Map;
+import org.apache.http.HttpStatus;
 import org.joda.time.DateTime;
 import org.joda.time.DateTimeZone;
 import org.json.JSONException;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertFalse;
+import static org.junit.Assert.assertTrue;
+import static org.junit.Assert.fail;
+
 import org.junit.Test;
 import org.neo4j.graphdb.Node;
 import org.neo4j.graphdb.ResourceIterator;
 import org.neo4j.graphdb.Result;
 import org.neo4j.graphdb.Transaction;
+
+
+import org.neo4j.graphdb.DynamicLabel;
 
 /**
  * Procedure test for {@link com.graphaware.module.timetree.proc.TimeTreeProcedure}.
@@ -103,6 +111,166 @@ public class TimeTreeProcedureTest extends GraphAwareIntegrationTest {
         }
         
     }
+
+    @Test
+    public void testGetOrCreateInstantsWrongParams() throws JSONException {
+        long startDateInMillis = dateToMillis(2013, 5, 4);
+        long endDateInMillis = dateToMillis(2013, 5, 7);
+        Map<String, Object> params = new HashMap<>();
+        params.put("startTime", startDateInMillis);
+        params.put("endTime", endDateInMillis);
+        params.put("resolution", null);
+        params.put("timezone", null);
+        try (Transaction tx = getDatabase().beginTx()) {
+            Result result = getDatabase().execute("CALL ga.timetree.range({stat: {startTime}, end: {endTime}, resolution: {resolution}, timezone: {timezone}, create: true}) YIELD instants return instants", params);
+            ResourceIterator<Node> resIterator = result.columnAs("instants");
+            long count = resIterator.stream().count();
+            fail("This should be unreached");
+            tx.success();
+        }
+        catch (RuntimeException ex) {
+            assertTrue(ex.getMessage().contains("Error getting start parameter"));
+        }
+
+        try (Transaction tx = getDatabase().beginTx()) {
+            Result result = getDatabase().execute("CALL ga.timetree.range({start: {startTime}, en: {endTime}, resolution: {resolution}, timezone: {timezone}, create: true}) YIELD instants return instants", params);
+            ResourceIterator<Node> resIterator = result.columnAs("instants");
+            long count = resIterator.stream().count();
+            fail("This should be unreached");
+            tx.success();
+        }
+        catch (RuntimeException ex) {
+            assertTrue(ex.getMessage().contains("Error getting end parameter"));
+        }
+
+        try (Transaction tx = getDatabase().beginTx()) {
+            Result result = getDatabase().execute("CALL ga.timetree.range({start: {startTime}, end: {endTime}, resolution: {resolution}, timezone: {timezone}, create: 'yeah'}) YIELD instants return instants", params);
+            ResourceIterator<Node> resIterator = result.columnAs("instants");
+            long count = resIterator.stream().count();
+            fail("This should be unreached");
+            tx.success();
+        }
+        catch (RuntimeException ex) {
+            assertTrue(ex.getMessage().contains("java.lang.String cannot be cast to java.lang.Boolean"));
+        }
+
+    }
+    
+    @Test
+    public void trivialTreeShouldBeCreatedWhenFirstDayIsRequestedWithCustomRoot() throws JSONException {
+        long dateInMillis = dateToMillis(2013, 5, 4);
+        Map<String, Object> params = new HashMap<>();
+        params.put("time", dateInMillis);
+        params.put("resolution", null);
+        params.put("timezone", null);
+        try( Transaction tx = getDatabase().beginTx()) {
+            Result result = getDatabase().execute("MATCH (n) WHERE id(n) = 0 CALL ga.timetree.single({root: n, time: {time}, resolutiopn: {resolution}, timezone: {timezone}}) YIELD instant return instant", params);
+            ResourceIterator<Node> resIterator = result.columnAs("instant");
+            assertFalse(resIterator.hasNext());
+            tx.success();
+        }
+        
+        try (Transaction tx = getDatabase().beginTx()) {
+            getDatabase().createNode(DynamicLabel.label("CustomRoot"));
+            tx.success();
+        }
+        
+        try( Transaction tx = getDatabase().beginTx()) {
+            Result result = getDatabase().execute("MATCH (n) WHERE id(n) = 0 CALL ga.timetree.single({root: n, time: {time}, resolutiopn: {resolution}, timezone: {timezone}}) YIELD instant return instant", params);
+            ResourceIterator<Node> resIterator = result.columnAs("instant");
+            assertFalse(resIterator.hasNext());
+            tx.success();
+        }
+        
+        try( Transaction tx = getDatabase().beginTx()) {
+            Result result = getDatabase().execute("MATCH (n) WHERE id(n) = 0 CALL ga.timetree.single({root: n, time: {time}, resolutiopn: {resolution}, timezone: {timezone}, create: true}) YIELD instant return instant", params);
+            ResourceIterator<Node> resIterator = result.columnAs("instant");
+            resIterator.stream().forEach((node) -> assertEquals(node.getProperty("value"), 4));
+            tx.success();
+        }
+
+        assertSameGraph(getDatabase(), "CREATE" +
+                "(root:CustomRoot)," +
+                "(root)-[:FIRST]->(year:Year {value:2013})," +
+                "(root)-[:CHILD]->(year)," +
+                "(root)-[:LAST]->(year)," +
+                "(year)-[:FIRST]->(month:Month {value:5})," +
+                "(year)-[:CHILD]->(month)," +
+                "(year)-[:LAST]->(month)," +
+                "(month)-[:FIRST]->(day:Day {value:4})," +
+                "(month)-[:CHILD]->(day)," +
+                "(month)-[:LAST]->(day)");
+
+    }
+    
+    @Test
+    public void consecutiveDaysShouldBeCreatedWhenRequestedWithCustomRoot() throws JSONException {
+        long startDateInMillis = dateToMillis(2013, 5, 4);
+        long endDateInMillis = dateToMillis(2013, 5, 7);
+        Map<String, Object> params = new HashMap<>();
+        params.put("startTime", startDateInMillis);
+        params.put("endTime", endDateInMillis);
+        params.put("resolution", null);
+        params.put("timezone", null);
+        try( Transaction tx = getDatabase().beginTx()) {
+            Result result = getDatabase().execute("MATCH (n) WHERE id(n) = 0 CALL ga.timetree.range({root: n, start: {startTime}, end: {endTime}, resolution: {resolution}, timezone: {timezone}}) YIELD instants return instants", params);
+            ResourceIterator<Node> resIterator = result.columnAs("instants");
+            assertFalse(resIterator.hasNext());
+            tx.success();
+        }
+        
+        try( Transaction tx = getDatabase().beginTx()) {
+            Result result = getDatabase().execute("MATCH (n) WHERE id(n) = 0 CALL ga.timetree.range({root: n, start: {startTime}, end: {endTime}, resolution: {resolution}, timezone: {timezone}, create: true}) YIELD instants return instants", params);
+            ResourceIterator<Node> resIterator = result.columnAs("instants");
+            assertFalse(resIterator.hasNext());
+            tx.success();
+        }
+        
+        try (Transaction tx = getDatabase().beginTx()) {
+            getDatabase().createNode(DynamicLabel.label("CustomRoot"));
+            tx.success();
+        }
+        
+        try( Transaction tx = getDatabase().beginTx()) {
+            Result result = getDatabase().execute("MATCH (n) WHERE id(n) = 0 CALL ga.timetree.range({root: n, start: {startTime}, end: {endTime}, resolution: {resolution}, timezone: {timezone}}) YIELD instants return instants", params);
+            ResourceIterator<Node> resIterator = result.columnAs("instants");
+            assertFalse(resIterator.hasNext());
+            tx.success();
+        }
+        
+        try( Transaction tx = getDatabase().beginTx()) {
+            Result result = getDatabase().execute("MATCH (n) WHERE id(n) = 0 CALL ga.timetree.range({root: n, start: {startTime}, end: {endTime}, resolution: {resolution}, timezone: {timezone}, create: true}) YIELD instants return instants", params);
+            ResourceIterator<Node> resIterator = result.columnAs("instants");
+            long count = resIterator.stream().count();
+            assertEquals(4, count);
+            tx.success();
+        }
+
+
+        assertSameGraph(getDatabase(), "CREATE" +
+                "(root:CustomRoot)," +
+                "(root)-[:FIRST]->(year:Year {value:2013})," +
+                "(root)-[:CHILD]->(year)," +
+                "(root)-[:LAST]->(year)," +
+                "(year)-[:FIRST]->(month:Month {value:5})," +
+                "(year)-[:CHILD]->(month)," +
+                "(year)-[:LAST]->(month)," +
+                "(month)-[:CHILD]->(day4:Day {value:4})," +
+                "(month)-[:CHILD]->(day5:Day {value:5})," +
+                "(month)-[:CHILD]->(day6:Day {value:6})," +
+                "(month)-[:CHILD]->(day7:Day {value:7})," +
+                "(month)-[:FIRST]->(day4)," +
+                "(month)-[:LAST]->(day7)," +
+                "(day4)-[:NEXT]->(day5)," +
+                "(day5)-[:NEXT]->(day6)," +
+                "(day6)-[:NEXT]->(day7)");
+    }
+            
+    
+    private String getUrl() {
+        return baseUrl() + "/timetree/";
+    }
+
     private long dateToMillis(int year, int month, int day) {
         return dateToDateTime(year, month, day).getMillis();
     }

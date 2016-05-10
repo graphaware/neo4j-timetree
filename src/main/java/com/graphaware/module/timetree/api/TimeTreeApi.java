@@ -81,8 +81,8 @@ public class TimeTreeApi {
             @RequestParam(required = false) String timezone) {
 
         Node instant = timeTreeLogic.getInstant(time, resolution, timezone);
-        JsonNode result = getJsonNode(instant);
-        return result;
+
+        return getJsonNode(instant);
     }
 
     @RequestMapping(value = "/single/{time}", method = RequestMethod.POST)
@@ -93,8 +93,8 @@ public class TimeTreeApi {
             @RequestParam(required = false) String timezone) {
 
         Node instant = timeTreeLogic.getOrCreateInstant(time, resolution, timezone);
-        JsonNode result = getJsonNode(instant);
-        return result;
+
+        return getJsonNode(instant);
     }
 
     @RequestMapping(value = "/range/{startTime}/{endTime}", method = RequestMethod.GET)
@@ -106,8 +106,8 @@ public class TimeTreeApi {
             @RequestParam(required = false) String timezone) {
 
         List<Node> nodes = timeTreeLogic.getInstants(startTime, endTime, resolution, timezone);
-        JsonNode[] result = getJsonNodes(nodes);
-        return result;
+
+        return getJsonNodes(nodes);
     }
 
     @RequestMapping(value = "/range/{startTime}/{endTime}", method = RequestMethod.POST)
@@ -119,8 +119,8 @@ public class TimeTreeApi {
             @RequestParam(required = false) String timezone) {
 
         List<Node> nodes = timeTreeLogic.getOrCreateInstants(startTime, endTime, resolution, timezone);
-        JsonNode[] result = getJsonNodes(nodes);
-        return result;
+
+        return getJsonNodes(nodes);
     }
 
     @RequestMapping(value = "/{rootNodeId}/single/{time}", method = RequestMethod.GET)
@@ -132,8 +132,8 @@ public class TimeTreeApi {
             @RequestParam(required = false) String timezone) {
 
         Node instant = timeTreeLogic.getInstantWithCustomRoot(rootNodeId, time, resolution, timezone);
-        JsonNode result = getJsonNode(instant);
-        return result;
+
+        return getJsonNode(instant);
     }
 
     @RequestMapping(value = "/{rootNodeId}/single/{time}", method = RequestMethod.POST)
@@ -145,8 +145,8 @@ public class TimeTreeApi {
             @RequestParam(required = false) String timezone) {
 
         Node instant = timeTreeLogic.getOrCreateInstantWithCustomRoot(rootNodeId, time, resolution, timezone);
-        JsonNode result = getJsonNode(instant);
-        return result;
+
+        return getJsonNode(instant);
     }
 
 
@@ -160,8 +160,8 @@ public class TimeTreeApi {
             @RequestParam(required = false) String timezone) {
 
         List<Node> nodes = timeTreeLogic.getInstantsWithCustomRoot(rootNodeId, startTime, endTime, resolution, timezone);
-        JsonNode[] result = getJsonNodes(nodes);
-        return result;
+
+        return getJsonNodes(nodes);
     }
 
     @RequestMapping(value = "/{rootNodeId}/range/{startTime}/{endTime}", method = RequestMethod.POST)
@@ -174,8 +174,8 @@ public class TimeTreeApi {
             @RequestParam(required = false) String timezone) {
 
         List<Node> nodes = timeTreeLogic.getOrCreateInstantsWithCustomRoot(rootNodeId, startTime, endTime, resolution, timezone);
-        JsonNode[] result = getJsonNodes(nodes);
-        return result;
+
+        return getJsonNodes(nodes);
     }
 
     @RequestMapping(value = "/now", method = RequestMethod.GET)

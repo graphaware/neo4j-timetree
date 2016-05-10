@@ -46,14 +46,11 @@ public class TimedEventsApi {
     private static final Logger LOG = LoggerFactory.getLogger(TimedEventsApi.class);
 
     private final GraphDatabaseService database;
-    private final TimedEvents timedEvents;
-    
     private final TimedEventsBusinessLogic timedEventsLogic;
 
     @Autowired
     public TimedEventsApi(GraphDatabaseService database, TimedEvents timedEvents) {
         this.database = database;
-        this.timedEvents = timedEvents;
         this.timedEventsLogic = new TimedEventsBusinessLogic(database, timedEvents);
     }
 
@@ -67,8 +64,8 @@ public class TimedEventsApi {
             @RequestParam(required = false) String direction) {
 
         List<Event> events = timedEventsLogic.getEvents(time, resolution, timezone, relationshipTypes, direction);
-        List<EventVO> result = convertEvents(events);
-        return result;
+
+        return convertEvents(events);
     }
 
     
@@ -105,8 +102,8 @@ public class TimedEventsApi {
 
 
         List<Event> events = timedEventsLogic.getEvents(startTime, endTime, resolution, timezone, relationshipTypes, direction);
-        List<EventVO> result = convertEvents(events);
-        return result;
+
+        return convertEvents(events);
     }
 
     
@@ -122,8 +119,8 @@ public class TimedEventsApi {
 
 
         List<Event> events = timedEventsLogic.getEventsCustomRoot(rootNodeId,time, resolution, timezone, relationshipTypes, direction);
-        List<EventVO> result = convertEvents(events);
-        return result;
+
+        return convertEvents(events);
     }
 
     @RequestMapping(value = "/{rootNodeId}/range/{startTime}/{endTime}/events", method = RequestMethod.GET)
@@ -138,8 +135,8 @@ public class TimedEventsApi {
             @RequestParam(required = false) String direction) {
 
         List<Event> events = timedEventsLogic.getEventsCustomRoot(rootNodeId, startTime, endTime, resolution, timezone, relationshipTypes, direction);
-        List<EventVO> result = convertEvents(events);
-        return result;
+
+        return convertEvents(events);
     }
 
     @RequestMapping(value = "{rootNodeId}/single/event", method = RequestMethod.POST)

@@ -1,7 +1,7 @@
 GraphAware Neo4j TimeTree
 =========================
 
-[![Build Status](https://travis-ci.org/graphaware/neo4j-timetree.png)](https://travis-ci.org/graphaware/neo4j-timetree) | <a href="http://graphaware.com/downloads/" target="_blank">Downloads</a> | <a href="http://graphaware.com/site/timetree/latest/apidocs/" target="_blank">Javadoc</a> | Latest Release: 2.3.3.37.24
+[![Build Status](https://travis-ci.org/graphaware/neo4j-timetree.png)](https://travis-ci.org/graphaware/neo4j-timetree) | <a href="http://graphaware.com/downloads/" target="_blank">Downloads</a> | <a href="http://graphaware.com/site/timetree/latest/apidocs/" target="_blank">Javadoc</a> | Latest Release: 3.0.1.38.24
 
 GraphAware TimeTree is a simple library for representing time in Neo4j as a tree of time instants. The tree is built on-demand,
 supports resolutions of one year down to one millisecond and has time zone support. It also supports attaching event nodes to time instants (created on demand).
@@ -31,7 +31,7 @@ Releases are synced to <a href="http://search.maven.org/#search%7Cga%7C1%7Ca%3A%
         <dependency>
             <groupId>com.graphaware.neo4j</groupId>
             <artifactId>timetree</artifactId>
-            <version>2.3.3.37.24</version>
+            <version>3.0.1.38.24</version>
         </dependency>
         ...
     </dependencies>
@@ -39,7 +39,7 @@ Releases are synced to <a href="http://search.maven.org/#search%7Cga%7C1%7Ca%3A%
 #### Snapshots
 
 To use the latest development version, just clone this repository, run `mvn clean install` and change the version in the
-dependency above to 2.3.3.37.25-SNAPSHOT.
+dependency above to 3.0.1.38.25-SNAPSHOT.
 
 #### Note on Versioning Scheme
 
@@ -89,6 +89,10 @@ Finally, the GraphAware TimeTree supports both attaching event nodes to time ins
 to a time instant and all its children or between two time instants and all their children. For instance, you can ask
 for all events that happened in April, which will return events attached to the April node as well as all its children
 and their children, etc.
+
+### Cypher
+
+coming soon
 
 ### REST API
 

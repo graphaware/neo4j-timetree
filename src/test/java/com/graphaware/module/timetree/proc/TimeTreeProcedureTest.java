@@ -17,26 +17,20 @@
 package com.graphaware.module.timetree.proc;
 
 import com.graphaware.test.integration.GraphAwareIntegrationTest;
-import static com.graphaware.test.unit.GraphUnit.assertSameGraph;
-
-import java.util.Calendar;
-import java.util.HashMap;
-import java.util.Map;
 import org.joda.time.DateTime;
 import org.joda.time.DateTimeZone;
-import org.json.JSONException;
-import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertFalse;
-import static org.junit.Assert.assertTrue;
-import static org.junit.Assert.fail;
-
 import org.junit.Test;
 import org.neo4j.graphdb.Node;
 import org.neo4j.graphdb.ResourceIterator;
 import org.neo4j.graphdb.Result;
 import org.neo4j.graphdb.Transaction;
 
+import java.util.Calendar;
+import java.util.HashMap;
+import java.util.Map;
 
+import static com.graphaware.test.unit.GraphUnit.assertSameGraph;
+import static org.junit.Assert.*;
 import static org.neo4j.graphdb.Label.label;
 
 /**
@@ -45,50 +39,50 @@ import static org.neo4j.graphdb.Label.label;
 public class TimeTreeProcedureTest extends GraphAwareIntegrationTest {
 
     @Test
-    public void testGetOrCreateInstant() throws JSONException {
+    public void testGetOrCreateInstant() {
         long dateInMillis = dateToMillis(2013, 5, 5);
         Map<String, Object> params = new HashMap<>();
         params.put("time", dateInMillis);
         params.put("resolution", null);
         params.put("timezone", null);
-        try( Transaction tx = getDatabase().beginTx()) {
-            Result result = getDatabase().execute("CALL ga.timetree.single({time: {time}, resolutiopn: {resolution}, timezone: {timezone}, create: true}) YIELD instant return instant", params);
+        try (Transaction tx = getDatabase().beginTx()) {
+            Result result = getDatabase().execute("CALL ga.timetree.single({time: {time}, resolution: {resolution}, timezone: {timezone}, create: true}) YIELD instant return instant", params);
             ResourceIterator<Node> resIterator = result.columnAs("instant");
             resIterator.stream().forEach((node) -> assertEquals(node.getProperty("value"), 5));
             tx.success();
         }
-        
+
     }
-    
+
     @Test
-    public void testGetInstant() throws JSONException {
+    public void testGetInstant() {
         long dateInMillis = dateToMillis(2013, 5, 4);
         Map<String, Object> params = new HashMap<>();
         params.put("time", dateInMillis);
         params.put("resolution", null);
         params.put("timezone", null);
-        try( Transaction tx = getDatabase().beginTx()) {
-            Result result = getDatabase().execute("CALL ga.timetree.single({time: {time}, resolutiopn: {resolution}, timezone: {timezone}}) YIELD instant return instant", params);
+        try (Transaction tx = getDatabase().beginTx()) {
+            Result result = getDatabase().execute("CALL ga.timetree.single({time: {time}, resolution: {resolution}, timezone: {timezone}}) YIELD instant return instant", params);
             ResourceIterator<Node> resIterator = result.columnAs("instant");
             assertFalse(resIterator.hasNext());
             tx.success();
         }
-        
+
     }
 
     @Test
-    public void testNow() throws JSONException {
+    public void testNow() {
         Map<String, Object> params = new HashMap<>();
         params.put("resolution", null);
         params.put("timezone", null);
-        try( Transaction tx = getDatabase().beginTx()) {
+        try (Transaction tx = getDatabase().beginTx()) {
             Result result = getDatabase().execute("CALL ga.timetree.now({resolution: {resolution}, timezone: {timezone}}) YIELD instant return instant", params);
             ResourceIterator<Node> resIterator = result.columnAs("instant");
             assertFalse(resIterator.hasNext());
             tx.success();
         }
 
-        try( Transaction tx = getDatabase().beginTx()) {
+        try (Transaction tx = getDatabase().beginTx()) {
             Result result = getDatabase().execute("CALL ga.timetree.now({resolution: {resolution}, timezone: {timezone}, create: true}) YIELD instant return instant", params);
             ResourceIterator<Node> resIterator = result.columnAs("instant");
             Calendar cal = Calendar.getInstance();
@@ -97,32 +91,32 @@ public class TimeTreeProcedureTest extends GraphAwareIntegrationTest {
             tx.success();
         }
     }
-    
+
     @Test
-    public void testNowWithCustomRoot() throws JSONException {
+    public void testNowWithCustomRoot() {
         Map<String, Object> params = new HashMap<>();
         params.put("resolution", null);
         params.put("timezone", null);
-        try( Transaction tx = getDatabase().beginTx()) {
+        try (Transaction tx = getDatabase().beginTx()) {
             Result result = getDatabase().execute("MATCH (n) WHERE id(n) = 0 CALL ga.timetree.now({root: n, resolution: {resolution}, timezone: {timezone}}) YIELD instant return instant", params);
             ResourceIterator<Node> resIterator = result.columnAs("instant");
             assertFalse(resIterator.hasNext());
             tx.success();
         }
-        
-        try( Transaction tx = getDatabase().beginTx()) {
+
+        try (Transaction tx = getDatabase().beginTx()) {
             Result result = getDatabase().execute("MATCH (n) WHERE id(n) = 0 CALL ga.timetree.now({root: n, resolution: {resolution}, timezone: {timezone}, create: true}) YIELD instant return instant", params);
             ResourceIterator<Node> resIterator = result.columnAs("instant");
             assertFalse(resIterator.hasNext());
             tx.success();
         }
-        
+
         try (Transaction tx = getDatabase().beginTx()) {
             getDatabase().createNode(label("CustomRoot"));
             tx.success();
         }
 
-        try( Transaction tx = getDatabase().beginTx()) {
+        try (Transaction tx = getDatabase().beginTx()) {
             Result result = getDatabase().execute("MATCH (n) WHERE id(n) = 0 CALL ga.timetree.now({root: n, resolution: {resolution}, timezone: {timezone}, create: true}) YIELD instant return instant", params);
             ResourceIterator<Node> resIterator = result.columnAs("instant");
             Calendar cal = Calendar.getInstance();
@@ -132,9 +126,9 @@ public class TimeTreeProcedureTest extends GraphAwareIntegrationTest {
         }
 
     }
-    
+
     @Test
-    public void testGetInstants() throws JSONException {
+    public void testGetInstants() {
         long startDateInMillis = dateToMillis(2013, 5, 4);
         long endDateInMillis = dateToMillis(2013, 5, 7);
         Map<String, Object> params = new HashMap<>();
@@ -142,14 +136,14 @@ public class TimeTreeProcedureTest extends GraphAwareIntegrationTest {
         params.put("endTime", endDateInMillis);
         params.put("resolution", null);
         params.put("timezone", null);
-        try( Transaction tx = getDatabase().beginTx()) {
+        try (Transaction tx = getDatabase().beginTx()) {
             Result result = getDatabase().execute("CALL ga.timetree.range({start: {startTime}, end: {endTime}, resolution: {resolution}, timezone: {timezone}}) YIELD instants return instants", params);
             ResourceIterator<Node> resIterator = result.columnAs("instants");
             assertFalse(resIterator.hasNext());
             tx.success();
         }
 
-        try( Transaction tx = getDatabase().beginTx()) {
+        try (Transaction tx = getDatabase().beginTx()) {
             Result result = getDatabase().execute("MATCH (n) WHERE id(n) = 0 CALL ga.timetree.range({root: n, start: {startTime}, end: {endTime}, resolution: {resolution}, timezone: {timezone}}) YIELD instants return instants", params);
             ResourceIterator<Node> resIterator = result.columnAs("instants");
             assertFalse(resIterator.hasNext());
@@ -161,17 +155,17 @@ public class TimeTreeProcedureTest extends GraphAwareIntegrationTest {
             tx.success();
         }
 
-        try( Transaction tx = getDatabase().beginTx()) {
+        try (Transaction tx = getDatabase().beginTx()) {
             Result result = getDatabase().execute("MATCH (n) WHERE id(n) = 0 CALL ga.timetree.range({root: n, start: {startTime}, end: {endTime}, resolution: {resolution}, timezone: {timezone}}) YIELD instants return instants", params);
             ResourceIterator<Node> resIterator = result.columnAs("instants");
             assertFalse(resIterator.hasNext());
             tx.success();
         }
-        
+
     }
-    
+
     @Test
-    public void testGetOrCreateInstants() throws JSONException {
+    public void testGetOrCreateInstants() {
         long startDateInMillis = dateToMillis(2013, 5, 4);
         long endDateInMillis = dateToMillis(2013, 5, 7);
         Map<String, Object> params = new HashMap<>();
@@ -179,18 +173,18 @@ public class TimeTreeProcedureTest extends GraphAwareIntegrationTest {
         params.put("endTime", endDateInMillis);
         params.put("resolution", null);
         params.put("timezone", null);
-        try( Transaction tx = getDatabase().beginTx()) {
+        try (Transaction tx = getDatabase().beginTx()) {
             Result result = getDatabase().execute("CALL ga.timetree.range({start: {startTime}, end: {endTime}, resolution: {resolution}, timezone: {timezone}, create: true}) YIELD instants return instants", params);
             ResourceIterator<Node> resIterator = result.columnAs("instants");
             long count = resIterator.stream().count();
             assertEquals(4, count);
             tx.success();
         }
-        
+
     }
 
     @Test
-    public void testGetOrCreateInstantsWrongParams() throws JSONException {
+    public void testGetOrCreateInstantsWrongParams() {
         long startDateInMillis = dateToMillis(2013, 5, 4);
         long endDateInMillis = dateToMillis(2013, 5, 7);
         Map<String, Object> params = new HashMap<>();
@@ -204,8 +198,7 @@ public class TimeTreeProcedureTest extends GraphAwareIntegrationTest {
             long count = resIterator.stream().count();
             fail("This should be unreached");
             tx.success();
-        }
-        catch (RuntimeException ex) {
+        } catch (RuntimeException ex) {
             assertTrue(ex.getMessage().contains("Error getting start parameter"));
         }
 
@@ -215,8 +208,7 @@ public class TimeTreeProcedureTest extends GraphAwareIntegrationTest {
             long count = resIterator.stream().count();
             fail("This should be unreached");
             tx.success();
-        }
-        catch (RuntimeException ex) {
+        } catch (RuntimeException ex) {
             assertTrue(ex.getMessage().contains("Error getting end parameter"));
         }
 
@@ -226,41 +218,40 @@ public class TimeTreeProcedureTest extends GraphAwareIntegrationTest {
             long count = resIterator.stream().count();
             fail("This should be unreached");
             tx.success();
-        }
-        catch (RuntimeException ex) {
+        } catch (RuntimeException ex) {
             assertTrue(ex.getMessage().contains("java.lang.String cannot be cast to java.lang.Boolean"));
         }
 
     }
-    
+
     @Test
-    public void trivialTreeShouldBeCreatedWhenFirstDayIsRequestedWithCustomRoot() throws JSONException {
+    public void trivialTreeShouldBeCreatedWhenFirstDayIsRequestedWithCustomRoot() {
         long dateInMillis = dateToMillis(2013, 5, 4);
         Map<String, Object> params = new HashMap<>();
         params.put("time", dateInMillis);
         params.put("resolution", null);
         params.put("timezone", null);
-        try( Transaction tx = getDatabase().beginTx()) {
-            Result result = getDatabase().execute("MATCH (n) WHERE id(n) = 0 CALL ga.timetree.single({root: n, time: {time}, resolutiopn: {resolution}, timezone: {timezone}}) YIELD instant return instant", params);
+        try (Transaction tx = getDatabase().beginTx()) {
+            Result result = getDatabase().execute("MATCH (n) WHERE id(n) = 0 CALL ga.timetree.single({root: n, time: {time}, resolution: {resolution}, timezone: {timezone}}) YIELD instant return instant", params);
             ResourceIterator<Node> resIterator = result.columnAs("instant");
             assertFalse(resIterator.hasNext());
             tx.success();
         }
-        
+
         try (Transaction tx = getDatabase().beginTx()) {
             getDatabase().createNode(label("CustomRoot"));
             tx.success();
         }
-        
-        try( Transaction tx = getDatabase().beginTx()) {
-            Result result = getDatabase().execute("MATCH (n) WHERE id(n) = 0 CALL ga.timetree.single({root: n, time: {time}, resolutiopn: {resolution}, timezone: {timezone}}) YIELD instant return instant", params);
+
+        try (Transaction tx = getDatabase().beginTx()) {
+            Result result = getDatabase().execute("MATCH (n) WHERE id(n) = 0 CALL ga.timetree.single({root: n, time: {time}, resolution: {resolution}, timezone: {timezone}}) YIELD instant return instant", params);
             ResourceIterator<Node> resIterator = result.columnAs("instant");
             assertFalse(resIterator.hasNext());
             tx.success();
         }
-        
-        try( Transaction tx = getDatabase().beginTx()) {
-            Result result = getDatabase().execute("MATCH (n) WHERE id(n) = 0 CALL ga.timetree.single({root: n, time: {time}, resolutiopn: {resolution}, timezone: {timezone}, create: true}) YIELD instant return instant", params);
+
+        try (Transaction tx = getDatabase().beginTx()) {
+            Result result = getDatabase().execute("MATCH (n) WHERE id(n) = 0 CALL ga.timetree.single({root: n, time: {time}, resolution: {resolution}, timezone: {timezone}, create: true}) YIELD instant return instant", params);
             ResourceIterator<Node> resIterator = result.columnAs("instant");
             resIterator.stream().forEach((node) -> assertEquals(node.getProperty("value"), 4));
             tx.success();
@@ -279,9 +270,9 @@ public class TimeTreeProcedureTest extends GraphAwareIntegrationTest {
                 "(month)-[:LAST]->(day)");
 
     }
-    
+
     @Test
-    public void consecutiveDaysShouldBeCreatedWhenRequestedWithCustomRoot() throws JSONException {
+    public void consecutiveDaysShouldBeCreatedWhenRequestedWithCustomRoot() {
         long startDateInMillis = dateToMillis(2013, 5, 4);
         long endDateInMillis = dateToMillis(2013, 5, 7);
         Map<String, Object> params = new HashMap<>();
@@ -289,33 +280,33 @@ public class TimeTreeProcedureTest extends GraphAwareIntegrationTest {
         params.put("endTime", endDateInMillis);
         params.put("resolution", null);
         params.put("timezone", null);
-        try( Transaction tx = getDatabase().beginTx()) {
+        try (Transaction tx = getDatabase().beginTx()) {
             Result result = getDatabase().execute("MATCH (n) WHERE id(n) = 0 CALL ga.timetree.range({root: n, start: {startTime}, end: {endTime}, resolution: {resolution}, timezone: {timezone}}) YIELD instants return instants", params);
             ResourceIterator<Node> resIterator = result.columnAs("instants");
             assertFalse(resIterator.hasNext());
             tx.success();
         }
-        
-        try( Transaction tx = getDatabase().beginTx()) {
+
+        try (Transaction tx = getDatabase().beginTx()) {
             Result result = getDatabase().execute("MATCH (n) WHERE id(n) = 0 CALL ga.timetree.range({root: n, start: {startTime}, end: {endTime}, resolution: {resolution}, timezone: {timezone}, create: true}) YIELD instants return instants", params);
             ResourceIterator<Node> resIterator = result.columnAs("instants");
             assertFalse(resIterator.hasNext());
             tx.success();
         }
-        
+
         try (Transaction tx = getDatabase().beginTx()) {
             getDatabase().createNode(label("CustomRoot"));
             tx.success();
         }
-        
-        try( Transaction tx = getDatabase().beginTx()) {
+
+        try (Transaction tx = getDatabase().beginTx()) {
             Result result = getDatabase().execute("MATCH (n) WHERE id(n) = 0 CALL ga.timetree.range({root: n, start: {startTime}, end: {endTime}, resolution: {resolution}, timezone: {timezone}}) YIELD instants return instants", params);
             ResourceIterator<Node> resIterator = result.columnAs("instants");
             assertFalse(resIterator.hasNext());
             tx.success();
         }
-        
-        try( Transaction tx = getDatabase().beginTx()) {
+
+        try (Transaction tx = getDatabase().beginTx()) {
             Result result = getDatabase().execute("MATCH (n) WHERE id(n) = 0 CALL ga.timetree.range({root: n, start: {startTime}, end: {endTime}, resolution: {resolution}, timezone: {timezone}, create: true}) YIELD instants return instants", params);
             ResourceIterator<Node> resIterator = result.columnAs("instants");
             long count = resIterator.stream().count();
@@ -342,8 +333,8 @@ public class TimeTreeProcedureTest extends GraphAwareIntegrationTest {
                 "(day5)-[:NEXT]->(day6)," +
                 "(day6)-[:NEXT]->(day7)");
     }
-            
-    
+
+
     private String getUrl() {
         return baseUrl() + "/timetree/";
     }
@@ -356,5 +347,5 @@ public class TimeTreeProcedureTest extends GraphAwareIntegrationTest {
         return new DateTime(year, month, day, 0, 0, DateTimeZone.UTC);
     }
 
-   
+
 }

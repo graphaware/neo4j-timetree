@@ -285,6 +285,21 @@ public class TimedEventsProcedureTest extends GraphAwareIntegrationTest {
             tx.success();
         }
     }
+
+    @Test
+    public void testAttachThrowsExceptionWhenNoRelTypeGiven() {
+        try (Transaction tx = getDatabase().beginTx()) {
+            try {
+                getDatabase().execute("CREATE (ev:Event {name:'event'}) WITH ev CALL ga.timetree.events.attach({node: ev, time: timestamp()}) YIELD node RETURN node");
+                assertEquals(1, 2);
+            } catch (RuntimeException e) {
+                assertTrue(e.getMessage().equals("The given relationship type cannot be null or an empty string"));
+            }
+            tx.success();
+        } catch (TransactionFailureException e) {
+            //
+        }
+    }
     
     @Test
     public void eventAndTimeInstantAtCustomRootShouldBeCreatedWhenEventIsAttached() {

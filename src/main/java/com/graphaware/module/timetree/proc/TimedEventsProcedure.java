@@ -96,18 +96,17 @@ public class TimedEventsProcedure extends TimeTreeBaseProcedure {
                 checkTime(inputParams, PARAMETER_NAME_TIME);
                 Node eventNode = (Node) inputParams.get(PARAMETER_NAME_NODE);
                 checkEventNode(eventNode);
-                boolean attachEvent;
                 if (inputParams.containsKey(PARAMETER_NAME_ROOT)) {
-                    attachEvent = timedEventsLogic.attachEventWithCustomRoot((Node) inputParams.get(PARAMETER_NAME_ROOT),
+                    timedEventsLogic.attachEventWithCustomRoot((Node) inputParams.get(PARAMETER_NAME_ROOT),
                             eventNode,
-                            RelationshipType.withName((String) inputParams.get(PARAMETER_NAME_RELATIONSHIP_TYPE)),
+                            getRelationshipType((String) inputParams.get(PARAMETER_NAME_RELATIONSHIP_TYPE)),
                             (String) inputParams.get(PARAMETER_NAME_DIRECTION),
                             (long) inputParams.get(PARAMETER_NAME_TIME),
                             (String) inputParams.get(PARAMETER_NAME_TIMEZONE),
                             (String) inputParams.get(PARAMETER_NAME_RESOLUTION));
                 } else {
-                    attachEvent = timedEventsLogic.attachEvent(eventNode,
-                            RelationshipType.withName((String) inputParams.get(PARAMETER_NAME_RELATIONSHIP_TYPE)),
+                    timedEventsLogic.attachEvent(eventNode,
+                            getRelationshipType((String) inputParams.get(PARAMETER_NAME_RELATIONSHIP_TYPE)),
                             (String) inputParams.get(PARAMETER_NAME_DIRECTION),
                             (long) inputParams.get(PARAMETER_NAME_TIME),
                             (String) inputParams.get(PARAMETER_NAME_TIMEZONE),
@@ -169,6 +168,14 @@ public class TimedEventsProcedure extends TimeTreeBaseProcedure {
     private void checkEventNode(Node eventNode) {
         if (eventNode == null)
             throw new RuntimeException("Event node is necessary. Parameter " + PARAMETER_NAME_NODE + " is missing");
+    }
+
+    private RelationshipType getRelationshipType(String relType) {
+        if (null == relType || relType.trim().equals("")) {
+            throw new RuntimeException("The given relationship type cannot be null or an empty string");
+        }
+
+        return RelationshipType.withName(relType);
     }
 
     protected static ProcedureSignature.ProcedureName getProcedureName(String... procedureName) {

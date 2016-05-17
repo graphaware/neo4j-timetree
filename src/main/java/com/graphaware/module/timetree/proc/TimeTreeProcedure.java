@@ -141,9 +141,9 @@ public class TimeTreeProcedure extends TimeTreeBaseProcedure {
                 boolean create = (boolean) inputParams.getOrDefault(PARAMETER_NAME_CREATE, false);
                 Node rootNode = (Node) inputParams.getOrDefault(PARAMETER_NAME_ROOT, null);
                 String resolution = (String) inputParams.get(PARAMETER_NAME_RESOLUTION);
-                String timesone = (String) inputParams.get(PARAMETER_NAME_TIMEZONE);
+                String timezone = (String) inputParams.get(PARAMETER_NAME_TIMEZONE);
 
-                return getInstant(create, rootNode, System.currentTimeMillis(), resolution, timesone);
+                return getInstant(create, rootNode, System.currentTimeMillis(), resolution, timezone);
             }
         };
     }

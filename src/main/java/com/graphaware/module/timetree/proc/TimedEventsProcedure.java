@@ -96,9 +96,8 @@ public class TimedEventsProcedure extends TimeTreeBaseProcedure {
                 checkTime(inputParams, PARAMETER_NAME_TIME);
                 Node eventNode = (Node) inputParams.get(PARAMETER_NAME_NODE);
                 checkEventNode(eventNode);
-                boolean attachEvent;
                 if (inputParams.containsKey(PARAMETER_NAME_ROOT)) {
-                    attachEvent = timedEventsLogic.attachEventWithCustomRoot((Node) inputParams.get(PARAMETER_NAME_ROOT),
+                    timedEventsLogic.attachEventWithCustomRoot((Node) inputParams.get(PARAMETER_NAME_ROOT),
                             eventNode,
                             getRelationshipType((String) inputParams.get(PARAMETER_NAME_RELATIONSHIP_TYPE)),
                             (String) inputParams.get(PARAMETER_NAME_DIRECTION),
@@ -106,7 +105,7 @@ public class TimedEventsProcedure extends TimeTreeBaseProcedure {
                             (String) inputParams.get(PARAMETER_NAME_TIMEZONE),
                             (String) inputParams.get(PARAMETER_NAME_RESOLUTION));
                 } else {
-                    attachEvent = timedEventsLogic.attachEvent(eventNode,
+                    timedEventsLogic.attachEvent(eventNode,
                             getRelationshipType((String) inputParams.get(PARAMETER_NAME_RELATIONSHIP_TYPE)),
                             (String) inputParams.get(PARAMETER_NAME_DIRECTION),
                             (long) inputParams.get(PARAMETER_NAME_TIME),

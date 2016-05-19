@@ -74,7 +74,7 @@ public class TimeTreeProcedure extends TimeTreeBaseProcedure {
             public RawIterator<Object[], ProcedureException> apply(Context ctx, Object[] input) throws ProcedureException {
                 validateSingleParamter(input[0]);
                 Map<String, Object> inputParams = (Map) input[0];
-                boolean create = (boolean) inputParams.getOrDefault(PARAMETER_NAME_CREATE, true);
+                boolean create = true;
                 Node rootNode = (Node) inputParams.getOrDefault(PARAMETER_NAME_ROOT, null);
                 long time = (long) inputParams.get(PARAMETER_NAME_TIME);
                 String resolution = (String) inputParams.get(PARAMETER_NAME_RESOLUTION);
@@ -159,7 +159,7 @@ public class TimeTreeProcedure extends TimeTreeBaseProcedure {
                 checkIsMap(input[0]);
                 Map<String, Object> inputParams = (Map) input[0];
                 checkCreate(inputParams);
-                boolean create = (boolean) inputParams.getOrDefault(PARAMETER_NAME_CREATE, true);
+                boolean create = true;
                 Node rootNode = (Node) inputParams.getOrDefault(PARAMETER_NAME_ROOT, null);
                 String resolution = (String) inputParams.get(PARAMETER_NAME_RESOLUTION);
                 String timezone = (String) inputParams.get(PARAMETER_NAME_TIMEZONE);

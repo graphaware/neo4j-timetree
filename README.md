@@ -118,6 +118,15 @@ The following parameters can be passed in the map :
 * `resolution` : default resolution is `Day`
 * `timezone` : default timezone is `UTC`
 * `root`: By default the time instants are attached to the default TimeTreeRoot, you can pass a node that will be used as time tree root
+* `create`: by default to true for `merge` and `false` for single
+
+To summarize, the two following calls will perform the exact same operation :
+
+```
+CALL ga.timetree.single({time: 1463659567468, create: true})
+---
+CALL ga.timetree.merge({time: 1463659567468})
+```
 
 You can also get or create a node that represent the current time with the `now()` procedure :
 

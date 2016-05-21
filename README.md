@@ -92,7 +92,119 @@ and their children, etc.
 
 ### Cypher
 
-coming soon
+The TimeTree plugin offers a series of stored procedures in order to work with instant nodes and events efficiently.
+
+#### Instant nodes
+
+To get a node representing a time instant :
+
+```
+CALL ga.timetree.single({time: 1463659567468})
+```
+
+If you would like that the instant node is created if it doesn't exist for the given time, you can user merge instead :
+
+```
+CALL ga.timetree.merge({time: 1463659567468})
+```
+
+This will create the time tree nodes in the graph :
+
+![GraphAware TimeTree procedure merge](https://github.com/graphaware/neo4j-timetree/raw/master/docs/procedure1.png)
+
+The following parameters can be passed in the map :
+
+* `time`: (mandatory) the long representation of the time
+* `resolution` : default resolution is `Day`
+* `timezone` : default timezone is `UTC`
+* `root`: By default the time instants are attached to the default TimeTreeRoot, you can pass a node that will be used as time tree root
+* `create`: by default to true for `merge` and `false` for single
+
+To summarize, the two following calls will perform the exact same operation :
+
+```
+CALL ga.timetree.single({time: 1463659567468, create: true})
+---
+CALL ga.timetree.merge({time: 1463659567468})
+```
+
+You can also get or create a node that represent the current time with the `now()` procedure :
+
+```
+CALL ga.timetree.now({})
+```
+
+Except for the `time` parameter, all other parameters can be passed in the map
+
+You can also retrieve a range of instant nodes, by invoking the `range` procedure call :
+
+```
+CALL ga.timetree.range({start: 1463659567468, end: 1463859569504, create: true})
+```
+
+For the range call, an additional `create` parameter is available (by default to false). If set to true, the instant nodes will be created if they don't exist.
+
+![GraphAware TimeTree range](https://github.com/graphaware/neo4j-timetree/raw/master/docs/procedure2.png)
+
+#### Attaching events to the time tree
+
+You can attach any node to a time instant with the `events.attach` procedure call :
+
+```
+CREATE (e:Email {text: "I used the timetree"})
+WITH e
+CALL ga.timetree.events.attach({node: e, time: 1463659567468, relationshipType: "SENT_ON"})
+YIELD node RETURN node
+```
+
+![GraphAware TimeTree procedure attach](https://github.com/graphaware/neo4j-timetree/raw/master/docs/procedure3.png)
+
+The following parameters can be passed in the map :
+
+* `time`: (mandatory) the long representation of the time
+* `node`: (mandatory) the event node to be attached to the time tree
+* `relationshipType`: (mandatory) the name of the relationship type to be created between the event node and the instant node
+* `direction`: default to `OUTGOING`, can be of `OUTGOING` or `INCOMING`
+* `resolution` : default resolution is `Day`
+* `timezone` : default timezone is `UTC`
+* `root`: The time tree root to be used (default to the default TimeTreeRoot)
+
+#### Retrieving events from the time tree
+
+The most usage of the timetree is retrieving events from it. For finding events that occured at a specific time, you can use the `events.single` procedure call :
+
+```
+CALL ga.timetree.events.single({time: 1463659567468}) YIELD node RETURN node
+```
+
+![GraphAware TimeTree procedure events retrieve](https://github.com/graphaware/neo4j-timetree/raw/master/docs/procedure4.png)
+
+The procedure yield more than the node. The relationship type as well as the direction between the event and the time instant can also be returned :
+
+```
+CALL ga.timetree.events.single({time: 1463659567468}) YIELD node, relationshipType, direction RETURN *
+```
+
+![GraphAware TimeTree procedure single and yield all](https://github.com/graphaware/neo4j-timetree/raw/master/docs/procedure5.png)
+
+The following parameters can be passed in the map :
+
+* `time`: (mandatory) the long representation of the time
+* `relationshipTypes`: a List of relationshipType names that for constraining the search
+* `direction`: default to `OUTGOING`, can be of `OUTGOING` or `INCOMING`
+* `resolution` : default resolution is `Day`
+* `timezone` : default timezone is `UTC`
+* `root`: The time tree root to be used (default to the default TimeTreeRoot)
+
+As for the time instants, you can also retrieve events for a range in time :
+
+```
+CALL ga.timetree.events.range({start: 1463659567468, end: 1463859569504}) YIELD node, relationshipType, direction RETURN *
+```
+
+![GraphAware TimeTree procedure retrieve in range](https://github.com/graphaware/neo4j-timetree/raw/master/docs/procedure6.png)
+
+The same parameters from the `events.single` call apply for the `range` call, except `time` of course.
 
 ### REST API
 

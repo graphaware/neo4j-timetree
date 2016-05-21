@@ -64,6 +64,27 @@ public class TimeTreeProcedure extends TimeTreeBaseProcedure {
         };
     }
 
+    public CallableProcedure.BasicProcedure merge() {
+        return new CallableProcedure.BasicProcedure(procedureSignature(getProcedureName("merge"))
+                .mode(ProcedureSignature.Mode.READ_WRITE)
+                .in(PARAMETER_NAME_INPUT, Neo4jTypes.NTMap)
+                .out(PARAMETER_NAME_INSTANT, Neo4jTypes.NTNode).build()) {
+
+            @Override
+            public RawIterator<Object[], ProcedureException> apply(Context ctx, Object[] input) throws ProcedureException {
+                validateSingleParamter(input[0]);
+                Map<String, Object> inputParams = (Map) input[0];
+                boolean create = true;
+                Node rootNode = (Node) inputParams.getOrDefault(PARAMETER_NAME_ROOT, null);
+                long time = (long) inputParams.get(PARAMETER_NAME_TIME);
+                String resolution = (String) inputParams.get(PARAMETER_NAME_RESOLUTION);
+                String timesone = (String) inputParams.get(PARAMETER_NAME_TIMEZONE);
+
+                return getInstant(create, rootNode, time, resolution, timesone);
+            }
+        };
+    }
+
     private RawIterator<Object[], ProcedureException> getInstant(boolean create, Node rootNode, long time, String resolution, String timesone) {
         Node instant;
         if (!create) {
@@ -138,7 +159,7 @@ public class TimeTreeProcedure extends TimeTreeBaseProcedure {
                 checkIsMap(input[0]);
                 Map<String, Object> inputParams = (Map) input[0];
                 checkCreate(inputParams);
-                boolean create = (boolean) inputParams.getOrDefault(PARAMETER_NAME_CREATE, false);
+                boolean create = true;
                 Node rootNode = (Node) inputParams.getOrDefault(PARAMETER_NAME_ROOT, null);
                 String resolution = (String) inputParams.get(PARAMETER_NAME_RESOLUTION);
                 String timezone = (String) inputParams.get(PARAMETER_NAME_TIMEZONE);

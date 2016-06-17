@@ -123,7 +123,7 @@ public class TimedEventsProcedureTest extends GraphAwareIntegrationTest {
 
     @Test
     public void testEventsAutoAttachedCanBeRetrievedViaProcedure() {
-        long time = System.currentTimeMillis();
+        long time = dateToMillis(2015, 1, 3, 16);
         createEvent(time);
         int i = 0;
         try (Transaction tx = getDatabase().beginTx()) {
@@ -147,7 +147,7 @@ public class TimedEventsProcedureTest extends GraphAwareIntegrationTest {
 
     @Test
     public void testEventsAutoAttachedCanBeRetrievedViaProcedureWithOnlyTimeInMap() {
-        long time = System.currentTimeMillis();
+        long time = dateToMillis(2015, 1, 3, 16);
         createEvent(time);
         int i = 0;
         try (Transaction tx = getDatabase().beginTx()) {
@@ -218,23 +218,27 @@ public class TimedEventsProcedureTest extends GraphAwareIntegrationTest {
     @Test
     public void testRangedEventsReturnedForCustomRoot() {
         long customRootId;
+        long time = dateToMillis(2015, 1, 3, 16);
         try (Transaction tx = getDatabase().beginTx()) {
             Node custom = getDatabase().createNode(Label.label("Person"));
             customRootId = custom.getId();
-            getDatabase().execute("CREATE (n:Email {time: timestamp(), timeTreeRootId: " + customRootId + "})");
+            getDatabase().execute("CREATE (n:Email {time: " + time + ", timeTreeRootId: " + customRootId + "})");
             tx.success();
         }
 
         int i = 0;
         try (Transaction tx = getDatabase().beginTx()) {
+            int p = 0;
             ResourceIterator<Node> nodes = getDatabase().findNodes(Label.label("Person"));
             while (nodes.hasNext()) {
+                ++p;
                 Node person = nodes.next();
                 assertTrue(person.hasRelationship(RelationshipType.withName("CHILD")));
             }
+            assertEquals(1, p);
 
             Result result = getDatabase().execute("MATCH (n:Person) WHERE id(n) = " + customRootId + " " +
-                    "CALL ga.timetree.events.range({start: timestamp() - 1000, end: timestamp() + 1000, root: n}) " +
+                    "CALL ga.timetree.events.range({start: " + time + " - 1000, end: " + time + " + 1000, root: n}) " +
                     "YIELD node RETURN node");
             while (result.hasNext()) {
                 Map<String, Object> record = result.next();
@@ -285,11 +289,26 @@ public class TimedEventsProcedureTest extends GraphAwareIntegrationTest {
             tx.success();
         }
     }
+
+    @Test
+    public void testAttachThrowsExceptionWhenNoRelTypeGiven() {
+        try (Transaction tx = getDatabase().beginTx()) {
+            try {
+                getDatabase().execute("CREATE (ev:Event {name:'event'}) WITH ev CALL ga.timetree.events.attach({node: ev, time: timestamp()}) YIELD node RETURN node");
+                assertEquals(1, 2);
+            } catch (RuntimeException e) {
+                assertTrue(e.getMessage().equals("The given relationship type cannot be null or an empty string"));
+            }
+            tx.success();
+        } catch (TransactionFailureException e) {
+            //
+        }
+    }
     
     @Test
     public void eventAndTimeInstantAtCustomRootShouldBeCreatedWhenEventIsAttached() {
         long customRootId;
-        long time = System.currentTimeMillis();
+        long time = dateToMillis(2015, 1, 3, 16);
         try (Transaction tx = getDatabase().beginTx()) {
             Node custom = getDatabase().createNode(Label.label("Person"));
             customRootId = custom.getId();

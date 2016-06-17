@@ -18,6 +18,7 @@ package com.graphaware.module.timetree.api;
 
 import com.graphaware.api.json.JsonNode;
 import com.graphaware.api.json.LongIdJsonNode;
+import com.graphaware.common.log.LoggerFactory;
 import com.graphaware.module.timetree.CustomRootTimeTree;
 import com.graphaware.module.timetree.TimeTreeBackedEvents;
 import com.graphaware.module.timetree.TimedEvents;
@@ -26,8 +27,7 @@ import com.graphaware.module.timetree.domain.TimeInstant;
 import com.graphaware.module.timetree.logic.TimedEventsBusinessLogic;
 import com.graphaware.module.timetree.logic.TimedEventsBusinessLogic.EventAttachedResult;
 import org.neo4j.graphdb.*;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
+import org.neo4j.logging.Log;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Controller;
@@ -43,7 +43,7 @@ import java.util.*;
 @RequestMapping("/timetree")
 public class TimedEventsApi {
 
-    private static final Logger LOG = LoggerFactory.getLogger(TimedEventsApi.class);
+    private static final Log LOG = LoggerFactory.getLogger(TimedEventsApi.class);
 
     private final GraphDatabaseService database;
     private final TimedEventsBusinessLogic timedEventsLogic;

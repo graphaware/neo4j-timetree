@@ -148,8 +148,9 @@ public class SingleTimeTree implements TimeTree {
             DateTime dateTime = new DateTime(timeInstant.getTime(), timeInstant.getTimezone());
 
             Node timeRoot = getTimeRoot();
-            tx.acquireWriteLock(timeRoot);
+            Lock rootLock = tx.acquireWriteLock(timeRoot);
             instant = getOrCreateInstant(timeRoot, dateTime, timeInstant.getResolution());
+            rootLock.release();
 
             tx.success();
         }

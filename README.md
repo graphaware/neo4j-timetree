@@ -102,31 +102,23 @@ To get a node representing a time instant :
 CALL ga.timetree.single({time: 1463659567468})
 ```
 
-If you would like that the instant node is created if it doesn't exist for the given time, you can user merge instead :
+If you would like that the instant node is created if it doesn't exist for the given time, you can user single with option create instead :
 
 ```
-CALL ga.timetree.merge({time: 1463659567468})
+CALL ga.timetree.single({time: 1463659567468, create: true})
 ```
 
 This will create the time tree nodes in the graph :
 
 ![GraphAware TimeTree procedure merge](https://github.com/graphaware/neo4j-timetree/raw/master/docs/procedure1.png)
 
-The following parameters can be passed in the map :
+The following parameters can be passed in the map:
 
 * `time`: (mandatory) the long representation of the time
 * `resolution` : default resolution is `Day`
 * `timezone` : default timezone is `UTC`
-* `root`: By default the time instants are attached to the default TimeTreeRoot, you can pass a node that will be used as time tree root
-* `create`: by default to true for `merge` and `false` for single
-
-To summarize, the two following calls will perform the exact same operation :
-
-```
-CALL ga.timetree.single({time: 1463659567468, create: true})
----
-CALL ga.timetree.merge({time: 1463659567468})
-```
+* `root`: by default the time instants are attached to the default TimeTreeRoot, you can pass a node that will be used as time tree root
+* `create`: create the time tree node if not exist, by default to `false`
 
 You can also get or create a node that represent the current time with the `now()` procedure :
 

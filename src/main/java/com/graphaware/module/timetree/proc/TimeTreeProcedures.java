@@ -44,7 +44,7 @@ public class TimeTreeProcedures {
     }
 
     @PostConstruct
-    public void init() throws ProcedureException, KernelException {
+    public void init() throws KernelException {
         TimeTreeProcedure timeTreeProcedures = new TimeTreeProcedure(database);
         procedures.register(timeTreeProcedures.get());
         procedures.register(timeTreeProcedures.now());

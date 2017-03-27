@@ -15,42 +15,56 @@
  */
 package com.graphaware.module.timetree.logic;
 
+import java.util.List;
+
+import org.neo4j.graphdb.GraphDatabaseService;
+import org.neo4j.graphdb.Node;
+import org.neo4j.graphdb.NotFoundException;
+import org.neo4j.graphdb.Transaction;
+
 import com.graphaware.module.timetree.CustomRootTimeTree;
 import com.graphaware.module.timetree.SingleTimeTree;
 import com.graphaware.module.timetree.TimeTree;
 import com.graphaware.module.timetree.api.TimeInstantVO;
 import com.graphaware.module.timetree.domain.TimeInstant;
-import java.util.List;
-import org.neo4j.graphdb.GraphDatabaseService;
-import org.neo4j.graphdb.Node;
-import org.neo4j.graphdb.NotFoundException;
-import org.neo4j.graphdb.Transaction;
-import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.stereotype.Component;
 
 public class TimeTreeBusinessLogic {
 
     private final GraphDatabaseService database;
-    private final TimeTree timeTree;
+	private TimeTree timeTree;
 
     public TimeTreeBusinessLogic(GraphDatabaseService database) {
         this.database = database;
         this.timeTree = new SingleTimeTree(database);
     }
 
+    /**
+     * Find the instant of time in the tree
+     * READ-ONLY
+     * @param time
+     * @param resolution
+     * @param timezone
+     * @return
+     * @throws NotFoundException if there isn't the instant
+     */
     public Node getInstant(long time, String resolution, String timezone) throws NotFoundException {
-        Node instant;
         TimeInstant timeInstant = TimeInstant.fromValueObject(new TimeInstantVO(time, resolution, timezone));
-        try (Transaction tx = database.beginTx()) {
-            instant = timeTree.getInstant(timeInstant);
-            tx.success();
-        }
+        Node instant = timeTree.getInstant(timeInstant);
+        
         if (instant == null) {
             throw new NotFoundException("There is no time instant for time " + time);
         }
+
         return instant;
     }
 
+    /**
+     * Find the instant of time in the tree or create it if doesn't exist
+     * @param time
+     * @param resolution
+     * @param timezone
+     * @return a instant of time in the tree
+     */
     public Node getOrCreateInstant(long time, String resolution, String timezone) {
         TimeInstant timeInstant = TimeInstant.fromValueObject(new TimeInstantVO(time, resolution, timezone));
         Node instant;
@@ -61,17 +75,29 @@ public class TimeTreeBusinessLogic {
         return instant;
     }
 
+    /**
+     * Find instants of time in the tree using the input time range
+     * READ-ONLY
+     * @param startTime
+     * @param endTime
+     * @param resolution
+     * @param timezone
+     * @return empty list if no instants exists
+     */
     public List<Node> getInstants(long startTime, long endTime, String resolution, String timezone) {
         TimeInstant startTimeInstant = TimeInstant.fromValueObject(new TimeInstantVO(startTime, resolution, timezone));
         TimeInstant endTimeInstant = TimeInstant.fromValueObject(new TimeInstantVO(endTime, resolution, timezone));
-        List<Node> nodes;
-        try (Transaction tx = database.beginTx()) {
-            nodes = timeTree.getInstants(startTimeInstant, endTimeInstant);
-            tx.success();
-        }
-        return nodes;
+        return timeTree.getInstants(startTimeInstant, endTimeInstant);
     }
 
+    /**
+     * Find instants of time in the tree using the input time range or create them at the resolution level
+     * @param startTime
+     * @param endTime
+     * @param resolution
+     * @param timezone
+     * @return
+     */
     public List<Node> getOrCreateInstants(long startTime, long endTime, String resolution, String timezone) {
         TimeInstant startTimeInstant = TimeInstant.fromValueObject(new TimeInstantVO(startTime, resolution, timezone));
         TimeInstant endTimeInstant = TimeInstant.fromValueObject(new TimeInstantVO(endTime, resolution, timezone));
@@ -83,19 +109,36 @@ public class TimeTreeBusinessLogic {
         return nodes;
     }
     
+    /**
+     * Find the instant in the tree with the specific root-node
+     * READ-ONLY
+     * @see #getInstant(long, String, String) 
+     * @param rootNodeId
+     * @param time
+     * @param resolution
+     * @param timezone
+     * @return
+     * @throws NotFoundException
+     */
     public Node getInstantWithCustomRoot(long rootNodeId, long time, String resolution, String timezone) throws NotFoundException {
-      TimeInstant timeInstant = TimeInstant.fromValueObject(new TimeInstantVO(time, resolution, timezone));
-      Node instant;
-      try (Transaction tx = database.beginTx()) {
-          instant = new CustomRootTimeTree(database.getNodeById(rootNodeId)).getInstant(timeInstant);
-          tx.success();
-      }
-      if (instant == null) {
-          throw new NotFoundException("There is no time instant for time " + time);
-      }
-        return instant;
+		TimeInstant timeInstant = TimeInstant.fromValueObject(new TimeInstantVO(time, resolution, timezone));
+		Node instant = new CustomRootTimeTree(database.getNodeById(rootNodeId)).getInstant(timeInstant);
+
+		if (instant == null) {
+			throw new NotFoundException("There is no time instant for time " + time);
+		}
+		return instant;
     }
     
+    /**
+     * Find or create the instant in the tree with the specific root-node
+     * @see #getInstantWithCustomRoot(long, long, String, String)
+     * @param rootNodeId
+     * @param time
+     * @param resolution
+     * @param timezone
+     * @return
+     */
     public Node getOrCreateInstantWithCustomRoot(long rootNodeId, long time, String resolution, String timezone) {
       TimeInstant timeInstant = TimeInstant.fromValueObject(new TimeInstantVO(time, resolution, timezone));
       Node instant;
@@ -106,17 +149,34 @@ public class TimeTreeBusinessLogic {
         return instant;
     }
     
+    /**
+     * Find the instants in the range on the tree with the specific root-node
+     * READ-ONLY
+     * @see #getInstantWithCustomRoot(long, long, String, String)
+     * @param rootNodeId
+     * @param startTime
+     * @param endTime
+     * @param resolution
+     * @param timezone
+     * @return
+     */
     public List<Node> getInstantsWithCustomRoot(long rootNodeId, long startTime, long endTime, String resolution, String timezone) {
       TimeInstant startTimeInstant = TimeInstant.fromValueObject(new TimeInstantVO(startTime, resolution, timezone));
       TimeInstant endTimeInstant = TimeInstant.fromValueObject(new TimeInstantVO(endTime, resolution, timezone));
-      List<Node> nodes;
-      try (Transaction tx = database.beginTx()) {
-          nodes = new CustomRootTimeTree(database.getNodeById(rootNodeId)).getInstants(startTimeInstant, endTimeInstant);
-          tx.success();
-      }
-        return nodes;
+      List<Node> nodes = new CustomRootTimeTree(database.getNodeById(rootNodeId)).getInstants(startTimeInstant, endTimeInstant);
+      return nodes;
     }
     
+    /**
+     * Find or create the instants in the range on the tree with the specific root-node
+     * @see #getInstants(long, long, String, String)
+     * @param rootNodeId
+     * @param startTime
+     * @param endTime
+     * @param resolution
+     * @param timezone
+     * @return
+     */
     public List<Node> getOrCreateInstantsWithCustomRoot(long rootNodeId, long startTime, long endTime, String resolution, String timezone) {
       TimeInstant startTimeInstant = TimeInstant.fromValueObject(new TimeInstantVO(startTime, resolution, timezone));
       TimeInstant endTimeInstant = TimeInstant.fromValueObject(new TimeInstantVO(endTime, resolution, timezone));

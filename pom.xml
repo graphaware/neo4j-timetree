@@ -23,7 +23,7 @@
     <parent>
         <groupId>com.graphaware.neo4j</groupId>
         <artifactId>module-parent</artifactId>
-        <version>3.1.0.44</version>
+        <version>3.1.1.45-SNAPSHOT</version>
     </parent>
 
     <name>GraphAware TimeTree Module</name>

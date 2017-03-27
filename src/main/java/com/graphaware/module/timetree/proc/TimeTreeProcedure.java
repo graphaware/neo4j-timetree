@@ -158,7 +158,7 @@ public class TimeTreeProcedure extends TimeTreeBaseProcedure {
                 checkIsMap(input[0]);
                 Map<String, Object> inputParams = (Map) input[0];
                 checkCreate(inputParams);
-                boolean create = true;
+                boolean create = (boolean) inputParams.getOrDefault(PARAMETER_NAME_CREATE, false);
                 Node rootNode = (Node) inputParams.getOrDefault(PARAMETER_NAME_ROOT, null);
                 String resolution = (String) inputParams.get(PARAMETER_NAME_RESOLUTION);
                 String timezone = (String) inputParams.get(PARAMETER_NAME_TIMEZONE);

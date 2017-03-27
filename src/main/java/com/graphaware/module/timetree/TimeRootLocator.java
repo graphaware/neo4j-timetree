@@ -13,7 +13,6 @@
  * the GNU General Public License along with this program.  If not, see
  * <http://www.gnu.org/licenses/>.
  */
-
 package com.graphaware.module.timetree;
 
 import java.util.concurrent.locks.ReentrantLock;
@@ -22,22 +21,15 @@ import org.neo4j.graphdb.GraphDatabaseService;
 import org.neo4j.graphdb.Node;
 
 /**
- * An implementation of {@link TimeTree} which can have a custom time tree root provided to it. Thus, it allows for many
- * different time trees within a single graph.
+ * retrieve the time root node of a time tree
  */
-public class CustomRootTimeTree extends SingleTimeTree {
+public interface TimeRootLocator {
 	
 	/**
-	 * TimeTree attached to the input node (root)
-	 * @param root the root-node of time tree
+	 * Get (or create) the root node of the time-tree
+	 * @param database
+	 * @param rootLock
+	 * @return
 	 */
-    public CustomRootTimeTree(Node root) {
-    	super(root.getGraphDatabase(),new TimeRootLocator() {
-			
-			@Override
-			public Node getTimeRoot(GraphDatabaseService database, ReentrantLock rootLock) {
-				return root;
-			}
-		});
-    }
+	public Node getTimeRoot(GraphDatabaseService database, ReentrantLock rootLock);
 }

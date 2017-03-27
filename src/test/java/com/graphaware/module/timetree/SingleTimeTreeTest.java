@@ -16,10 +16,22 @@
 
 package com.graphaware.module.timetree;
 
-import com.graphaware.common.util.PropertyContainerUtils;
-import com.graphaware.module.timetree.domain.TimeInstant;
-import com.graphaware.module.timetree.domain.TimeTreeLabels;
-import com.graphaware.test.integration.EmbeddedDatabaseIntegrationTest;
+import static com.graphaware.module.timetree.SingleTimeTree.VALUE_PROPERTY;
+import static com.graphaware.module.timetree.domain.Resolution.DAY;
+import static com.graphaware.module.timetree.domain.Resolution.HOUR;
+import static com.graphaware.module.timetree.domain.Resolution.MILLISECOND;
+import static com.graphaware.module.timetree.domain.Resolution.MONTH;
+import static com.graphaware.module.timetree.domain.Resolution.YEAR;
+import static com.graphaware.test.unit.GraphUnit.assertSameGraph;
+import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertFalse;
+import static org.junit.Assert.assertNull;
+import static org.junit.Assert.assertTrue;
+import static org.neo4j.graphdb.RelationshipType.withName;
+
+import java.util.List;
+import java.util.TimeZone;
+
 import org.joda.time.DateTime;
 import org.joda.time.DateTimeZone;
 import org.junit.Before;
@@ -27,14 +39,10 @@ import org.junit.Test;
 import org.neo4j.graphdb.Node;
 import org.neo4j.graphdb.Transaction;
 
-import java.util.List;
-import java.util.TimeZone;
-
-import static com.graphaware.module.timetree.SingleTimeTree.VALUE_PROPERTY;
-import static com.graphaware.module.timetree.domain.Resolution.*;
-import static com.graphaware.test.unit.GraphUnit.assertSameGraph;
-import static org.junit.Assert.*;
-import static org.neo4j.graphdb.RelationshipType.withName;
+import com.graphaware.common.util.PropertyContainerUtils;
+import com.graphaware.module.timetree.domain.TimeInstant;
+import com.graphaware.module.timetree.domain.TimeTreeLabels;
+import com.graphaware.test.integration.EmbeddedDatabaseIntegrationTest;
 
 /**
  * Unit test for {@link SingleTimeTree}.
@@ -65,8 +73,12 @@ public class SingleTimeTreeTest extends EmbeddedDatabaseIntegrationTest {
         }
 
         //Then
-        assertNull(yearNode);
-        assertSameGraph(getDatabase(), "CREATE (root:TimeTreeRoot)");
+        try (Transaction tx = getDatabase().beginTx()) {
+        	assertNull(yearNode);
+            assertFalse(getDatabase().getAllNodes().iterator().hasNext());
+            tx.failure();
+        }
+        
 
         //When
         try (Transaction tx = getDatabase().beginTx()) {
@@ -74,9 +86,13 @@ public class SingleTimeTreeTest extends EmbeddedDatabaseIntegrationTest {
             tx.success();
         }
 
+        
         //Then
-        assertNull(yearNode);
-        assertSameGraph(getDatabase(), "CREATE (root:TimeTreeRoot)");
+        try (Transaction tx = getDatabase().beginTx()) {
+        	assertNull(yearNode);
+            assertFalse(getDatabase().getAllNodes().iterator().hasNext());
+            tx.failure();
+        }
 
         //When
         try (Transaction tx = getDatabase().beginTx()) {
@@ -85,8 +101,11 @@ public class SingleTimeTreeTest extends EmbeddedDatabaseIntegrationTest {
         }
 
         //Then
-        assertNull(yearNode);
-        assertSameGraph(getDatabase(), "CREATE (root:TimeTreeRoot)");
+        try (Transaction tx = getDatabase().beginTx()) {
+        	assertNull(yearNode);
+            assertFalse(getDatabase().getAllNodes().iterator().hasNext());
+            tx.failure();
+        }
     }
 
     @Test
@@ -103,8 +122,11 @@ public class SingleTimeTreeTest extends EmbeddedDatabaseIntegrationTest {
         }
 
         //Then
-        assertNull(dayNode);
-        assertSameGraph(getDatabase(), "CREATE (root:TimeTreeRoot)");
+        try (Transaction tx = getDatabase().beginTx()) {
+        	assertNull(dayNode);
+            assertFalse(getDatabase().getAllNodes().iterator().hasNext());
+            tx.failure();
+        }
 
         //When
         try (Transaction tx = getDatabase().beginTx()) {
@@ -113,8 +135,12 @@ public class SingleTimeTreeTest extends EmbeddedDatabaseIntegrationTest {
         }
 
         //Then
-        assertNull(dayNode);
-        assertSameGraph(getDatabase(), "CREATE (root:TimeTreeRoot)");
+        try (Transaction tx = getDatabase().beginTx()) {
+        	assertNull(dayNode);
+            assertFalse(getDatabase().getAllNodes().iterator().hasNext());
+            tx.failure();
+        }
+
 
         //When
         try (Transaction tx = getDatabase().beginTx()) {
@@ -123,8 +149,12 @@ public class SingleTimeTreeTest extends EmbeddedDatabaseIntegrationTest {
         }
 
         //Then
-        assertNull(dayNode);
-        assertSameGraph(getDatabase(), "CREATE (root:TimeTreeRoot)");
+        try (Transaction tx = getDatabase().beginTx()) {
+        	assertNull(dayNode);
+            assertFalse(getDatabase().getAllNodes().iterator().hasNext());
+            tx.failure();
+        }
+
     }
 
     @Test

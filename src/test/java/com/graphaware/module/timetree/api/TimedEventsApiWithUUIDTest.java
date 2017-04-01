@@ -16,11 +16,13 @@
 
 package com.graphaware.module.timetree.api;
 
-import com.graphaware.common.policy.InclusionPolicies;
-import com.graphaware.common.policy.NodePropertyInclusionPolicy;
-import com.graphaware.module.timetree.domain.Resolution;
-import com.graphaware.module.timetree.domain.TimeInstant;
-import com.graphaware.test.integration.GraphAwareIntegrationTest;
+import static com.graphaware.test.unit.GraphUnit.assertSameGraph;
+import static org.neo4j.graphdb.Label.label;
+import static org.skyscreamer.jsonassert.JSONAssert.assertEquals;
+
+import java.io.IOException;
+import java.util.concurrent.atomic.AtomicInteger;
+
 import org.apache.http.HttpStatus;
 import org.joda.time.DateTime;
 import org.joda.time.DateTimeZone;
@@ -32,12 +34,11 @@ import org.neo4j.graphdb.Transaction;
 import org.neo4j.graphdb.event.TransactionData;
 import org.neo4j.graphdb.event.TransactionEventHandler;
 
-import java.io.IOException;
-import java.util.concurrent.atomic.AtomicInteger;
-
-import static com.graphaware.test.unit.GraphUnit.assertSameGraph;
-import static org.neo4j.graphdb.Label.label;
-import static org.skyscreamer.jsonassert.JSONAssert.assertEquals;
+import com.graphaware.common.policy.inclusion.InclusionPolicies;
+import com.graphaware.common.policy.inclusion.NodePropertyInclusionPolicy;
+import com.graphaware.module.timetree.domain.Resolution;
+import com.graphaware.module.timetree.domain.TimeInstant;
+import com.graphaware.test.integration.GraphAwareIntegrationTest;
 
 /**
  * Integration test for {@link TimeTreeApi}.

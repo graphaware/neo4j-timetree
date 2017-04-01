@@ -16,20 +16,21 @@
 
 package com.graphaware.module.timetree.module;
 
-import com.graphaware.common.log.LoggerFactory;
-import com.graphaware.common.policy.NodeInclusionPolicy;
-import com.graphaware.module.timetree.domain.Resolution;
-import com.graphaware.runtime.config.function.StringToNodeInclusionPolicy;
-import com.graphaware.runtime.module.BaseRuntimeModuleBootstrapper;
-import com.graphaware.runtime.module.RuntimeModule;
+import java.util.Map;
+import java.util.TimeZone;
+
 import org.joda.time.DateTimeZone;
 import org.neo4j.graphdb.Direction;
 import org.neo4j.graphdb.GraphDatabaseService;
 import org.neo4j.graphdb.RelationshipType;
 import org.neo4j.logging.Log;
 
-import java.util.Map;
-import java.util.TimeZone;
+import com.graphaware.common.log.LoggerFactory;
+import com.graphaware.common.policy.inclusion.NodeInclusionPolicy;
+import com.graphaware.module.timetree.domain.Resolution;
+import com.graphaware.runtime.config.function.StringToNodeInclusionPolicy;
+import com.graphaware.runtime.module.BaseRuntimeModuleBootstrapper;
+import com.graphaware.runtime.module.RuntimeModule;
 
 /**
  * Bootstraps the {@link com.graphaware.module.timetree.module.TimeTreeModule} in server mode.

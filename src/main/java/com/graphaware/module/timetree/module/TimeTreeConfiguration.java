@@ -15,20 +15,20 @@
  */
 package com.graphaware.module.timetree.module;
 
-import com.graphaware.common.policy.InclusionPolicies;
-import com.graphaware.common.policy.fluent.IncludeNodes;
-import com.graphaware.common.policy.fluent.IncludeRelationships;
-import com.graphaware.module.timetree.domain.Resolution;
-import com.graphaware.runtime.config.BaseTxDrivenModuleConfiguration;
-import com.graphaware.runtime.policy.InclusionPoliciesFactory;
+import static com.graphaware.module.timetree.domain.Resolution.DAY;
+
+import java.util.TimeZone;
+
 import org.joda.time.DateTimeZone;
 import org.neo4j.graphdb.Direction;
 import org.neo4j.graphdb.RelationshipType;
 
-import java.util.TimeZone;
-
-import static com.graphaware.module.timetree.domain.Resolution.DAY;
-import org.neo4j.graphdb.DynamicRelationshipType;
+import com.graphaware.common.policy.inclusion.InclusionPolicies;
+import com.graphaware.common.policy.inclusion.fluent.IncludeNodes;
+import com.graphaware.common.policy.inclusion.fluent.IncludeRelationships;
+import com.graphaware.module.timetree.domain.Resolution;
+import com.graphaware.runtime.config.BaseTxDrivenModuleConfiguration;
+import com.graphaware.runtime.policy.InclusionPoliciesFactory;
 
 
 /**

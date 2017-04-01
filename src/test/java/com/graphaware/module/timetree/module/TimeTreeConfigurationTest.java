@@ -16,12 +16,13 @@
 
 package com.graphaware.module.timetree.module;
 
-import com.graphaware.common.policy.composite.CompositeNodeInclusionPolicy;
-import com.graphaware.common.policy.spel.SpelNodeInclusionPolicy;
-import org.junit.Test;
-
 import static org.junit.Assert.assertTrue;
+
+import org.junit.Test;
 import org.neo4j.graphdb.RelationshipType;
+
+import com.graphaware.common.policy.inclusion.composite.CompositeNodeInclusionPolicy;
+import com.graphaware.common.policy.inclusion.spel.SpelNodeInclusionPolicy;
 
 /**
  * Unit test for {@link com.graphaware.module.timetree.module.TimeTreeConfiguration}

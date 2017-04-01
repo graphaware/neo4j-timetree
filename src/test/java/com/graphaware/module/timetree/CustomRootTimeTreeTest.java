@@ -16,24 +16,28 @@
 
 package com.graphaware.module.timetree;
 
+import static com.graphaware.module.timetree.SingleTimeTree.VALUE_PROPERTY;
+import static com.graphaware.test.unit.GraphUnit.assertSameGraph;
+import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertTrue;
+
+import java.util.TimeZone;
+
+import org.joda.time.DateTime;
+import org.joda.time.DateTimeZone;
+import org.junit.Test;
+import org.neo4j.graphdb.GraphDatabaseService;
+import org.neo4j.graphdb.Label;
+import org.neo4j.graphdb.Node;
+import org.neo4j.graphdb.NotFoundException;
+import org.neo4j.graphdb.Transaction;
+
 import com.graphaware.common.util.PropertyContainerUtils;
 import com.graphaware.module.timetree.domain.TimeInstant;
 import com.graphaware.module.timetree.domain.TimeTreeLabels;
 import com.graphaware.test.data.DatabasePopulator;
 import com.graphaware.test.data.SingleTransactionPopulator;
 import com.graphaware.test.integration.EmbeddedDatabaseIntegrationTest;
-import org.joda.time.DateTime;
-import org.joda.time.DateTimeZone;
-import org.junit.Test;
-import org.neo4j.graphdb.*;
-
-import java.util.TimeZone;
-
-import static com.graphaware.module.timetree.SingleTimeTree.VALUE_PROPERTY;
-import com.graphaware.test.integration.ServerIntegrationTest;
-import static com.graphaware.test.unit.GraphUnit.assertSameGraph;
-import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertTrue;
 
 /**
  * Unit test for {@link com.graphaware.module.timetree.SingleTimeTree}.

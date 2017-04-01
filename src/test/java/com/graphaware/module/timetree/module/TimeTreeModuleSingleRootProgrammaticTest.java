@@ -16,32 +16,36 @@
 
 package com.graphaware.module.timetree.module;
 
-import com.graphaware.common.kv.GraphKeyValueStore;
-import com.graphaware.common.kv.KeyValueStore;
-import com.graphaware.common.policy.BaseNodeInclusionPolicy;
-import com.graphaware.common.serialize.Serializer;
-import com.graphaware.runtime.GraphAwareRuntime;
-import com.graphaware.runtime.GraphAwareRuntimeFactory;
-import com.graphaware.runtime.metadata.DefaultTxDrivenModuleMetadata;
-import org.joda.time.DateTimeZone;
-import org.junit.Test;
-import org.junit.rules.TemporaryFolder;
-import org.neo4j.graphdb.*;
-import org.neo4j.graphdb.factory.GraphDatabaseFactory;
+import static com.graphaware.module.timetree.domain.Resolution.MINUTE;
+import static com.graphaware.module.timetree.domain.Resolution.MONTH;
+import static com.graphaware.test.unit.GraphUnit.assertSameGraph;
+import static org.neo4j.graphdb.Label.label;
 
+import java.io.File;
 import java.io.IOException;
 import java.util.Calendar;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.TimeZone;
 
-import static com.graphaware.module.timetree.domain.Resolution.MINUTE;
-import static com.graphaware.module.timetree.domain.Resolution.MONTH;
-import com.graphaware.test.integration.EmbeddedDatabaseIntegrationTest;
-import static com.graphaware.test.unit.GraphUnit.assertSameGraph;
-import static org.neo4j.graphdb.Label.*;
+import org.joda.time.DateTimeZone;
+import org.junit.Test;
+import org.junit.rules.TemporaryFolder;
+import org.neo4j.graphdb.GraphDatabaseService;
+import org.neo4j.graphdb.Label;
+import org.neo4j.graphdb.Node;
+import org.neo4j.graphdb.RelationshipType;
+import org.neo4j.graphdb.Transaction;
+import org.neo4j.graphdb.factory.GraphDatabaseFactory;
 
-import java.io.File;
+import com.graphaware.common.kv.GraphKeyValueStore;
+import com.graphaware.common.kv.KeyValueStore;
+import com.graphaware.common.policy.inclusion.BaseNodeInclusionPolicy;
+import com.graphaware.common.serialize.Serializer;
+import com.graphaware.runtime.GraphAwareRuntime;
+import com.graphaware.runtime.GraphAwareRuntimeFactory;
+import com.graphaware.runtime.metadata.DefaultTxDrivenModuleMetadata;
+import com.graphaware.test.integration.EmbeddedDatabaseIntegrationTest;
 
 /**
  * Test for {@link com.graphaware.module.timetree.module.TimeTreeModule} set up programatically.

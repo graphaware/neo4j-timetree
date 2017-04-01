@@ -15,22 +15,28 @@
  */
 package com.graphaware.module.timetree.proc;
 
-import com.graphaware.module.timetree.logic.TimeTreeBusinessLogic;
+import static org.neo4j.kernel.api.proc.ProcedureSignature.procedureName;
+import static org.neo4j.kernel.api.proc.ProcedureSignature.procedureSignature;
+
 import java.util.Collections;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
+
 import org.neo4j.collection.RawIterator;
 import org.neo4j.graphdb.GraphDatabaseService;
 import org.neo4j.graphdb.Node;
 import org.neo4j.graphdb.NotFoundException;
 import org.neo4j.helpers.collection.Iterators;
 import org.neo4j.kernel.api.exceptions.ProcedureException;
-import org.neo4j.kernel.api.proc.*;
+import org.neo4j.kernel.api.proc.CallableProcedure;
+import org.neo4j.kernel.api.proc.Context;
+import org.neo4j.kernel.api.proc.Neo4jTypes;
+import org.neo4j.kernel.api.proc.QualifiedName;
+import org.neo4j.procedure.Mode;
 
-import static org.neo4j.kernel.api.proc.ProcedureSignature.procedureName;
-import static org.neo4j.kernel.api.proc.ProcedureSignature.procedureSignature;
+import com.graphaware.module.timetree.logic.TimeTreeBusinessLogic;
 
 public class TimeTreeProcedure extends TimeTreeBaseProcedure {
 
@@ -44,7 +50,7 @@ public class TimeTreeProcedure extends TimeTreeBaseProcedure {
 
     public CallableProcedure.BasicProcedure get() {
         return new CallableProcedure.BasicProcedure(procedureSignature(getProcedureName("single"))
-                .mode(Mode.READ_WRITE)
+                .mode(Mode.WRITE)
                 .in(PARAMETER_NAME_INPUT, Neo4jTypes.NTMap)
                 .out(PARAMETER_NAME_INSTANT, Neo4jTypes.NTNode).build()) {
 
@@ -65,7 +71,7 @@ public class TimeTreeProcedure extends TimeTreeBaseProcedure {
 
     public CallableProcedure.BasicProcedure merge() {
         return new CallableProcedure.BasicProcedure(procedureSignature(getProcedureName("merge"))
-                .mode(Mode.READ_WRITE)
+                .mode(Mode.WRITE)
                 .in(PARAMETER_NAME_INPUT, Neo4jTypes.NTMap)
                 .out(PARAMETER_NAME_INSTANT, Neo4jTypes.NTNode).build()) {
 
@@ -106,7 +112,7 @@ public class TimeTreeProcedure extends TimeTreeBaseProcedure {
 
     public CallableProcedure.BasicProcedure getInstants() {
         return new CallableProcedure.BasicProcedure(procedureSignature(getProcedureName("range"))
-                .mode(Mode.READ_WRITE)
+                .mode(Mode.WRITE)
                 .in(PARAMETER_NAME_INPUT, Neo4jTypes.NTMap)
                 .out(PARAMETER_NAME_INSTANTS, Neo4jTypes.NTNode).build()) {
 
@@ -149,7 +155,7 @@ public class TimeTreeProcedure extends TimeTreeBaseProcedure {
     
     public CallableProcedure.BasicProcedure now() {
         return new CallableProcedure.BasicProcedure(procedureSignature(getProcedureName("now"))
-                .mode(Mode.READ_WRITE)
+                .mode(Mode.WRITE)
                 .in(PARAMETER_NAME_INPUT, Neo4jTypes.NTMap)
                 .out(PARAMETER_NAME_INSTANT, Neo4jTypes.NTNode).build()) {
 

@@ -16,8 +16,8 @@
 
 package com.graphaware.module.timetree.api;
 
-import com.graphaware.common.policy.InclusionPolicies;
-import com.graphaware.common.policy.NodePropertyInclusionPolicy;
+import com.graphaware.common.policy.inclusion.InclusionPolicies;
+import com.graphaware.common.policy.inclusion.NodePropertyInclusionPolicy;
 import com.graphaware.module.timetree.domain.Resolution;
 import com.graphaware.module.timetree.domain.TimeInstant;
 import com.graphaware.test.integration.GraphAwareIntegrationTest;

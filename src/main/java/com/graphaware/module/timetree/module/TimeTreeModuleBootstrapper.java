@@ -17,7 +17,7 @@
 package com.graphaware.module.timetree.module;
 
 import com.graphaware.common.log.LoggerFactory;
-import com.graphaware.common.policy.NodeInclusionPolicy;
+import com.graphaware.common.policy.inclusion.NodeInclusionPolicy;
 import com.graphaware.module.timetree.domain.Resolution;
 import com.graphaware.runtime.config.function.StringToNodeInclusionPolicy;
 import com.graphaware.runtime.module.BaseRuntimeModuleBootstrapper;

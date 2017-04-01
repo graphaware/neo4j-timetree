@@ -28,6 +28,7 @@ import org.neo4j.graphdb.NotFoundException;
 import org.neo4j.helpers.collection.Iterators;
 import org.neo4j.kernel.api.exceptions.ProcedureException;
 import org.neo4j.kernel.api.proc.*;
+import org.neo4j.procedure.Mode;
 
 import static org.neo4j.kernel.api.proc.ProcedureSignature.procedureName;
 import static org.neo4j.kernel.api.proc.ProcedureSignature.procedureSignature;
@@ -44,7 +45,7 @@ public class TimeTreeProcedure extends TimeTreeBaseProcedure {
 
     public CallableProcedure.BasicProcedure get() {
         return new CallableProcedure.BasicProcedure(procedureSignature(getProcedureName("single"))
-                .mode(Mode.READ_WRITE)
+                .mode(Mode.WRITE)
                 .in(PARAMETER_NAME_INPUT, Neo4jTypes.NTMap)
                 .out(PARAMETER_NAME_INSTANT, Neo4jTypes.NTNode).build()) {
 
@@ -65,7 +66,7 @@ public class TimeTreeProcedure extends TimeTreeBaseProcedure {
 
     public CallableProcedure.BasicProcedure merge() {
         return new CallableProcedure.BasicProcedure(procedureSignature(getProcedureName("merge"))
-                .mode(Mode.READ_WRITE)
+                .mode(Mode.WRITE)
                 .in(PARAMETER_NAME_INPUT, Neo4jTypes.NTMap)
                 .out(PARAMETER_NAME_INSTANT, Neo4jTypes.NTNode).build()) {
 
@@ -106,7 +107,7 @@ public class TimeTreeProcedure extends TimeTreeBaseProcedure {
 
     public CallableProcedure.BasicProcedure getInstants() {
         return new CallableProcedure.BasicProcedure(procedureSignature(getProcedureName("range"))
-                .mode(Mode.READ_WRITE)
+                .mode(Mode.WRITE)
                 .in(PARAMETER_NAME_INPUT, Neo4jTypes.NTMap)
                 .out(PARAMETER_NAME_INSTANTS, Neo4jTypes.NTNode).build()) {
 
@@ -149,7 +150,7 @@ public class TimeTreeProcedure extends TimeTreeBaseProcedure {
     
     public CallableProcedure.BasicProcedure now() {
         return new CallableProcedure.BasicProcedure(procedureSignature(getProcedureName("now"))
-                .mode(Mode.READ_WRITE)
+                .mode(Mode.WRITE)
                 .in(PARAMETER_NAME_INPUT, Neo4jTypes.NTMap)
                 .out(PARAMETER_NAME_INSTANT, Neo4jTypes.NTNode).build()) {
 

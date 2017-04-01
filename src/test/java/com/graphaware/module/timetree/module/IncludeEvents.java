@@ -16,7 +16,7 @@
 
 package com.graphaware.module.timetree.module;
 
-import com.graphaware.common.policy.BaseNodeInclusionPolicy;
+import com.graphaware.common.policy.inclusion.BaseNodeInclusionPolicy;
 import org.neo4j.graphdb.GraphDatabaseService;
 import org.neo4j.graphdb.Label;
 import static org.neo4j.graphdb.Label.label;

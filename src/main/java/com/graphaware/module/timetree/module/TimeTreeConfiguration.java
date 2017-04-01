@@ -15,9 +15,9 @@
  */
 package com.graphaware.module.timetree.module;
 
-import com.graphaware.common.policy.InclusionPolicies;
-import com.graphaware.common.policy.fluent.IncludeNodes;
-import com.graphaware.common.policy.fluent.IncludeRelationships;
+import com.graphaware.common.policy.inclusion.InclusionPolicies;
+import com.graphaware.common.policy.inclusion.fluent.IncludeNodes;
+import com.graphaware.common.policy.inclusion.fluent.IncludeRelationships;
 import com.graphaware.module.timetree.domain.Resolution;
 import com.graphaware.runtime.config.BaseTxDrivenModuleConfiguration;
 import com.graphaware.runtime.policy.InclusionPoliciesFactory;
@@ -28,7 +28,6 @@ import org.neo4j.graphdb.RelationshipType;
 import java.util.TimeZone;
 
 import static com.graphaware.module.timetree.domain.Resolution.DAY;
-import org.neo4j.graphdb.DynamicRelationshipType;
 
 
 /**
@@ -60,9 +59,9 @@ public class TimeTreeConfiguration extends BaseTxDrivenModuleConfiguration<TimeT
     /**
      * Create a new configuration.
      *
-     * @param inclusionPolicies          for the event nodes. Only {@link com.graphaware.common.policy.NodeInclusionPolicy} and
-     *                                   {@link com.graphaware.common.policy.NodePropertyInclusionPolicy} are interesting. The {@link com.graphaware.common.policy.NodeInclusionPolicy}
-     *                                   should include the nodes that should be attached to the tree, and the {@link com.graphaware.common.policy.NodePropertyInclusionPolicy}
+     * @param inclusionPolicies          for the event nodes. Only {@link com.graphaware.common.policy.inclusion.NodeInclusionPolicy} and
+     *                                   {@link com.graphaware.common.policy.inclusion.NodePropertyInclusionPolicy} are interesting. The {@link com.graphaware.common.policy.inclusion.NodeInclusionPolicy}
+     *                                   should include the nodes that should be attached to the tree, and the {@link com.graphaware.common.policy.inclusion.NodePropertyInclusionPolicy}
      *                                   must include the timestamp property of those nodes.
      * @param initializeUntil            until what time in ms since epoch it is ok to re(initialize) the entire module in case the configuration
      *                                   has changed since the last time the module was started, or if it is the first time the module was registered.

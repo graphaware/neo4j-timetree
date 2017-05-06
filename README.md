@@ -12,7 +12,8 @@ Getting the Software
 ### Server Mode
 
 When using Neo4j in the <a href="http://docs.neo4j.org/chunked/stable/server-installation.html" target="_blank">standalone server</a> mode,
-you will need the <a href="https://github.com/graphaware/neo4j-framework" taxorget="_blank">GraphAware Neo4j Framework</a> and GraphAware Neo4j TimeTree .jar files (both of which you can <a href="http://graphaware.com/downloads/" target="_blank">download here</a>) dropped
+you will need the <a href="https://github.com/graphaware/neo4j-framework" target="_blank">GraphAware Neo4j Framework</a> and GraphAware Neo4j TimeTree .jar files (both of which you can <a href="http://graphaware.com/downloads/" target="_blank">download here</a>) dropped
+you will need the <a href="https://github.com/graphaware/neo4j-framework" target="_blank">GraphAware Neo4j Framework</a> and GraphAware Neo4j TimeTree .jar files (both of which you can <a href="http://graphaware.com/downloads/" target="_blank">download here</a>) dropped
 into the `plugins` directory of your Neo4j installation. After Neo4j restart, you will be able to use the REST APIs of the TimeTree.
 
 ### Embedded Mode / Java Development
@@ -30,7 +31,7 @@ Releases are synced to <a href="http://search.maven.org/#search%7Cga%7C1%7Ca%3A%
         ...
         <dependency>
             <groupId>com.graphaware.neo4j</groupId>
-            <artifactId>timetree</artifactId>o
+            <artifactId>timetree</artifactId>
             <version>3.1.3.45.26</version>
         </dependency>
         ...

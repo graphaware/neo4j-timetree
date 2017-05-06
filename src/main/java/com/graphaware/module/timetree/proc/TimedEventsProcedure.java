@@ -15,29 +15,29 @@
  */
 package com.graphaware.module.timetree.proc;
 
-import com.graphaware.module.timetree.TimedEvents;
-import com.graphaware.module.timetree.domain.Event;
-import com.graphaware.module.timetree.logic.TimedEventsBusinessLogic;
-import static com.graphaware.module.timetree.proc.TimeTreeBaseProcedure.PARAMETER_NAME_END_TIME;
-import static com.graphaware.module.timetree.proc.TimeTreeBaseProcedure.PARAMETER_NAME_ROOT;
-import static com.graphaware.module.timetree.proc.TimeTreeBaseProcedure.PARAMETER_NAME_START_TIME;
-import static com.graphaware.module.timetree.proc.TimeTreeBaseProcedure.PARAMETER_NAME_TIME;
+import static org.neo4j.kernel.api.proc.ProcedureSignature.procedureName;
+import static org.neo4j.kernel.api.proc.ProcedureSignature.procedureSignature;
 
 import java.util.Collections;
 import java.util.List;
 import java.util.Map;
 import java.util.stream.Collectors;
+
 import org.neo4j.collection.RawIterator;
 import org.neo4j.graphdb.GraphDatabaseService;
 import org.neo4j.graphdb.Node;
 import org.neo4j.graphdb.RelationshipType;
 import org.neo4j.helpers.collection.Iterators;
 import org.neo4j.kernel.api.exceptions.ProcedureException;
-import org.neo4j.kernel.api.proc.*;
+import org.neo4j.kernel.api.proc.CallableProcedure;
+import org.neo4j.kernel.api.proc.Context;
+import org.neo4j.kernel.api.proc.Neo4jTypes;
+import org.neo4j.kernel.api.proc.QualifiedName;
 import org.neo4j.procedure.Mode;
 
-import static org.neo4j.kernel.api.proc.ProcedureSignature.procedureName;
-import static org.neo4j.kernel.api.proc.ProcedureSignature.procedureSignature;
+import com.graphaware.module.timetree.TimedEvents;
+import com.graphaware.module.timetree.domain.Event;
+import com.graphaware.module.timetree.logic.TimedEventsBusinessLogic;
 
 public class TimedEventsProcedure extends TimeTreeBaseProcedure {
 

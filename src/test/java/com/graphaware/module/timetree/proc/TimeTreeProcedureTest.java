@@ -78,7 +78,7 @@ public class TimeTreeProcedureTest extends GraphAwareIntegrationTest {
         try (Transaction tx = getDatabase().beginTx()) {
             Result result = getDatabase().execute("CALL ga.timetree.now({resolution: {resolution}, timezone: {timezone}}) YIELD instant return instant", params);
             ResourceIterator<Node> resIterator = result.columnAs("instant");
-            assertTrue(resIterator.hasNext());
+            assertFalse(resIterator.hasNext());
             tx.success();
         }
 

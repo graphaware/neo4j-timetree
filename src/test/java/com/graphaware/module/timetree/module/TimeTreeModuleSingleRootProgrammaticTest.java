@@ -23,12 +23,14 @@ import com.graphaware.common.serialize.Serializer;
 import com.graphaware.runtime.GraphAwareRuntime;
 import com.graphaware.runtime.GraphAwareRuntimeFactory;
 import com.graphaware.runtime.metadata.DefaultTxDrivenModuleMetadata;
+import com.graphaware.test.integration.EmbeddedDatabaseIntegrationTest;
 import org.joda.time.DateTimeZone;
 import org.junit.Test;
 import org.junit.rules.TemporaryFolder;
 import org.neo4j.graphdb.*;
 import org.neo4j.graphdb.factory.GraphDatabaseFactory;
 
+import java.io.File;
 import java.io.IOException;
 import java.util.Calendar;
 import java.util.HashMap;
@@ -37,11 +39,8 @@ import java.util.TimeZone;
 
 import static com.graphaware.module.timetree.domain.Resolution.MINUTE;
 import static com.graphaware.module.timetree.domain.Resolution.MONTH;
-import com.graphaware.test.integration.EmbeddedDatabaseIntegrationTest;
 import static com.graphaware.test.unit.GraphUnit.assertSameGraph;
-import static org.neo4j.graphdb.Label.*;
-
-import java.io.File;
+import static org.neo4j.graphdb.Label.label;
 
 /**
  * Test for {@link com.graphaware.module.timetree.module.TimeTreeModule} set up programatically.

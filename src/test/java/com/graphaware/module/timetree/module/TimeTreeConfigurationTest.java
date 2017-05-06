@@ -19,9 +19,9 @@ package com.graphaware.module.timetree.module;
 import com.graphaware.common.policy.inclusion.composite.CompositeNodeInclusionPolicy;
 import com.graphaware.common.policy.inclusion.spel.SpelNodeInclusionPolicy;
 import org.junit.Test;
+import org.neo4j.graphdb.RelationshipType;
 
 import static org.junit.Assert.assertTrue;
-import org.neo4j.graphdb.RelationshipType;
 
 /**
  * Unit test for {@link com.graphaware.module.timetree.module.TimeTreeConfiguration}

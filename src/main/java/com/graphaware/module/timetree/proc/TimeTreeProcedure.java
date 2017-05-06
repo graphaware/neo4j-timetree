@@ -15,23 +15,28 @@
  */
 package com.graphaware.module.timetree.proc;
 
-import com.graphaware.module.timetree.logic.TimeTreeBusinessLogic;
+import static org.neo4j.kernel.api.proc.ProcedureSignature.procedureName;
+import static org.neo4j.kernel.api.proc.ProcedureSignature.procedureSignature;
+
 import java.util.Collections;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
+
 import org.neo4j.collection.RawIterator;
 import org.neo4j.graphdb.GraphDatabaseService;
 import org.neo4j.graphdb.Node;
 import org.neo4j.graphdb.NotFoundException;
 import org.neo4j.helpers.collection.Iterators;
 import org.neo4j.kernel.api.exceptions.ProcedureException;
-import org.neo4j.kernel.api.proc.*;
+import org.neo4j.kernel.api.proc.CallableProcedure;
+import org.neo4j.kernel.api.proc.Context;
+import org.neo4j.kernel.api.proc.Neo4jTypes;
+import org.neo4j.kernel.api.proc.QualifiedName;
 import org.neo4j.procedure.Mode;
 
-import static org.neo4j.kernel.api.proc.ProcedureSignature.procedureName;
-import static org.neo4j.kernel.api.proc.ProcedureSignature.procedureSignature;
+import com.graphaware.module.timetree.logic.TimeTreeBusinessLogic;
 
 public class TimeTreeProcedure extends TimeTreeBaseProcedure {
 
@@ -159,7 +164,7 @@ public class TimeTreeProcedure extends TimeTreeBaseProcedure {
                 checkIsMap(input[0]);
                 Map<String, Object> inputParams = (Map) input[0];
                 checkCreate(inputParams);
-                boolean create = true;
+                boolean create = (boolean) inputParams.getOrDefault(PARAMETER_NAME_CREATE, false);
                 Node rootNode = (Node) inputParams.getOrDefault(PARAMETER_NAME_ROOT, null);
                 String resolution = (String) inputParams.get(PARAMETER_NAME_RESOLUTION);
                 String timezone = (String) inputParams.get(PARAMETER_NAME_TIMEZONE);

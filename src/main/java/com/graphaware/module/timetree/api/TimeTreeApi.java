@@ -17,15 +17,13 @@ package com.graphaware.module.timetree.api;
 
 import com.graphaware.api.json.JsonNode;
 import com.graphaware.api.json.LongIdJsonNode;
-import com.graphaware.module.timetree.SingleTimeTree;
-import com.graphaware.module.timetree.TimeTree;
+import com.graphaware.common.log.LoggerFactory;
 import com.graphaware.module.timetree.logic.TimeTreeBusinessLogic;
 import org.neo4j.graphdb.GraphDatabaseService;
 import org.neo4j.graphdb.Node;
 import org.neo4j.graphdb.NotFoundException;
 import org.neo4j.graphdb.Transaction;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
+import org.neo4j.logging.Log;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Controller;
@@ -43,7 +41,7 @@ import java.util.Map;
 @RequestMapping("/timetree")
 public class TimeTreeApi {
 
-    private static final Logger LOG = LoggerFactory.getLogger(TimeTreeApi.class);
+    private static final Log LOG = LoggerFactory.getLogger(TimeTreeApi.class);
 
     private final GraphDatabaseService database;
     

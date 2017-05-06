@@ -1,3 +1,15 @@
+3.1.0.44.26:
+    - upgrade to Neo4j 3.1.0
+
+3.0.7.44.26:
+    - upgrade to Neo4j 3.0.7
+
+3.0.6.43.25:
+    - easily register procedures in Embedded mode
+
+3.0.6.43.24:
+    - upgrade to Neo4j 3.0.6
+
 3.0.1.38.24:
     - upgrade to Neo4j 3.0.1
     - first version of stored procedures

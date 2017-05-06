@@ -16,15 +16,17 @@
 
 package com.graphaware.module.timetree.proc;
 
+import com.graphaware.module.timetree.SingleTimeTree;
+import com.graphaware.module.timetree.TimeTreeBackedEvents;
 import com.graphaware.module.timetree.TimedEvents;
 import org.neo4j.graphdb.GraphDatabaseService;
-import org.neo4j.kernel.api.exceptions.ProcedureException;
+import org.neo4j.kernel.api.exceptions.KernelException;
 import org.neo4j.kernel.impl.proc.Procedures;
+import org.neo4j.kernel.internal.GraphDatabaseAPI;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 
 import javax.annotation.PostConstruct;
-import org.neo4j.kernel.api.exceptions.KernelException;
 
 @Component
 public class TimeTreeProcedures {
@@ -33,6 +35,19 @@ public class TimeTreeProcedures {
     private final Procedures procedures;
     private final TimedEvents timedEvents;
 
+    public static void register(GraphDatabaseService database) {
+        try {
+            new TimeTreeProcedures(database).init();
+        } catch (KernelException e) {
+            throw new RuntimeException(e);
+        }
+    }
+
+    private TimeTreeProcedures(GraphDatabaseService database) {
+        this.database = database;
+        this.procedures = ((GraphDatabaseAPI) database).getDependencyResolver().resolveDependency(Procedures.class);
+        this.timedEvents = new TimeTreeBackedEvents(new SingleTimeTree(database));
+    }
 
     @Autowired
     public TimeTreeProcedures(GraphDatabaseService database, TimedEvents timedEvents, Procedures procedures) {
@@ -42,7 +57,7 @@ public class TimeTreeProcedures {
     }
 
     @PostConstruct
-    public void init() throws ProcedureException, KernelException {
+    public void init() throws KernelException {
         TimeTreeProcedure timeTreeProcedures = new TimeTreeProcedure(database);
         procedures.register(timeTreeProcedures.get());
         procedures.register(timeTreeProcedures.now());

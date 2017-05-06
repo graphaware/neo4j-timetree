@@ -91,7 +91,7 @@ public class TimeTreeModuleSerializationTest {
 
         GraphDatabaseService database = new GraphDatabaseFactory().newEmbeddedDatabase(new File(temporaryFolder.getRoot().getAbsolutePath()));
         
-        repository = new GraphPropertiesMetadataRepository(database, FluentRuntimeConfiguration.defaultConfiguration(), "TEST");
+        repository = new GraphPropertiesMetadataRepository(database, FluentRuntimeConfiguration.defaultConfiguration(database), "TEST");
 
         ModuleMetadata metadata = new DefaultTxDrivenModuleMetadata(TimeTreeConfiguration.defaultConfiguration().withAutoAttach(true));
 

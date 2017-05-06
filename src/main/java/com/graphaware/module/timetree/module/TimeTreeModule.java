@@ -16,6 +16,7 @@
 
 package com.graphaware.module.timetree.module;
 
+import com.graphaware.common.log.LoggerFactory;
 import com.graphaware.common.util.Change;
 import com.graphaware.module.timetree.CustomRootTimeTree;
 import com.graphaware.module.timetree.SingleTimeTree;
@@ -34,8 +35,7 @@ import org.neo4j.graphdb.Direction;
 import org.neo4j.graphdb.GraphDatabaseService;
 import org.neo4j.graphdb.Node;
 import org.neo4j.graphdb.Relationship;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
+import org.neo4j.logging.Log;
 
 import static com.graphaware.common.util.PropertyContainerUtils.getLong;
 
@@ -44,7 +44,7 @@ import static com.graphaware.common.util.PropertyContainerUtils.getLong;
  */
 public class TimeTreeModule extends BaseTxDrivenModule<Void> {
 
-    private static final Logger LOG = LoggerFactory.getLogger(TimeTreeModule.class);
+    private static final Log LOG = LoggerFactory.getLogger(TimeTreeModule.class);
 
     private final TimeTreeConfiguration configuration;
     private final TimedEvents timedEvents;

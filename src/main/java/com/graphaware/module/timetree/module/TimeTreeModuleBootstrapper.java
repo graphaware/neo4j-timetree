@@ -16,7 +16,8 @@
 
 package com.graphaware.module.timetree.module;
 
-import com.graphaware.common.policy.NodeInclusionPolicy;
+import com.graphaware.common.log.LoggerFactory;
+import com.graphaware.common.policy.inclusion.NodeInclusionPolicy;
 import com.graphaware.module.timetree.domain.Resolution;
 import com.graphaware.runtime.config.function.StringToNodeInclusionPolicy;
 import com.graphaware.runtime.module.BaseRuntimeModuleBootstrapper;
@@ -25,8 +26,7 @@ import org.joda.time.DateTimeZone;
 import org.neo4j.graphdb.Direction;
 import org.neo4j.graphdb.GraphDatabaseService;
 import org.neo4j.graphdb.RelationshipType;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
+import org.neo4j.logging.Log;
 
 import java.util.Map;
 import java.util.TimeZone;
@@ -36,7 +36,7 @@ import java.util.TimeZone;
  */
 public class TimeTreeModuleBootstrapper extends BaseRuntimeModuleBootstrapper<TimeTreeConfiguration> {
 
-    private static final Logger LOG = LoggerFactory.getLogger(TimeTreeModuleBootstrapper.class);
+    private static final Log LOG = LoggerFactory.getLogger(TimeTreeModuleBootstrapper.class);
 
     private static final String EVENT = "event";
     private static final String TIMESTAMP_PROPERTY = "timestamp";
@@ -62,49 +62,49 @@ public class TimeTreeModuleBootstrapper extends BaseRuntimeModuleBootstrapper<Ti
     protected RuntimeModule doBootstrapModule(String moduleId, Map<String, String> config, GraphDatabaseService database, TimeTreeConfiguration configuration) {
         if (configExists(config, EVENT)) {
             NodeInclusionPolicy policy = StringToNodeInclusionPolicy.getInstance().apply(config.get(EVENT));
-            LOG.info("Node Inclusion Strategy set to {}", policy);
+            LOG.info("Node Inclusion Strategy set to %s", policy);
             configuration = configuration.with(policy);
         }
 
         if (configExists(config, TIMESTAMP_PROPERTY)) {
             String timestampProperty = config.get(TIMESTAMP_PROPERTY);
-            LOG.info("Timestamp Property set to {}", timestampProperty);
+            LOG.info("Timestamp Property set to %s", timestampProperty);
             configuration = configuration.withTimestampProperty(timestampProperty);
         }
 
         if (configExists(config, CUSTOM_TIMETREE_ROOT_PROPERTY)) {
             String customTimeTreeRootProperty = config.get(CUSTOM_TIMETREE_ROOT_PROPERTY);
-            LOG.info("Custom TimeTree Root Property set to {}", customTimeTreeRootProperty);
+            LOG.info("Custom TimeTree Root Property set to %s", customTimeTreeRootProperty);
             configuration = configuration.withCustomTimeTreeRootProperty(customTimeTreeRootProperty);
         }
 
         if (configExists(config, RESOLUTION)) {
             Resolution resolution = Resolution.valueOf(config.get(RESOLUTION).toUpperCase());
-            LOG.info("Resolution set to {}", resolution);
+            LOG.info("Resolution set to %s", resolution);
             configuration = configuration.withResolution(resolution);
         }
 
         if (configExists(config, TIME_ZONE)) {
             DateTimeZone timeZone = DateTimeZone.forTimeZone(TimeZone.getTimeZone(config.get(TIME_ZONE)));
-            LOG.info("Time zone set to {}", timeZone);
+            LOG.info("Time zone set to %s", timeZone);
             configuration = configuration.withTimeZone(timeZone);
         }
 
         if (configExists(config, RELATIONSHIP)) {
             RelationshipType relationshipType = RelationshipType.withName(config.get(RELATIONSHIP));
-            LOG.info("Relationship type set to {}", relationshipType);
+            LOG.info("Relationship type set to %s", relationshipType);
             configuration = configuration.withRelationshipType(relationshipType);
         }
 
         if (configExists(config, DIRECTION)) {
             Direction direction = Direction.valueOf(config.get(DIRECTION));
-            LOG.info("Direction set to {}", direction);
+            LOG.info("Direction set to %s", direction);
             configuration = configuration.withDirection(direction);
         }
 
         if (configExists(config, AUTO_ATTACH)) {
             boolean autoAttach = Boolean.valueOf(config.get(AUTO_ATTACH));
-            LOG.info("AutoAttach set to {}", autoAttach);
+            LOG.info("AutoAttach set to %s", autoAttach);
             configuration = configuration.withAutoAttach(autoAttach);
         }
 

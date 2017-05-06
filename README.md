@@ -1,7 +1,7 @@
 GraphAware Neo4j TimeTree X
 =========================
 
-[![Build Status](https://travis-ci.org/graphaware/neo4j-timetree.png)](https://travis-ci.org/graphaware/neo4j-timetree) | <a href="http://graphaware.com/downloads/" target="_blank">Downloads</a> | <a href="http://graphaware.com/site/timetree/latest/apidocs/" target="_blank">Javadoc</a> | Latest Release: 3.0.1.38.24
+[![Build Status](https://travis-ci.org/graphaware/neo4j-timetree.png)](https://travis-ci.org/graphaware/neo4j-timetree) | <a href="http://graphaware.com/downloads/" target="_blank">Downloads</a> | <a href="http://graphaware.com/site/timetree/latest/apidocs/" target="_blank">Javadoc</a> | Latest Release: 3.1.3.45.26
 
 GraphAware TimeTree is a simple library for representing time in Neo4j as a tree of time instants. The tree is built on-demand,
 supports resolutions of one year down to one millisecond and has time zone support. It also supports attaching event nodes to time instants (created on demand).
@@ -12,7 +12,7 @@ Getting the Software
 ### Server Mode
 
 When using Neo4j in the <a href="http://docs.neo4j.org/chunked/stable/server-installation.html" target="_blank">standalone server</a> mode,
-you will need the <a href="https://github.com/graphaware/neo4j-framework" target="_blank">GraphAware Neo4j Framework</a> and GraphAware Neo4j TimeTree .jar files (both of which you can <a href="http://graphaware.com/downloads/" target="_blank">download here</a>) dropped
+you will need the <a href="https://github.com/graphaware/neo4j-framework" taxorget="_blank">GraphAware Neo4j Framework</a> and GraphAware Neo4j TimeTree .jar files (both of which you can <a href="http://graphaware.com/downloads/" target="_blank">download here</a>) dropped
 into the `plugins` directory of your Neo4j installation. After Neo4j restart, you will be able to use the REST APIs of the TimeTree.
 
 ### Embedded Mode / Java Development
@@ -30,8 +30,8 @@ Releases are synced to <a href="http://search.maven.org/#search%7Cga%7C1%7Ca%3A%
         ...
         <dependency>
             <groupId>com.graphaware.neo4j</groupId>
-            <artifactId>timetree</artifactId>
-            <version>3.0.1.38.24</version>
+            <artifactId>timetree</artifactId>o
+            <version>3.1.3.45.26</version>
         </dependency>
         ...
     </dependencies>
@@ -39,7 +39,7 @@ Releases are synced to <a href="http://search.maven.org/#search%7Cga%7C1%7Ca%3A%
 #### Snapshots
 
 To use the latest development version, just clone this repository, run `mvn clean install` and change the version in the
-dependency above to 3.0.1.38.25-SNAPSHOT.
+dependency above to 3.1.3.45.27-SNAPSHOT.
 
 #### Note on Versioning Scheme
 
@@ -102,31 +102,23 @@ To get a node representing a time instant :
 CALL ga.timetree.single({time: 1463659567468})
 ```
 
-If you would like that the instant node is created if it doesn't exist for the given time, you can user merge instead :
+If you would like that the instant node is created if it doesn't exist for the given time, you can user single with option create instead :
 
 ```
-CALL ga.timetree.merge({time: 1463659567468})
+CALL ga.timetree.single({time: 1463659567468, create: true})
 ```
 
 This will create the time tree nodes in the graph :
 
 ![GraphAware TimeTree procedure merge](https://github.com/graphaware/neo4j-timetree/raw/master/docs/procedure1.png)
 
-The following parameters can be passed in the map :
+The following parameters can be passed in the map:
 
 * `time`: (mandatory) the long representation of the time
 * `resolution` : default resolution is `Day`
 * `timezone` : default timezone is `UTC`
-* `root`: By default the time instants are attached to the default TimeTreeRoot, you can pass a node that will be used as time tree root
-* `create`: by default to true for `merge` and `false` for single
-
-To summarize, the two following calls will perform the exact same operation :
-
-```
-CALL ga.timetree.single({time: 1463659567468, create: true})
----
-CALL ga.timetree.merge({time: 1463659567468})
-```
+* `root`: by default the time instants are attached to the default TimeTreeRoot, you can pass a node that will be used as time tree root
+* `create`: create the time tree node if not exist, by default to `false`
 
 You can also get or create a node that represent the current time with the `now()` procedure :
 
@@ -349,9 +341,12 @@ All TimeTree versions compatible with Neo4j 2.2.0+ have the capability of automa
 By default, any node created with label `Event` that contains a property named `timestamp` (with value as a `long` representing the timestamp in milliseconds),
 will be attached to the tree with an outgoing relationship `AT_TIME` from the event node to tree.
 
-Required configuration as well as overriding the defaults are specified in `neo4j.properties` as follows:
+Required configuration as well as overriding the defaults are specified in `neo4j.conf` as follows:
 
 ```
+#For the framework to work at all, you need this
+dbms.unmanaged_extension_classes=com.graphaware.server=/graphaware
+
 # Runtime must be enabled like this
 com.graphaware.runtime.enabled=true
 

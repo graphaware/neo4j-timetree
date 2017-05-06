@@ -16,6 +16,7 @@
 
 package com.graphaware.module.timetree;
 
+import com.graphaware.common.log.LoggerFactory;
 import com.graphaware.common.util.IterableUtils;
 import com.graphaware.module.timetree.domain.Resolution;
 import com.graphaware.module.timetree.domain.TimeInstant;
@@ -24,8 +25,7 @@ import org.joda.time.DateTime;
 import org.neo4j.graphdb.*;
 import org.neo4j.graphdb.event.TransactionData;
 import org.neo4j.graphdb.event.TransactionEventHandler;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
+import org.neo4j.logging.Log;
 
 import java.util.LinkedList;
 import java.util.List;
@@ -45,7 +45,7 @@ import static org.neo4j.graphdb.Direction.OUTGOING;
  */
 public class SingleTimeTree implements TimeTree {
 
-    private static final Logger LOG = LoggerFactory.getLogger(SingleTimeTree.class);
+    private static final Log LOG = LoggerFactory.getLogger(SingleTimeTree.class);
 
     protected static final String VALUE_PROPERTY = "value";
 

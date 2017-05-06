@@ -16,8 +16,8 @@
 
 package com.graphaware.module.timetree.module;
 
-import com.graphaware.common.policy.composite.CompositeNodeInclusionPolicy;
-import com.graphaware.common.policy.spel.SpelNodeInclusionPolicy;
+import com.graphaware.common.policy.inclusion.composite.CompositeNodeInclusionPolicy;
+import com.graphaware.common.policy.inclusion.spel.SpelNodeInclusionPolicy;
 import org.junit.Test;
 
 import static org.junit.Assert.assertTrue;

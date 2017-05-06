@@ -27,9 +27,9 @@ import org.neo4j.graphdb.Node;
 import org.neo4j.graphdb.NotFoundException;
 import org.neo4j.helpers.collection.Iterators;
 import org.neo4j.kernel.api.exceptions.ProcedureException;
-import org.neo4j.kernel.api.proc.CallableProcedure;
-import org.neo4j.kernel.api.proc.Neo4jTypes;
-import org.neo4j.kernel.api.proc.ProcedureSignature;
+import org.neo4j.kernel.api.proc.*;
+import org.neo4j.procedure.Mode;
+
 import static org.neo4j.kernel.api.proc.ProcedureSignature.procedureName;
 import static org.neo4j.kernel.api.proc.ProcedureSignature.procedureSignature;
 
@@ -45,7 +45,7 @@ public class TimeTreeProcedure extends TimeTreeBaseProcedure {
 
     public CallableProcedure.BasicProcedure get() {
         return new CallableProcedure.BasicProcedure(procedureSignature(getProcedureName("single"))
-                .mode(ProcedureSignature.Mode.READ_WRITE)
+                .mode(Mode.WRITE)
                 .in(PARAMETER_NAME_INPUT, Neo4jTypes.NTMap)
                 .out(PARAMETER_NAME_INSTANT, Neo4jTypes.NTNode).build()) {
 
@@ -66,7 +66,7 @@ public class TimeTreeProcedure extends TimeTreeBaseProcedure {
 
     public CallableProcedure.BasicProcedure merge() {
         return new CallableProcedure.BasicProcedure(procedureSignature(getProcedureName("merge"))
-                .mode(ProcedureSignature.Mode.READ_WRITE)
+                .mode(Mode.WRITE)
                 .in(PARAMETER_NAME_INPUT, Neo4jTypes.NTMap)
                 .out(PARAMETER_NAME_INSTANT, Neo4jTypes.NTNode).build()) {
 
@@ -107,12 +107,12 @@ public class TimeTreeProcedure extends TimeTreeBaseProcedure {
 
     public CallableProcedure.BasicProcedure getInstants() {
         return new CallableProcedure.BasicProcedure(procedureSignature(getProcedureName("range"))
-                .mode(ProcedureSignature.Mode.READ_WRITE)
+                .mode(Mode.WRITE)
                 .in(PARAMETER_NAME_INPUT, Neo4jTypes.NTMap)
                 .out(PARAMETER_NAME_INSTANTS, Neo4jTypes.NTNode).build()) {
 
             @Override
-            public RawIterator<Object[], ProcedureException> apply(CallableProcedure.Context ctx, Object[] input) throws ProcedureException {
+            public RawIterator<Object[], ProcedureException> apply(Context ctx, Object[] input) throws ProcedureException {
                 validateRangeParameters(input[0]);
                 Map<String, Object> inputParams = (Map) input[0];
                 boolean create = (boolean) inputParams.getOrDefault(PARAMETER_NAME_CREATE, false);
@@ -150,12 +150,12 @@ public class TimeTreeProcedure extends TimeTreeBaseProcedure {
     
     public CallableProcedure.BasicProcedure now() {
         return new CallableProcedure.BasicProcedure(procedureSignature(getProcedureName("now"))
-                .mode(ProcedureSignature.Mode.READ_WRITE)
+                .mode(Mode.WRITE)
                 .in(PARAMETER_NAME_INPUT, Neo4jTypes.NTMap)
                 .out(PARAMETER_NAME_INSTANT, Neo4jTypes.NTNode).build()) {
 
             @Override
-            public RawIterator<Object[], ProcedureException> apply(CallableProcedure.Context ctx, Object[] input) throws ProcedureException {
+            public RawIterator<Object[], ProcedureException> apply(Context ctx, Object[] input) throws ProcedureException {
                 checkIsMap(input[0]);
                 Map<String, Object> inputParams = (Map) input[0];
                 checkCreate(inputParams);
@@ -184,7 +184,7 @@ public class TimeTreeProcedure extends TimeTreeBaseProcedure {
         checkTime(inputParams, PARAMETER_NAME_END_TIME);
     }
     
-    protected static ProcedureSignature.ProcedureName getProcedureName(String procedureName) {
+    protected static QualifiedName getProcedureName(String procedureName) {
         return procedureName("ga", "timetree", procedureName);
     }
 }

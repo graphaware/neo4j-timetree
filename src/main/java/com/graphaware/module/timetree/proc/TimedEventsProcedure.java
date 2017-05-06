@@ -33,9 +33,9 @@ import org.neo4j.graphdb.Node;
 import org.neo4j.graphdb.RelationshipType;
 import org.neo4j.helpers.collection.Iterators;
 import org.neo4j.kernel.api.exceptions.ProcedureException;
-import org.neo4j.kernel.api.proc.CallableProcedure;
-import org.neo4j.kernel.api.proc.Neo4jTypes;
-import org.neo4j.kernel.api.proc.ProcedureSignature;
+import org.neo4j.kernel.api.proc.*;
+import org.neo4j.procedure.Mode;
+
 import static org.neo4j.kernel.api.proc.ProcedureSignature.procedureName;
 import static org.neo4j.kernel.api.proc.ProcedureSignature.procedureSignature;
 
@@ -49,7 +49,7 @@ public class TimedEventsProcedure extends TimeTreeBaseProcedure {
 
     public CallableProcedure.BasicProcedure getEvents() {
         return new CallableProcedure.BasicProcedure(procedureSignature(getProcedureName("single"))
-                .mode(ProcedureSignature.Mode.READ_WRITE)
+                .mode(Mode.WRITE)
                 .in(PARAMETER_NAME_INPUT, Neo4jTypes.NTMap)
                 .out(PARAMETER_NAME_NODE, Neo4jTypes.NTNode)
                 .out(PARAMETER_NAME_RELATIONSHIP_TYPE, Neo4jTypes.NTString)
@@ -57,7 +57,7 @@ public class TimedEventsProcedure extends TimeTreeBaseProcedure {
                 .build()) {
 
             @Override
-            public RawIterator<Object[], ProcedureException> apply(CallableProcedure.Context ctx, Object[] input) throws ProcedureException {
+            public RawIterator<Object[], ProcedureException> apply(Context ctx, Object[] input) throws ProcedureException {
                 checkIsMap(input[0]);
                 Map<String, Object> inputParams = (Map) input[0];
                 checkTime(inputParams, PARAMETER_NAME_TIME);
@@ -84,13 +84,13 @@ public class TimedEventsProcedure extends TimeTreeBaseProcedure {
 
     public CallableProcedure.BasicProcedure getAttach() {
         return new CallableProcedure.BasicProcedure(procedureSignature(getProcedureName("attach"))
-                .mode(ProcedureSignature.Mode.READ_WRITE)
+                .mode(Mode.WRITE)
                 .in(PARAMETER_NAME_INPUT, Neo4jTypes.NTMap)
                 .out(PARAMETER_NAME_NODE, Neo4jTypes.NTNode)
                 .build()) {
 
             @Override
-            public RawIterator<Object[], ProcedureException> apply(CallableProcedure.Context ctx, Object[] input) throws ProcedureException {
+            public RawIterator<Object[], ProcedureException> apply(Context ctx, Object[] input) throws ProcedureException {
                 checkIsMap(input[0]);
                 Map<String, Object> inputParams = (Map) input[0];
                 checkTime(inputParams, PARAMETER_NAME_TIME);
@@ -119,7 +119,7 @@ public class TimedEventsProcedure extends TimeTreeBaseProcedure {
 
     public CallableProcedure.BasicProcedure getRangeEvents() {
         return new CallableProcedure.BasicProcedure(procedureSignature(getProcedureName("range"))
-                .mode(ProcedureSignature.Mode.READ_WRITE)
+                .mode(Mode.WRITE)
                 .in(PARAMETER_NAME_INPUT, Neo4jTypes.NTMap)
                 .out(PARAMETER_NAME_NODE, Neo4jTypes.NTNode)
                 .out(PARAMETER_NAME_RELATIONSHIP_TYPE, Neo4jTypes.NTString)
@@ -127,7 +127,7 @@ public class TimedEventsProcedure extends TimeTreeBaseProcedure {
                 .build()) {
 
             @Override
-            public RawIterator<Object[], ProcedureException> apply(CallableProcedure.Context ctx, Object[] input) throws ProcedureException {
+            public RawIterator<Object[], ProcedureException> apply(Context ctx, Object[] input) throws ProcedureException {
                 checkIsMap(input[0]);
                 Map<String, Object> inputParams = (Map) input[0];
                 checkTime(inputParams, PARAMETER_NAME_START_TIME);
@@ -178,7 +178,7 @@ public class TimedEventsProcedure extends TimeTreeBaseProcedure {
         return RelationshipType.withName(relType);
     }
 
-    protected static ProcedureSignature.ProcedureName getProcedureName(String... procedureName) {
+    protected static QualifiedName getProcedureName(String... procedureName) {
         String namespace[] = new String[3 + procedureName.length];
         int i = 0;
         namespace[i++] = "ga";

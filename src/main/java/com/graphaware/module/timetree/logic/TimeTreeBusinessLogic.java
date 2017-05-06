@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2013-2016 GraphAware
+ * Copyright (c) 2013-2017 GraphAware
  *
  * This file is part of the GraphAware Framework.
  *
@@ -20,13 +20,12 @@ import com.graphaware.module.timetree.SingleTimeTree;
 import com.graphaware.module.timetree.TimeTree;
 import com.graphaware.module.timetree.api.TimeInstantVO;
 import com.graphaware.module.timetree.domain.TimeInstant;
-import java.util.List;
 import org.neo4j.graphdb.GraphDatabaseService;
 import org.neo4j.graphdb.Node;
 import org.neo4j.graphdb.NotFoundException;
 import org.neo4j.graphdb.Transaction;
-import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.stereotype.Component;
+
+import java.util.List;
 
 public class TimeTreeBusinessLogic {
 

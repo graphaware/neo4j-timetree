@@ -76,15 +76,12 @@ public class TimeTreeApi {
     public JsonNode getInstant(
             @PathVariable long time,
             @RequestParam(required = false) String resolution,
-			@RequestParam(required = false) String timezone) {
+            @RequestParam(required = false) String timezone) {
 
-		Node instant;
-		try (Transaction tx = database.beginTx();) {
-			instant = timeTreeLogic.getInstant(time, resolution, timezone);
-			tx.failure();
-		}
-		return getJsonNode(instant);
-	}
+        Node instant = timeTreeLogic.getInstant(time, resolution, timezone);
+
+        return getJsonNode(instant);
+    }
 
     @RequestMapping(value = "/single/{time}", method = RequestMethod.POST)
     @ResponseBody
@@ -104,15 +101,12 @@ public class TimeTreeApi {
             @PathVariable long startTime,
             @PathVariable long endTime,
             @RequestParam(required = false) String resolution,
-			@RequestParam(required = false) String timezone) {
+            @RequestParam(required = false) String timezone) {
 
-		List<Node> nodes;
-		try (Transaction tx = database.beginTx();) {
-			nodes = timeTreeLogic.getInstants(startTime, endTime, resolution, timezone);
-			tx.failure();
-		}
-		return getJsonNodes(nodes);
-	}
+        List<Node> nodes = timeTreeLogic.getInstants(startTime, endTime, resolution, timezone);
+
+        return getJsonNodes(nodes);
+    }
 
     @RequestMapping(value = "/range/{startTime}/{endTime}", method = RequestMethod.POST)
     @ResponseBody
@@ -133,15 +127,12 @@ public class TimeTreeApi {
             @PathVariable long rootNodeId,
             @PathVariable long time,
             @RequestParam(required = false) String resolution,
-			@RequestParam(required = false) String timezone) {
+            @RequestParam(required = false) String timezone) {
 
-		Node instant;
-		try (Transaction tx = database.beginTx();) {
-			instant = timeTreeLogic.getInstantWithCustomRoot(rootNodeId, time, resolution, timezone);
-			tx.failure();
-		}
-		return getJsonNode(instant);
-	}
+        Node instant = timeTreeLogic.getInstantWithCustomRoot(rootNodeId, time, resolution, timezone);
+
+        return getJsonNode(instant);
+    }
 
     @RequestMapping(value = "/{rootNodeId}/single/{time}", method = RequestMethod.POST)
     @ResponseBody
@@ -166,12 +157,9 @@ public class TimeTreeApi {
             @RequestParam(required = false) String resolution,
             @RequestParam(required = false) String timezone) {
 
-		List<Node> nodes;
-		try (Transaction tx = database.beginTx();) {
-			nodes = timeTreeLogic.getInstantsWithCustomRoot(rootNodeId, startTime, endTime, resolution, timezone);
-			tx.failure();
-		}
-		return getJsonNodes(nodes);
+        List<Node> nodes = timeTreeLogic.getInstantsWithCustomRoot(rootNodeId, startTime, endTime, resolution, timezone);
+
+        return getJsonNodes(nodes);
     }
 
     @RequestMapping(value = "/{rootNodeId}/range/{startTime}/{endTime}", method = RequestMethod.POST)

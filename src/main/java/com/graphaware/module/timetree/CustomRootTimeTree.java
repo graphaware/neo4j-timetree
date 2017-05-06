@@ -16,9 +16,6 @@
 
 package com.graphaware.module.timetree;
 
-import java.util.concurrent.locks.ReentrantLock;
-
-import org.neo4j.graphdb.GraphDatabaseService;
 import org.neo4j.graphdb.Node;
 
 /**
@@ -26,18 +23,19 @@ import org.neo4j.graphdb.Node;
  * different time trees within a single graph.
  */
 public class CustomRootTimeTree extends SingleTimeTree {
-	
-	/**
-	 * TimeTree attached to the input node (root)
-	 * @param root the root-node of time tree
-	 */
+
+    private final Node root;
+
     public CustomRootTimeTree(Node root) {
-    	super(root.getGraphDatabase(),new TimeRootLocator() {
-			
-			@Override
-			public Node getTimeRoot(GraphDatabaseService database, ReentrantLock rootLock) {
-				return root;
-			}
-		});
+        super(root.getGraphDatabase());
+        this.root = root;
+    }
+
+    /**
+     * {@inheritDoc}
+     */
+    @Override
+    protected Node getTimeRoot(boolean createIfMissing) {
+        return root;
     }
 }

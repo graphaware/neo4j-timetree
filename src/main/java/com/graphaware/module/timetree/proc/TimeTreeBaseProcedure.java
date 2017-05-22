@@ -16,8 +16,6 @@
 package com.graphaware.module.timetree.proc;
 
 import java.util.Map;
-import org.neo4j.kernel.api.proc.ProcedureSignature;
-import static org.neo4j.kernel.api.proc.ProcedureSignature.procedureName;
 
 public class TimeTreeBaseProcedure {
 
@@ -31,9 +29,6 @@ public class TimeTreeBaseProcedure {
     protected static final String PARAMETER_NAME_NODE = "node";
     protected static final String PARAMETER_NAME_DIRECTION = "direction";
     protected static final String PARAMETER_NAME_RELATIONSHIP_TYPES = "relationshipTypes";
-    protected static final String PARAMETER_NAME_INPUT = "input";
-    protected static final String PARAMETER_NAME_INSTANT = "instant";
-    protected static final String PARAMETER_NAME_INSTANTS = "instants";
     protected static final String PARAMETER_NAME_CREATE = "create";
 
     protected void checkTime(Map<String, Object> inputParams, String param) throws RuntimeException {

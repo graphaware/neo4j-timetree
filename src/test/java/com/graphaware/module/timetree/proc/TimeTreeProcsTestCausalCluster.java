@@ -15,18 +15,18 @@
  */
 package com.graphaware.module.timetree.proc;
 
-import static org.junit.Assert.*;
-
-import org.junit.Test;
-import org.neo4j.graphdb.GraphDatabaseService;
-import org.neo4j.graphdb.Result;
-import org.neo4j.graphdb.Transaction;
-
 import com.graphaware.module.timetree.module.TimeTreeConfiguration;
 import com.graphaware.module.timetree.module.TimeTreeModule;
 import com.graphaware.runtime.GraphAwareRuntime;
 import com.graphaware.runtime.GraphAwareRuntimeFactory;
 import com.graphaware.test.integration.cluster.CausalClusterDatabasesintegrationTest;
+import org.junit.Test;
+import org.neo4j.graphdb.GraphDatabaseService;
+import org.neo4j.graphdb.Result;
+import org.neo4j.kernel.impl.proc.Procedures;
+import org.neo4j.kernel.internal.GraphDatabaseAPI;
+
+import static org.junit.Assert.assertFalse;
 
 /**
  * Test the read-only procedures in all kind of instances - Causal Cluster
@@ -34,83 +34,85 @@ import com.graphaware.test.integration.cluster.CausalClusterDatabasesintegration
  */
 public class TimeTreeProcsTestCausalCluster extends CausalClusterDatabasesintegrationTest {
 
-	@Override
-	protected boolean shouldRegisterModules() {
-		return true;
-	}
+    @Override
+    protected boolean shouldRegisterModules() {
+        return true;
+    }
 
-	@Override
-	protected void registerModule(GraphDatabaseService database) throws Exception {
-		GraphAwareRuntime runtime = GraphAwareRuntimeFactory.createRuntime(database);
-		runtime.registerModule(new TimeTreeModule("timetree", TimeTreeConfiguration.defaultConfiguration(), database));
-		runtime.start();
+    @Override
+    protected void registerModule(GraphDatabaseService database) throws Exception {
+        GraphAwareRuntime runtime = GraphAwareRuntimeFactory.createRuntime(database);
+        runtime.registerModule(new TimeTreeModule("timetree", TimeTreeConfiguration.defaultConfiguration(), database));
+        runtime.start();
 
-		TimeTreeProcedures.register(database);
-	}
+        ((GraphDatabaseAPI) database).getDependencyResolver()
+                .resolveDependency(Procedures.class)
+                .registerProcedure(TimeTreeProcedure.class);
+    }
 
-	@Test
-	public void testNowReadOnly_LEADER() {
-		GraphDatabaseService db = getLeaderDatabase();
-		Result execute = db.execute("CALL ga.timetree.now({create: false}) YIELD instant RETURN instant");
-		assertFalse(execute.hasNext());
-	}
+    @Test
+    public void testNowReadOnly_LEADER() {
+        GraphDatabaseService db = getLeaderDatabase();
+        Result execute = db.execute("CALL ga.timetree.now({create: false}) YIELD instant RETURN instant");
+        assertFalse(execute.hasNext());
+    }
 
-	@Test
-	public void testNowReadOnly_FOLLOWER() {
-		GraphDatabaseService db = getOneFollowerDatabase();
-		Result execute = db.execute("CALL ga.timetree.now({create: false}) YIELD instant RETURN instant");
-		assertFalse(execute.hasNext());
-	}
-	
-	@Test
-	public void testNowReadOnly_REPLICA() {
-		GraphDatabaseService db = getOneReplicaDatabase();
-		Result execute = db.execute("CALL ga.timetree.now({create: false}) YIELD instant RETURN instant");
-		assertFalse(execute.hasNext());
-	}
+    @Test
+    public void testNowReadOnly_FOLLOWER() {
+        GraphDatabaseService db = getOneFollowerDatabase();
+        Result execute = db.execute("CALL ga.timetree.now({create: false}) YIELD instant RETURN instant");
+        assertFalse(execute.hasNext());
+    }
 
-	@Test
-	public void testGetReadOnly_LEADER() {
-		GraphDatabaseService db = getLeaderDatabase();
-		Result execute = db.execute("CALL ga.timetree.single({time: 1463659567468}) YIELD instant RETURN instant");
-		assertFalse(execute.hasNext());
-	}
+    @Test
+    public void testNowReadOnly_REPLICA() {
+        GraphDatabaseService db = getOneReplicaDatabase();
+        Result execute = db.execute("CALL ga.timetree.now({create: false}) YIELD instant RETURN instant");
+        assertFalse(execute.hasNext());
+    }
 
-	@Test
-	public void testGetReadOnly_FOLLOWER() {
-		GraphDatabaseService db = getOneFollowerDatabase();
-		Result execute = db.execute("CALL ga.timetree.single({time: 1463659567468}) YIELD instant RETURN instant");
-		assertFalse(execute.hasNext());
-	}
+    @Test
+    public void testGetReadOnly_LEADER() {
+        GraphDatabaseService db = getLeaderDatabase();
+        Result execute = db.execute("CALL ga.timetree.single({time: 1463659567468}) YIELD instant RETURN instant");
+        assertFalse(execute.hasNext());
+    }
 
-	@Test
-	public void testGetReadOnly_REPLICA() {
-		GraphDatabaseService db = getOneReplicaDatabase();
-		Result execute = db.execute("CALL ga.timetree.single({time: 1463659567468}) YIELD instant RETURN instant");
-		assertFalse(execute.hasNext());
-	}
+    @Test
+    public void testGetReadOnly_FOLLOWER() {
+        GraphDatabaseService db = getOneFollowerDatabase();
+        Result execute = db.execute("CALL ga.timetree.single({time: 1463659567468}) YIELD instant RETURN instant");
+        assertFalse(execute.hasNext());
+    }
 
-	@Test
-	public void testRangeReadOnly_LEADER() {
-		GraphDatabaseService db = getLeaderDatabase();
-		Result execute = db
-				.execute("CALL ga.timetree.range({start: 1463659567468, end: 1463859569504, create: false})");
-		assertFalse(execute.hasNext());
-	}
+    @Test
+    public void testGetReadOnly_REPLICA() {
+        GraphDatabaseService db = getOneReplicaDatabase();
+        Result execute = db.execute("CALL ga.timetree.single({time: 1463659567468}) YIELD instant RETURN instant");
+        assertFalse(execute.hasNext());
+    }
 
-	@Test
-	public void testRangeReadOnly_FOLLOWER() {
-		GraphDatabaseService db = getOneFollowerDatabase();
-		Result execute = db
-				.execute("CALL ga.timetree.range({start: 1463659567468, end: 1463859569504, create: false})");
-		assertFalse(execute.hasNext());
-	}
+    @Test
+    public void testRangeReadOnly_LEADER() {
+        GraphDatabaseService db = getLeaderDatabase();
+        Result execute = db
+                .execute("CALL ga.timetree.range({start: 1463659567468, end: 1463859569504, create: false})");
+        assertFalse(execute.hasNext());
+    }
 
-	@Test
-	public void testRangeReadOnly_REPLICA() {
-		GraphDatabaseService db = getOneReplicaDatabase();
-		Result execute = db
-				.execute("CALL ga.timetree.range({start: 1463659567468, end: 1463859569504, create: false})");
-		assertFalse(execute.hasNext());
-	}
+    @Test
+    public void testRangeReadOnly_FOLLOWER() {
+        GraphDatabaseService db = getOneFollowerDatabase();
+        Result execute = db
+                .execute("CALL ga.timetree.range({start: 1463659567468, end: 1463859569504, create: false})");
+        assertFalse(execute.hasNext());
+    }
+
+    @Test
+    public void testRangeReadOnly_REPLICA() {
+        GraphDatabaseService db = getOneReplicaDatabase();
+        Result execute = db
+                .execute("CALL ga.timetree.range({start: 1463659567468, end: 1463859569504, create: false})");
+        assertFalse(execute.hasNext());
+    }
 }

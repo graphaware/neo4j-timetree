@@ -137,15 +137,15 @@ public class TimeTreeProcedureTest extends GraphAwareIntegrationTest {
         params.put("resolution", null);
         params.put("timezone", null);
         try (Transaction tx = getDatabase().beginTx()) {
-            Result result = getDatabase().execute("CALL ga.timetree.range({start: {startTime}, end: {endTime}, resolution: {resolution}, timezone: {timezone}}) YIELD instants return instants", params);
-            ResourceIterator<Node> resIterator = result.columnAs("instants");
+            Result result = getDatabase().execute("CALL ga.timetree.range({start: {startTime}, end: {endTime}, resolution: {resolution}, timezone: {timezone}}) YIELD instant return instant", params);
+            ResourceIterator<Node> resIterator = result.columnAs("instant");
             assertFalse(resIterator.hasNext());
             tx.success();
         }
 
         try (Transaction tx = getDatabase().beginTx()) {
-            Result result = getDatabase().execute("MATCH (n) WHERE id(n) = 0 CALL ga.timetree.range({root: n, start: {startTime}, end: {endTime}, resolution: {resolution}, timezone: {timezone}}) YIELD instants return instants", params);
-            ResourceIterator<Node> resIterator = result.columnAs("instants");
+            Result result = getDatabase().execute("MATCH (n) WHERE id(n) = 0 CALL ga.timetree.range({root: n, start: {startTime}, end: {endTime}, resolution: {resolution}, timezone: {timezone}}) YIELD instant return instant", params);
+            ResourceIterator<Node> resIterator = result.columnAs("instant");
             assertFalse(resIterator.hasNext());
             tx.success();
         }
@@ -156,8 +156,8 @@ public class TimeTreeProcedureTest extends GraphAwareIntegrationTest {
         }
 
         try (Transaction tx = getDatabase().beginTx()) {
-            Result result = getDatabase().execute("MATCH (n) WHERE id(n) = 0 CALL ga.timetree.range({root: n, start: {startTime}, end: {endTime}, resolution: {resolution}, timezone: {timezone}}) YIELD instants return instants", params);
-            ResourceIterator<Node> resIterator = result.columnAs("instants");
+            Result result = getDatabase().execute("MATCH (n) WHERE id(n) = 0 CALL ga.timetree.range({root: n, start: {startTime}, end: {endTime}, resolution: {resolution}, timezone: {timezone}}) YIELD instant return instant", params);
+            ResourceIterator<Node> resIterator = result.columnAs("instant");
             assertFalse(resIterator.hasNext());
             tx.success();
         }
@@ -174,8 +174,8 @@ public class TimeTreeProcedureTest extends GraphAwareIntegrationTest {
         params.put("resolution", null);
         params.put("timezone", null);
         try (Transaction tx = getDatabase().beginTx()) {
-            Result result = getDatabase().execute("CALL ga.timetree.range({start: {startTime}, end: {endTime}, resolution: {resolution}, timezone: {timezone}, create: true}) YIELD instants return instants", params);
-            ResourceIterator<Node> resIterator = result.columnAs("instants");
+            Result result = getDatabase().execute("CALL ga.timetree.range({start: {startTime}, end: {endTime}, resolution: {resolution}, timezone: {timezone}, create: true}) YIELD instant return instant", params);
+            ResourceIterator<Node> resIterator = result.columnAs("instant");
             long count = resIterator.stream().count();
             assertEquals(4, count);
             tx.success();
@@ -193,8 +193,8 @@ public class TimeTreeProcedureTest extends GraphAwareIntegrationTest {
         params.put("resolution", null);
         params.put("timezone", null);
         try (Transaction tx = getDatabase().beginTx()) {
-            Result result = getDatabase().execute("CALL ga.timetree.range({stat: {startTime}, end: {endTime}, resolution: {resolution}, timezone: {timezone}, create: true}) YIELD instants return instants", params);
-            ResourceIterator<Node> resIterator = result.columnAs("instants");
+            Result result = getDatabase().execute("CALL ga.timetree.range({stat: {startTime}, end: {endTime}, resolution: {resolution}, timezone: {timezone}, create: true}) YIELD instant return instant", params);
+            ResourceIterator<Node> resIterator = result.columnAs("instant");
             long count = resIterator.stream().count();
             fail("This should be unreached");
             tx.success();
@@ -203,8 +203,8 @@ public class TimeTreeProcedureTest extends GraphAwareIntegrationTest {
         }
 
         try (Transaction tx = getDatabase().beginTx()) {
-            Result result = getDatabase().execute("CALL ga.timetree.range({start: {startTime}, en: {endTime}, resolution: {resolution}, timezone: {timezone}, create: true}) YIELD instants return instants", params);
-            ResourceIterator<Node> resIterator = result.columnAs("instants");
+            Result result = getDatabase().execute("CALL ga.timetree.range({start: {startTime}, en: {endTime}, resolution: {resolution}, timezone: {timezone}, create: true}) YIELD instant return instant", params);
+            ResourceIterator<Node> resIterator = result.columnAs("instant");
             long count = resIterator.stream().count();
             fail("This should be unreached");
             tx.success();
@@ -213,8 +213,8 @@ public class TimeTreeProcedureTest extends GraphAwareIntegrationTest {
         }
 
         try (Transaction tx = getDatabase().beginTx()) {
-            Result result = getDatabase().execute("CALL ga.timetree.range({start: {startTime}, end: {endTime}, resolution: {resolution}, timezone: {timezone}, create: 'yeah'}) YIELD instants return instants", params);
-            ResourceIterator<Node> resIterator = result.columnAs("instants");
+            Result result = getDatabase().execute("CALL ga.timetree.range({start: {startTime}, end: {endTime}, resolution: {resolution}, timezone: {timezone}, create: 'yeah'}) YIELD instant return instant", params);
+            ResourceIterator<Node> resIterator = result.columnAs("instant");
             long count = resIterator.stream().count();
             fail("This should be unreached");
             tx.success();
@@ -281,15 +281,15 @@ public class TimeTreeProcedureTest extends GraphAwareIntegrationTest {
         params.put("resolution", null);
         params.put("timezone", null);
         try (Transaction tx = getDatabase().beginTx()) {
-            Result result = getDatabase().execute("MATCH (n) WHERE id(n) = 0 CALL ga.timetree.range({root: n, start: {startTime}, end: {endTime}, resolution: {resolution}, timezone: {timezone}}) YIELD instants return instants", params);
-            ResourceIterator<Node> resIterator = result.columnAs("instants");
+            Result result = getDatabase().execute("MATCH (n) WHERE id(n) = 0 CALL ga.timetree.range({root: n, start: {startTime}, end: {endTime}, resolution: {resolution}, timezone: {timezone}}) YIELD instant return instant", params);
+            ResourceIterator<Node> resIterator = result.columnAs("instant");
             assertFalse(resIterator.hasNext());
             tx.success();
         }
 
         try (Transaction tx = getDatabase().beginTx()) {
-            Result result = getDatabase().execute("MATCH (n) WHERE id(n) = 0 CALL ga.timetree.range({root: n, start: {startTime}, end: {endTime}, resolution: {resolution}, timezone: {timezone}, create: true}) YIELD instants return instants", params);
-            ResourceIterator<Node> resIterator = result.columnAs("instants");
+            Result result = getDatabase().execute("MATCH (n) WHERE id(n) = 0 CALL ga.timetree.range({root: n, start: {startTime}, end: {endTime}, resolution: {resolution}, timezone: {timezone}, create: true}) YIELD instant return instant", params);
+            ResourceIterator<Node> resIterator = result.columnAs("instant");
             assertFalse(resIterator.hasNext());
             tx.success();
         }
@@ -300,15 +300,15 @@ public class TimeTreeProcedureTest extends GraphAwareIntegrationTest {
         }
 
         try (Transaction tx = getDatabase().beginTx()) {
-            Result result = getDatabase().execute("MATCH (n) WHERE id(n) = 0 CALL ga.timetree.range({root: n, start: {startTime}, end: {endTime}, resolution: {resolution}, timezone: {timezone}}) YIELD instants return instants", params);
-            ResourceIterator<Node> resIterator = result.columnAs("instants");
+            Result result = getDatabase().execute("MATCH (n) WHERE id(n) = 0 CALL ga.timetree.range({root: n, start: {startTime}, end: {endTime}, resolution: {resolution}, timezone: {timezone}}) YIELD instant return instant", params);
+            ResourceIterator<Node> resIterator = result.columnAs("instant");
             assertFalse(resIterator.hasNext());
             tx.success();
         }
 
         try (Transaction tx = getDatabase().beginTx()) {
-            Result result = getDatabase().execute("MATCH (n) WHERE id(n) = 0 CALL ga.timetree.range({root: n, start: {startTime}, end: {endTime}, resolution: {resolution}, timezone: {timezone}, create: true}) YIELD instants return instants", params);
-            ResourceIterator<Node> resIterator = result.columnAs("instants");
+            Result result = getDatabase().execute("MATCH (n) WHERE id(n) = 0 CALL ga.timetree.range({root: n, start: {startTime}, end: {endTime}, resolution: {resolution}, timezone: {timezone}, create: true}) YIELD instant return instant", params);
+            ResourceIterator<Node> resIterator = result.columnAs("instant");
             long count = resIterator.stream().count();
             assertEquals(4, count);
             tx.success();

@@ -15,154 +15,110 @@
  */
 package com.graphaware.module.timetree.proc;
 
-import static org.neo4j.kernel.api.proc.ProcedureSignature.procedureName;
-import static org.neo4j.kernel.api.proc.ProcedureSignature.procedureSignature;
-
-import java.util.Collections;
-import java.util.List;
-import java.util.Map;
-import java.util.stream.Collectors;
-
-import org.neo4j.collection.RawIterator;
+import com.graphaware.module.timetree.SingleTimeTree;
+import com.graphaware.module.timetree.TimeTreeBackedEvents;
+import com.graphaware.module.timetree.domain.Event;
+import com.graphaware.module.timetree.logic.TimedEventsBusinessLogic;
 import org.neo4j.graphdb.GraphDatabaseService;
 import org.neo4j.graphdb.Node;
 import org.neo4j.graphdb.RelationshipType;
-import org.neo4j.helpers.collection.Iterators;
-import org.neo4j.kernel.api.exceptions.ProcedureException;
-import org.neo4j.kernel.api.proc.CallableProcedure;
-import org.neo4j.kernel.api.proc.Context;
-import org.neo4j.kernel.api.proc.Neo4jTypes;
-import org.neo4j.kernel.api.proc.QualifiedName;
-import org.neo4j.procedure.Mode;
+import org.neo4j.kernel.internal.GraphDatabaseAPI;
+import org.neo4j.procedure.*;
 
-import com.graphaware.module.timetree.TimedEvents;
-import com.graphaware.module.timetree.domain.Event;
-import com.graphaware.module.timetree.logic.TimedEventsBusinessLogic;
+import java.util.List;
+import java.util.Map;
+import java.util.stream.Stream;
 
 public class TimedEventsProcedure extends TimeTreeBaseProcedure {
 
-    private final TimedEventsBusinessLogic timedEventsLogic;
+    @Context
+    public GraphDatabaseAPI db;
 
-    public TimedEventsProcedure(GraphDatabaseService database, TimedEvents timedEvents) {
-        this.timedEventsLogic = new TimedEventsBusinessLogic(database, timedEvents);
+    private TimedEventsBusinessLogic initTimeTree(GraphDatabaseService db) {
+        return new TimedEventsBusinessLogic(db, new TimeTreeBackedEvents(new SingleTimeTree(db)));
     }
 
-    public CallableProcedure.BasicProcedure getEvents() {
-        return new CallableProcedure.BasicProcedure(procedureSignature(getProcedureName("single"))
-                .mode(Mode.WRITE)
-                .in(PARAMETER_NAME_INPUT, Neo4jTypes.NTMap)
-                .out(PARAMETER_NAME_NODE, Neo4jTypes.NTNode)
-                .out(PARAMETER_NAME_RELATIONSHIP_TYPE, Neo4jTypes.NTString)
-                .out(PARAMETER_NAME_DIRECTION, Neo4jTypes.NTString)
-                .build()) {
+    @Procedure(mode = Mode.WRITE, name = "ga.timetree.events.single")
+    @Description(value = "CALL ga.timetree.events.single({time: 1463659567468}) YIELD node RETURN node")
+    public Stream<EventResult> single(@Name("params") Map<String, Object> params) {
+        final TimedEventsBusinessLogic timedEventsLogic = initTimeTree(db);
 
-            @Override
-            public RawIterator<Object[], ProcedureException> apply(Context ctx, Object[] input) throws ProcedureException {
-                checkIsMap(input[0]);
-                Map<String, Object> inputParams = (Map) input[0];
-                checkTime(inputParams, PARAMETER_NAME_TIME);
-                List<Event> events;
-                if (inputParams.containsKey(PARAMETER_NAME_ROOT)) {
-                    events = timedEventsLogic.getEventsCustomRoot(((Node) inputParams.get(PARAMETER_NAME_ROOT)).getId(),
-                            (long) inputParams.get(PARAMETER_NAME_TIME),
-                            (String) inputParams.get(PARAMETER_NAME_RESOLUTION),
-                            (String) inputParams.get(PARAMETER_NAME_TIMEZONE),
-                            (List<String>) inputParams.get(PARAMETER_NAME_RELATIONSHIP_TYPES),
-                            (String) inputParams.get(PARAMETER_NAME_DIRECTION));
-                } else {
-                    events = timedEventsLogic.getEvents((long) inputParams.get(PARAMETER_NAME_TIME),
-                            (String) inputParams.get(PARAMETER_NAME_RESOLUTION),
-                            (String) inputParams.get(PARAMETER_NAME_TIMEZONE),
-                            (List<String>) inputParams.get(PARAMETER_NAME_RELATIONSHIP_TYPES),
-                            (String) inputParams.get(PARAMETER_NAME_DIRECTION));
-                }
-                List<Object[]> collector = getObjectArray(events);
-                return Iterators.asRawIterator(collector.iterator());
-            }
-        };
+        checkTime(params, PARAMETER_NAME_TIME);
+        List<Event> events;
+        if (params.containsKey(PARAMETER_NAME_ROOT)) {
+            events = timedEventsLogic.getEventsCustomRoot(((Node) params.get(PARAMETER_NAME_ROOT)).getId(),
+                    (long) params.get(PARAMETER_NAME_TIME),
+                    (String) params.get(PARAMETER_NAME_RESOLUTION),
+                    (String) params.get(PARAMETER_NAME_TIMEZONE),
+                    (List<String>) params.get(PARAMETER_NAME_RELATIONSHIP_TYPES),
+                    (String) params.get(PARAMETER_NAME_DIRECTION));
+        } else {
+            events = timedEventsLogic.getEvents((long) params.get(PARAMETER_NAME_TIME),
+                    (String) params.get(PARAMETER_NAME_RESOLUTION),
+                    (String) params.get(PARAMETER_NAME_TIMEZONE),
+                    (List<String>) params.get(PARAMETER_NAME_RELATIONSHIP_TYPES),
+                    (String) params.get(PARAMETER_NAME_DIRECTION));
+        }
+
+        return events.stream().map(event -> new EventResult(event));
     }
 
-    public CallableProcedure.BasicProcedure getAttach() {
-        return new CallableProcedure.BasicProcedure(procedureSignature(getProcedureName("attach"))
-                .mode(Mode.WRITE)
-                .in(PARAMETER_NAME_INPUT, Neo4jTypes.NTMap)
-                .out(PARAMETER_NAME_NODE, Neo4jTypes.NTNode)
-                .build()) {
+    @Procedure(mode = Mode.WRITE, name = "ga.timetree.events.attach")
+    @Description(value = "CALL ga.timetree.events.attach({node: e, time: 1463659567468, relationshipType: \"SENT_ON\"}) YIELD node RETURN node")
+    public Stream<NodeResult> attach(@Name("params") Map<String, Object> params) {
+        final TimedEventsBusinessLogic timedEventsLogic = initTimeTree(db);
 
-            @Override
-            public RawIterator<Object[], ProcedureException> apply(Context ctx, Object[] input) throws ProcedureException {
-                checkIsMap(input[0]);
-                Map<String, Object> inputParams = (Map) input[0];
-                checkTime(inputParams, PARAMETER_NAME_TIME);
-                Node eventNode = (Node) inputParams.get(PARAMETER_NAME_NODE);
-                checkEventNode(eventNode);
-                if (inputParams.containsKey(PARAMETER_NAME_ROOT)) {
-                    timedEventsLogic.attachEventWithCustomRoot((Node) inputParams.get(PARAMETER_NAME_ROOT),
-                            eventNode,
-                            getRelationshipType((String) inputParams.get(PARAMETER_NAME_RELATIONSHIP_TYPE)),
-                            (String) inputParams.get(PARAMETER_NAME_DIRECTION),
-                            (long) inputParams.get(PARAMETER_NAME_TIME),
-                            (String) inputParams.get(PARAMETER_NAME_TIMEZONE),
-                            (String) inputParams.get(PARAMETER_NAME_RESOLUTION));
-                } else {
-                    timedEventsLogic.attachEvent(eventNode,
-                            getRelationshipType((String) inputParams.get(PARAMETER_NAME_RELATIONSHIP_TYPE)),
-                            (String) inputParams.get(PARAMETER_NAME_DIRECTION),
-                            (long) inputParams.get(PARAMETER_NAME_TIME),
-                            (String) inputParams.get(PARAMETER_NAME_TIMEZONE),
-                            (String) inputParams.get(PARAMETER_NAME_RESOLUTION));
-                }
-                return Iterators.asRawIterator(Collections.<Object[]>singleton(new Object[]{eventNode}).iterator());
-            }
-        };
+        checkTime(params, PARAMETER_NAME_TIME);
+        Node eventNode = (Node) params.get(PARAMETER_NAME_NODE);
+        checkEventNode(eventNode);
+        if (params.containsKey(PARAMETER_NAME_ROOT)) {
+            timedEventsLogic.attachEventWithCustomRoot((Node) params.get(PARAMETER_NAME_ROOT),
+                    eventNode,
+                    getRelationshipType((String) params.get(PARAMETER_NAME_RELATIONSHIP_TYPE)),
+                    (String) params.get(PARAMETER_NAME_DIRECTION),
+                    (long) params.get(PARAMETER_NAME_TIME),
+                    (String) params.get(PARAMETER_NAME_TIMEZONE),
+                    (String) params.get(PARAMETER_NAME_RESOLUTION));
+        } else {
+            timedEventsLogic.attachEvent(eventNode,
+                    getRelationshipType((String) params.get(PARAMETER_NAME_RELATIONSHIP_TYPE)),
+                    (String) params.get(PARAMETER_NAME_DIRECTION),
+                    (long) params.get(PARAMETER_NAME_TIME),
+                    (String) params.get(PARAMETER_NAME_TIMEZONE),
+                    (String) params.get(PARAMETER_NAME_RESOLUTION));
+        }
+
+        return Stream.of(new NodeResult(eventNode));
     }
 
-    public CallableProcedure.BasicProcedure getRangeEvents() {
-        return new CallableProcedure.BasicProcedure(procedureSignature(getProcedureName("range"))
-                .mode(Mode.WRITE)
-                .in(PARAMETER_NAME_INPUT, Neo4jTypes.NTMap)
-                .out(PARAMETER_NAME_NODE, Neo4jTypes.NTNode)
-                .out(PARAMETER_NAME_RELATIONSHIP_TYPE, Neo4jTypes.NTString)
-                .out(PARAMETER_NAME_DIRECTION, Neo4jTypes.NTString)
-                .build()) {
+    @Procedure(mode = Mode.WRITE, name = "ga.timetree.events.range")
+    @Description(value = "CALL ga.timetree.events.range({start: 1463659567468, end: 1463859569504}) YIELD node, relationshipType, direction RETURN *")
+    public Stream<EventResult> range(@Name("params") Map<String, Object> params) {
+        final TimedEventsBusinessLogic timedEventsLogic = initTimeTree(db);
 
-            @Override
-            public RawIterator<Object[], ProcedureException> apply(Context ctx, Object[] input) throws ProcedureException {
-                checkIsMap(input[0]);
-                Map<String, Object> inputParams = (Map) input[0];
-                checkTime(inputParams, PARAMETER_NAME_START_TIME);
-                checkTime(inputParams, PARAMETER_NAME_END_TIME);
-                List<Event> events;
-                if (inputParams.containsKey(PARAMETER_NAME_ROOT)) {
-                    events = timedEventsLogic.getEventsCustomRoot(
-                            (long) ((Node) inputParams.get(PARAMETER_NAME_ROOT)).getId(),
-                            (long) inputParams.get(PARAMETER_NAME_START_TIME),
-                            (long) inputParams.get(PARAMETER_NAME_END_TIME),
-                            (String) inputParams.get(PARAMETER_NAME_RESOLUTION),
-                            (String) inputParams.get(PARAMETER_NAME_TIMEZONE),
-                            (List<String>) inputParams.get(PARAMETER_NAME_RELATIONSHIP_TYPES),
-                            (String) inputParams.get(PARAMETER_NAME_DIRECTION));
-                } else {
-                    events = timedEventsLogic.getEvents(
-                            (long) inputParams.get(PARAMETER_NAME_START_TIME),
-                            (long) inputParams.get(PARAMETER_NAME_END_TIME),
-                            (String) inputParams.get(PARAMETER_NAME_RESOLUTION),
-                            (String) inputParams.get(PARAMETER_NAME_TIMEZONE),
-                            (List<String>) inputParams.get(PARAMETER_NAME_RELATIONSHIP_TYPES),
-                            (String) inputParams.get(PARAMETER_NAME_DIRECTION));
-                }
-                List<Object[]> collector = getObjectArray(events);
-                return Iterators.asRawIterator(collector.iterator());
-            }
-        };
-    }
+        checkTime(params, PARAMETER_NAME_START_TIME);
+        checkTime(params, PARAMETER_NAME_END_TIME);
+        List<Event> events;
+        if (params.containsKey(PARAMETER_NAME_ROOT)) {
+            events = timedEventsLogic.getEventsCustomRoot(
+                    ((Node) params.get(PARAMETER_NAME_ROOT)).getId(),
+                    (long) params.get(PARAMETER_NAME_START_TIME),
+                    (long) params.get(PARAMETER_NAME_END_TIME),
+                    (String) params.get(PARAMETER_NAME_RESOLUTION),
+                    (String) params.get(PARAMETER_NAME_TIMEZONE),
+                    (List<String>) params.get(PARAMETER_NAME_RELATIONSHIP_TYPES),
+                    (String) params.get(PARAMETER_NAME_DIRECTION));
+        } else {
+            events = timedEventsLogic.getEvents(
+                    (long) params.get(PARAMETER_NAME_START_TIME),
+                    (long) params.get(PARAMETER_NAME_END_TIME),
+                    (String) params.get(PARAMETER_NAME_RESOLUTION),
+                    (String) params.get(PARAMETER_NAME_TIMEZONE),
+                    (List<String>) params.get(PARAMETER_NAME_RELATIONSHIP_TYPES),
+                    (String) params.get(PARAMETER_NAME_DIRECTION));
+        }
 
-    private List<Object[]> getObjectArray(List<Event> events) {
-        List<Object[]> collector = events.stream()
-                .map((event) -> new Object[]{event.getNode(), event.getRelationshipType() != null ? event.getRelationshipType().toString() : "",
-            event.getDirection().name()})
-                .collect(Collectors.toList());
-        return collector;
+        return events.stream().map(event -> new EventResult(event));
     }
 
     private void checkEventNode(Node eventNode) {
@@ -177,18 +133,4 @@ public class TimedEventsProcedure extends TimeTreeBaseProcedure {
 
         return RelationshipType.withName(relType);
     }
-
-    protected static QualifiedName getProcedureName(String... procedureName) {
-        String namespace[] = new String[3 + procedureName.length];
-        int i = 0;
-        namespace[i++] = "ga";
-        namespace[i++] = "timetree";
-        namespace[i++] = "events";
-
-        for (String value : procedureName) {
-            namespace[i++] = value;
-        }
-        return procedureName(namespace);
-    }
-
 }

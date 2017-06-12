@@ -19,21 +19,18 @@ package com.graphaware.module.timetree.proc;
 import com.graphaware.module.timetree.domain.Resolution;
 import com.graphaware.module.timetree.domain.TimeInstant;
 import com.graphaware.test.integration.GraphAwareIntegrationTest;
-import static com.graphaware.test.unit.GraphUnit.assertSameGraph;
-import java.util.Calendar;
-
-import java.util.HashMap;
-import java.util.Map;
-
 import org.apache.http.HttpStatus;
 import org.joda.time.DateTime;
 import org.joda.time.DateTimeZone;
 import org.json.JSONException;
-import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertNotNull;
-import static org.junit.Assert.assertTrue;
 import org.junit.Test;
 import org.neo4j.graphdb.*;
+
+import java.util.Calendar;
+import java.util.HashMap;
+import java.util.Map;
+
+import static org.junit.Assert.*;
 
 /**
  * Procedure test for {@link com.graphaware.module.timetree.proc.TimeTreeProcedure}.
@@ -297,7 +294,7 @@ public class TimedEventsProcedureTest extends GraphAwareIntegrationTest {
                 getDatabase().execute("CREATE (ev:Event {name:'event'}) WITH ev CALL ga.timetree.events.attach({node: ev, time: timestamp()}) YIELD node RETURN node");
                 assertEquals(1, 2);
             } catch (RuntimeException e) {
-                assertTrue(e.getMessage().equals("The given relationship type cannot be null or an empty string"));
+                assertTrue(e.getMessage().contains("The given relationship type cannot be null or an empty string"));
             }
             tx.success();
         } catch (TransactionFailureException e) {

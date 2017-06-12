@@ -22,19 +22,21 @@ import com.graphaware.runtime.GraphAwareRuntime;
 import com.graphaware.runtime.GraphAwareRuntimeFactory;
 import org.junit.Test;
 import org.neo4j.graphdb.GraphDatabaseService;
+import org.neo4j.kernel.impl.proc.Procedures;
+import org.neo4j.kernel.internal.GraphDatabaseAPI;
 import org.neo4j.test.TestGraphDatabaseFactory;
 
 public class ProgrammaticProcedureRegistrationTest {
 
     @Test
-    public void canRegisterProceduresProgrammatically() {
+    public void canRegisterProceduresProgrammatically() throws Exception {
         GraphDatabaseService database = new TestGraphDatabaseFactory().newImpermanentDatabase();
 
         GraphAwareRuntime runtime = GraphAwareRuntimeFactory.createRuntime(database);
         runtime.registerModule(new TimeTreeModule("timetree", TimeTreeConfiguration.defaultConfiguration(), database));
         runtime.start();
 
-        TimeTreeProcedures.register(database);
+        ((GraphDatabaseAPI) database).getDependencyResolver().resolveDependency(Procedures.class).registerProcedure(TimeTreeProcedure.class);
 
         database.execute("CALL ga.timetree.now({})");
     }

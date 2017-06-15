@@ -40,7 +40,7 @@ public class TimeTreeProcsTestCausalCluster extends CausalClusterDatabasesintegr
     }
 
     @Override
-    protected void registerModule(GraphDatabaseService database) throws Exception {
+    protected void registerModules(GraphDatabaseService database) throws Exception {
         GraphAwareRuntime runtime = GraphAwareRuntimeFactory.createRuntime(database);
         runtime.registerModule(new TimeTreeModule("timetree", TimeTreeConfiguration.defaultConfiguration(), database));
         runtime.start();

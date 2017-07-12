@@ -48,13 +48,13 @@ public class TimeTreeConfiguration extends BaseTxDrivenModuleConfiguration<TimeT
                     .with(IncludeNodes.all().with("Event"))
                     .with(IncludeRelationships.all().with(DEFAULT_RELATIONSHIP_TYPE));
 
-    private String timestampProperty;
-    private String customTimeTreeRootProperty;
-    private Resolution resolution;
-    private DateTimeZone timeZone;
-    private String relationshipType;
-    private Direction direction;
-    private boolean autoAttach;
+    private final String timestampProperty;
+    private final String customTimeTreeRootProperty;
+    private final Resolution resolution;
+    private final DateTimeZone timeZone;
+    private final String relationshipType;
+    private final Direction direction;
+    private final boolean autoAttach;
 
     /**
      * Create a new configuration.

@@ -1,3 +1,6 @@
+3.2.5.51.27:
+	- upgrade to Neo4j 3.2.5
+
 3.2.1.51.27:
 	- upgrade to Neo4j 3.2.1
 

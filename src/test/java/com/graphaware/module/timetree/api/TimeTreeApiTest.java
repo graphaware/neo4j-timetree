@@ -26,6 +26,7 @@ import org.junit.Test;
 import org.neo4j.graphdb.DynamicLabel;
 import org.neo4j.graphdb.Node;
 import org.neo4j.graphdb.Transaction;
+import org.skyscreamer.jsonassert.JSONCompareMode;
 
 import static com.graphaware.test.unit.GraphUnit.assertSameGraph;
 import static org.neo4j.graphdb.Label.label;
@@ -151,9 +152,9 @@ public class TimeTreeApiTest extends GraphAwareIntegrationTest {
                 "(month)-[:CHILD]->(day)," +
                 "(month)-[:LAST]->(day)");
 
-        assertEquals("{\"id\":3,\"properties\":{\"value\":4},\"labels\":[\"Day\"]}", result, false);
-        assertEquals("{\"id\":3,\"properties\":{\"value\":4},\"labels\":[\"Day\"]}", httpClient.post(getUrl() + "0/single/" + dateInMillis, HttpStatus.SC_OK), false);
-        assertEquals("{\"id\":3,\"properties\":{\"value\":4},\"labels\":[\"Day\"]}", httpClient.get(getUrl() + "0/single/" + dateInMillis, HttpStatus.SC_OK), false);
+        assertEquals("{\"properties\":{\"value\":4},\"labels\":[\"Day\"]}", result, JSONCompareMode.LENIENT);
+        assertEquals("{\"properties\":{\"value\":4},\"labels\":[\"Day\"]}", httpClient.post(getUrl() + "0/single/" + dateInMillis, HttpStatus.SC_OK), JSONCompareMode.LENIENT);
+        assertEquals("{\"properties\":{\"value\":4},\"labels\":[\"Day\"]}", httpClient.get(getUrl() + "0/single/" + dateInMillis, HttpStatus.SC_OK), JSONCompareMode.LENIENT);
 
         assertSameGraph(getDatabase(), "CREATE" +
                 "(root:CustomRoot)," +
@@ -203,9 +204,9 @@ public class TimeTreeApiTest extends GraphAwareIntegrationTest {
                 "(day5)-[:NEXT]->(day6)," +
                 "(day6)-[:NEXT]->(day7)");
 
-        assertEquals("[{\"id\":3,\"properties\":{\"value\":4},\"labels\":[\"Day\"]},{\"id\":4,\"properties\":{\"value\":5},\"labels\":[\"Day\"]},{\"id\":5,\"properties\":{\"value\":6},\"labels\":[\"Day\"]},{\"id\":6,\"properties\":{\"value\":7},\"labels\":[\"Day\"]}]", result, false);
-        assertEquals("[{\"id\":3,\"properties\":{\"value\":4},\"labels\":[\"Day\"]},{\"id\":4,\"properties\":{\"value\":5},\"labels\":[\"Day\"]},{\"id\":5,\"properties\":{\"value\":6},\"labels\":[\"Day\"]},{\"id\":6,\"properties\":{\"value\":7},\"labels\":[\"Day\"]}]", httpClient.post(getUrl() + "0/range/" + startDateInMillis + "/" + endDateInMillis, HttpStatus.SC_OK), false);
-        assertEquals("[{\"id\":3,\"properties\":{\"value\":4},\"labels\":[\"Day\"]},{\"id\":4,\"properties\":{\"value\":5},\"labels\":[\"Day\"]},{\"id\":5,\"properties\":{\"value\":6},\"labels\":[\"Day\"]},{\"id\":6,\"properties\":{\"value\":7},\"labels\":[\"Day\"]}]", httpClient.get(getUrl() + "0/range/" + startDateInMillis + "/" + endDateInMillis, HttpStatus.SC_OK), false);
+        assertEquals("[{\"properties\":{\"value\":4},\"labels\":[\"Day\"]},{\"properties\":{\"value\":5},\"labels\":[\"Day\"]},{\"properties\":{\"value\":6},\"labels\":[\"Day\"]},{\"properties\":{\"value\":7},\"labels\":[\"Day\"]}]", result, JSONCompareMode.LENIENT);
+        assertEquals("[{\"properties\":{\"value\":4},\"labels\":[\"Day\"]},{\"properties\":{\"value\":5},\"labels\":[\"Day\"]},{\"properties\":{\"value\":6},\"labels\":[\"Day\"]},{\"properties\":{\"value\":7},\"labels\":[\"Day\"]}]", httpClient.post(getUrl() + "0/range/" + startDateInMillis + "/" + endDateInMillis, HttpStatus.SC_OK), JSONCompareMode.LENIENT);
+        assertEquals("[{\"properties\":{\"value\":4},\"labels\":[\"Day\"]},{\"properties\":{\"value\":5},\"labels\":[\"Day\"]},{\"properties\":{\"value\":6},\"labels\":[\"Day\"]},{\"properties\":{\"value\":7},\"labels\":[\"Day\"]}]", httpClient.get(getUrl() + "0/range/" + startDateInMillis + "/" + endDateInMillis, HttpStatus.SC_OK), JSONCompareMode.LENIENT);
 
         assertSameGraph(getDatabase(), "CREATE" +
                 "(root:CustomRoot)," +
@@ -258,9 +259,9 @@ public class TimeTreeApiTest extends GraphAwareIntegrationTest {
                 "(second)-[:CHILD]->(milli)," +
                 "(second)-[:LAST]->(milli)");
 
-        assertEquals("{\"id\":7,\"properties\":{\"value\":123},\"labels\":[\"Millisecond\"]}", result, false);
-        assertEquals("{\"id\":7,\"properties\":{\"value\":123},\"labels\":[\"Millisecond\"]}", httpClient.post(getUrl() + "single/" + dateInMillis + "?resolution=millisecond&timezone=GMT%2B1", HttpStatus.SC_OK), false);
-        assertEquals("{\"id\":7,\"properties\":{\"value\":123},\"labels\":[\"Millisecond\"]}", httpClient.get(getUrl() + "single/" + dateInMillis + "?resolution=millisecond&timezone=GMT%2B1", HttpStatus.SC_OK), false);
+        assertEquals("{\"properties\":{\"value\":123},\"labels\":[\"Millisecond\"]}", result, JSONCompareMode.LENIENT);
+        assertEquals("{\"properties\":{\"value\":123},\"labels\":[\"Millisecond\"]}", httpClient.post(getUrl() + "single/" + dateInMillis + "?resolution=millisecond&timezone=GMT%2B1", HttpStatus.SC_OK), JSONCompareMode.LENIENT);
+        assertEquals("{\"properties\":{\"value\":123},\"labels\":[\"Millisecond\"]}", httpClient.get(getUrl() + "single/" + dateInMillis + "?resolution=millisecond&timezone=GMT%2B1", HttpStatus.SC_OK), JSONCompareMode.LENIENT);
 
         assertSameGraph(getDatabase(), "CREATE" +
                 "(root:TimeTreeRoot)," +
@@ -307,9 +308,9 @@ public class TimeTreeApiTest extends GraphAwareIntegrationTest {
                 "(month)-[:CHILD]->(day)," +
                 "(month)-[:LAST]->(day)");
 
-        assertEquals("{\"id\":3,\"properties\":{\"value\":" + now.getDayOfMonth() + "},\"labels\":[\"Day\"]}", result, false);
-        assertEquals("{\"id\":3,\"properties\":{\"value\":" + now.getDayOfMonth() + "},\"labels\":[\"Day\"]}", httpClient.post(getUrl() + "now", HttpStatus.SC_OK), false);
-        assertEquals("{\"id\":3,\"properties\":{\"value\":" + now.getDayOfMonth() + "},\"labels\":[\"Day\"]}", httpClient.get(getUrl() + "now", HttpStatus.SC_OK), false);
+        assertEquals("{\"properties\":{\"value\":" + now.getDayOfMonth() + "},\"labels\":[\"Day\"]}", result, JSONCompareMode.LENIENT);
+        assertEquals("{\"properties\":{\"value\":" + now.getDayOfMonth() + "},\"labels\":[\"Day\"]}", httpClient.post(getUrl() + "now", HttpStatus.SC_OK), JSONCompareMode.LENIENT);
+        assertEquals("{\"properties\":{\"value\":" + now.getDayOfMonth() + "},\"labels\":[\"Day\"]}", httpClient.get(getUrl() + "now", HttpStatus.SC_OK), JSONCompareMode.LENIENT);
 
         assertSameGraph(getDatabase(), "CREATE" +
                 "(root:TimeTreeRoot)," +
@@ -353,9 +354,9 @@ public class TimeTreeApiTest extends GraphAwareIntegrationTest {
                 "(month)-[:CHILD]->(day)," +
                 "(month)-[:LAST]->(day)");
 
-        assertEquals("{\"id\":3,\"properties\":{\"value\":" + now.getDayOfMonth() + "},\"labels\":[\"Day\"]}", result, false);
-        assertEquals("{\"id\":3,\"properties\":{\"value\":" + now.getDayOfMonth() + "},\"labels\":[\"Day\"]}", httpClient.post(getUrl() + "/0/now", HttpStatus.SC_OK), false);
-        assertEquals("{\"id\":3,\"properties\":{\"value\":" + now.getDayOfMonth() + "},\"labels\":[\"Day\"]}", httpClient.get(getUrl() + "/0/now", HttpStatus.SC_OK), false);
+        assertEquals("{\"properties\":{\"value\":" + now.getDayOfMonth() + "},\"labels\":[\"Day\"]}", result, JSONCompareMode.LENIENT);
+        assertEquals("{\"properties\":{\"value\":" + now.getDayOfMonth() + "},\"labels\":[\"Day\"]}", httpClient.post(getUrl() + "/0/now", HttpStatus.SC_OK), JSONCompareMode.LENIENT);
+        assertEquals("{\"properties\":{\"value\":" + now.getDayOfMonth() + "},\"labels\":[\"Day\"]}", httpClient.get(getUrl() + "/0/now", HttpStatus.SC_OK), JSONCompareMode.LENIENT);
 
         assertSameGraph(getDatabase(), "CREATE" +
                 "(root:CustomRoot)," +
@@ -374,7 +375,7 @@ public class TimeTreeApiTest extends GraphAwareIntegrationTest {
     public void whenTheRootIsDeletedSubsequentRestApiCallsShouldBeOK() throws JSONException {
         long dateInMillis = dateToMillis(2013, 5, 4);
         String result = httpClient.post(getUrl() + "single/" + dateInMillis, HttpStatus.SC_OK);
-        assertEquals("{\"id\":3,\"properties\":{\"value\":4},\"labels\":[\"Day\"]}", result, false);
+        assertEquals("{\"properties\":{\"value\":4},\"labels\":[\"Day\"]}", result, JSONCompareMode.LENIENT);
 
         try (Transaction tx = getDatabase().beginTx()) {
             for (Node node : getDatabase().getAllNodes()) {
@@ -397,9 +398,9 @@ public class TimeTreeApiTest extends GraphAwareIntegrationTest {
                 "(month)-[:CHILD]->(day)," +
                 "(month)-[:LAST]->(day)");
 
-        assertEquals("{\"id\":7,\"properties\":{\"value\":4},\"labels\":[\"Day\"]}", result, false);
-        assertEquals("{\"id\":7,\"properties\":{\"value\":4},\"labels\":[\"Day\"]}", httpClient.post(getUrl() + "single/" + dateInMillis, HttpStatus.SC_OK), false);
-        assertEquals("{\"id\":7,\"properties\":{\"value\":4},\"labels\":[\"Day\"]}", httpClient.get(getUrl() + "single/" + dateInMillis, HttpStatus.SC_OK), false);
+        assertEquals("{\"properties\":{\"value\":4},\"labels\":[\"Day\"]}", result, JSONCompareMode.LENIENT);
+        assertEquals("{\"properties\":{\"value\":4},\"labels\":[\"Day\"]}", httpClient.post(getUrl() + "single/" + dateInMillis, HttpStatus.SC_OK), JSONCompareMode.LENIENT);
+        assertEquals("{\"properties\":{\"value\":4},\"labels\":[\"Day\"]}", httpClient.get(getUrl() + "single/" + dateInMillis, HttpStatus.SC_OK), JSONCompareMode.LENIENT);
 
         assertSameGraph(getDatabase(), "CREATE" +
                 "(root:TimeTreeRoot)," +
@@ -423,7 +424,7 @@ public class TimeTreeApiTest extends GraphAwareIntegrationTest {
 
         long dateInMillis = dateToMillis(2013, 5, 4);
         String result = httpClient.post(getUrl() + "0/single/" + dateInMillis, HttpStatus.SC_OK);
-        assertEquals("{\"id\":3,\"properties\":{\"value\":4},\"labels\":[\"Day\"]}", result, false);
+        assertEquals("{\"properties\":{\"value\":4},\"labels\":[\"Day\"]}", result, JSONCompareMode.LENIENT);
 
         try (Transaction tx = getDatabase().beginTx()) {
             for (Node node : getDatabase().getAllNodes()) {
@@ -465,7 +466,7 @@ public class TimeTreeApiTest extends GraphAwareIntegrationTest {
                         "(hour)-[:LAST]->(minute)"
         );
 
-        assertEquals("{\"id\":5,\"properties\":{\"value\":36},\"labels\":[\"Minute\"]}", result, false);
+        assertEquals("{\"properties\":{\"value\":36},\"labels\":[\"Minute\"]}", result, JSONCompareMode.LENIENT);
     }
 
     @Test
@@ -497,7 +498,7 @@ public class TimeTreeApiTest extends GraphAwareIntegrationTest {
                         "(hour)-[:LAST]->(minute)"
         );
 
-        assertEquals("{\"id\":5,\"properties\":{\"value\":9},\"labels\":[\"Minute\"]}", result, false);
+        assertEquals("{\"properties\":{\"value\":9},\"labels\":[\"Minute\"]}", result, JSONCompareMode.LENIENT);
     }
 
     @Test
@@ -521,7 +522,7 @@ public class TimeTreeApiTest extends GraphAwareIntegrationTest {
                 "(month)-[:CHILD]->(day)," +
                 "(month)-[:LAST]->(day)");
 
-        assertEquals("{\"id\":3,\"properties\":{\"value\":5},\"labels\":[\"Day\"]}", result, false);
+        assertEquals("{\"properties\":{\"value\":5},\"labels\":[\"Day\"]}", result, JSONCompareMode.LENIENT);
     }
 
     private long dateToMillis(int year, int month, int day) {

@@ -11,10 +11,9 @@ Getting the Software
 
 ### Server Mode
 
-When using Neo4j in the <a href="http://docs.neo4j.org/chunked/stable/server-installation.html" target="_blank">standalone server</a> mode,
-you will need the <a href="https://github.com/graphaware/neo4j-framework" target="_blank">GraphAware Neo4j Framework</a> and GraphAware Neo4j TimeTree .jar files (both of which you can <a href="http://graphaware.com/downloads/" target="_blank">download here</a>) dropped
-you will need the <a href="https://github.com/graphaware/neo4j-framework" target="_blank">GraphAware Neo4j Framework</a> and GraphAware Neo4j TimeTree .jar files (both of which you can <a href="http://graphaware.com/downloads/" target="_blank">download here</a>) dropped
-into the `plugins` directory of your Neo4j installation. After Neo4j restart, you will be able to use the REST APIs of the TimeTree.
+When using Neo4j in the <a href="http://docs.neo4j.org/chunked/stable/server-installation.html" target="_blank">standalone server</a> mode, you will need the <a href="https://github.com/graphaware/neo4j-framework" target="_blank">GraphAware Neo4j Framework</a> and GraphAware Neo4j TimeTree .jar files (both of which you can <a href="http://graphaware.com/downloads/" target="_blank">download here</a>) dropped into the `plugins` directory of your Neo4j installation. Starting in version 3.2, Neo4j has increased security for procedures and functions (sandboxing). Procedures that use internal APIs have to be allowed in `$NEO4J_HOME/conf/neoj4.conf`. As an example: `dbms.security.procedures.unrestricted=ga.timetree.*`
+
+After adding the required plugins and updating `neo4j.conf`, restart Neo4j and you will be able to use the REST APIs of the TimeTree. Also note the additional, optional, installation instructions in the [Automatic Event Attachment](https://github.com/graphaware/neo4j-timetree#automatic-event-attachment) section.
 
 ### Embedded Mode / Java Development
 

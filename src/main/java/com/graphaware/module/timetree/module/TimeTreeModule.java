@@ -37,7 +37,7 @@ import org.neo4j.graphdb.Node;
 import org.neo4j.graphdb.Relationship;
 import org.neo4j.logging.Log;
 
-import static com.graphaware.common.util.PropertyContainerUtils.getLong;
+import static com.graphaware.common.util.EntityUtils.getLong;
 
 /**
  * A {@link com.graphaware.runtime.module.TxDrivenModule} that automatically attaches events to a {@link com.graphaware.module.timetree.TimeTree}.

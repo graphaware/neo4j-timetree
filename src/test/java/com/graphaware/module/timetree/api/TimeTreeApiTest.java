@@ -16,14 +16,13 @@
 
 package com.graphaware.module.timetree.api;
 
-import com.graphaware.common.util.PropertyContainerUtils;
+import com.graphaware.common.util.EntityUtils;
 import com.graphaware.test.integration.GraphAwareIntegrationTest;
 import org.apache.http.HttpStatus;
 import org.joda.time.DateTime;
 import org.joda.time.DateTimeZone;
 import org.json.JSONException;
 import org.junit.Test;
-import org.neo4j.graphdb.DynamicLabel;
 import org.neo4j.graphdb.Node;
 import org.neo4j.graphdb.Transaction;
 import org.skyscreamer.jsonassert.JSONCompareMode;
@@ -379,7 +378,7 @@ public class TimeTreeApiTest extends GraphAwareIntegrationTest {
 
         try (Transaction tx = getDatabase().beginTx()) {
             for (Node node : getDatabase().getAllNodes()) {
-                PropertyContainerUtils.deleteNodeAndRelationships(node);
+                EntityUtils.deleteNodeAndRelationships(node);
             }
             tx.success();
         }
@@ -428,7 +427,7 @@ public class TimeTreeApiTest extends GraphAwareIntegrationTest {
 
         try (Transaction tx = getDatabase().beginTx()) {
             for (Node node : getDatabase().getAllNodes()) {
-                PropertyContainerUtils.deleteNodeAndRelationships(node);
+                EntityUtils.deleteNodeAndRelationships(node);
             }
             tx.success();
         }

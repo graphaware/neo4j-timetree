@@ -16,7 +16,7 @@
 
 package com.graphaware.module.timetree;
 
-import com.graphaware.common.util.PropertyContainerUtils;
+import com.graphaware.common.util.EntityUtils;
 import com.graphaware.module.timetree.domain.TimeInstant;
 import com.graphaware.module.timetree.domain.TimeTreeLabels;
 import com.graphaware.test.integration.EmbeddedDatabaseIntegrationTest;
@@ -790,7 +790,7 @@ public class SingleTimeTreeTest extends EmbeddedDatabaseIntegrationTest {
         //When
         try (Transaction tx = getDatabase().beginTx()) {
             for (Node node : getDatabase().getAllNodes()) {
-                PropertyContainerUtils.deleteNodeAndRelationships(node);
+                EntityUtils.deleteNodeAndRelationships(node);
             }
             tx.success();
         }
@@ -860,7 +860,7 @@ public class SingleTimeTreeTest extends EmbeddedDatabaseIntegrationTest {
 
         try (Transaction tx = getDatabase().beginTx()) {
             assertTrue(dayNode.hasLabel(TimeTreeLabels.Day));
-            assertEquals(4, PropertyContainerUtils.getInt(dayNode, VALUE_PROPERTY));
+            assertEquals(4, EntityUtils.getInt(dayNode, VALUE_PROPERTY));
         }
     }
 

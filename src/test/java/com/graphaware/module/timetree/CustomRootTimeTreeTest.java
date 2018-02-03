@@ -32,7 +32,7 @@ import org.neo4j.graphdb.Node;
 import org.neo4j.graphdb.NotFoundException;
 import org.neo4j.graphdb.Transaction;
 
-import com.graphaware.common.util.PropertyContainerUtils;
+import com.graphaware.common.util.EntityUtils;
 import com.graphaware.module.timetree.domain.TimeInstant;
 import com.graphaware.module.timetree.domain.TimeTreeLabels;
 import com.graphaware.test.data.DatabasePopulator;
@@ -102,7 +102,7 @@ public class CustomRootTimeTreeTest extends EmbeddedDatabaseIntegrationTest {
         //When
         try (Transaction tx = getDatabase().beginTx()) {
             for (Node node : getDatabase().getAllNodes()) {
-                PropertyContainerUtils.deleteNodeAndRelationships(node);
+                EntityUtils.deleteNodeAndRelationships(node);
             }
             tx.success();
         }

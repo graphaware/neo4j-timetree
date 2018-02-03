@@ -90,7 +90,7 @@ public class TimedEventsBusinessLogic {
         EventAttachedResult res;
         event.validate();
         try (Transaction tx = database.beginTx()) {
-            Node eventNode = event.getEvent().getNode().producePropertyContainer(database);
+            Node eventNode = event.getEvent().getNode().produceEntity(database);
             long id = eventNode.getId();
             boolean attached = timedEvents.attachEvent(
                     eventNode,

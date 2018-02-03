@@ -32,7 +32,7 @@ import java.util.LinkedList;
 import java.util.List;
 import java.util.concurrent.locks.ReentrantLock;
 
-import static com.graphaware.common.util.PropertyContainerUtils.getInt;
+import static com.graphaware.common.util.EntityUtils.getInt;
 import static com.graphaware.module.timetree.SingleTimeTree.ChildNotFoundPolicy.*;
 import static com.graphaware.module.timetree.domain.Resolution.YEAR;
 import static com.graphaware.module.timetree.domain.Resolution.findForNode;

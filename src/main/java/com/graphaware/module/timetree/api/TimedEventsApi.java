@@ -146,7 +146,7 @@ public class TimedEventsApi {
 
         long id;
         try (Transaction tx = database.beginTx()) {
-            Node eventNode = event.getEvent().getNode().producePropertyContainer(database);
+            Node eventNode = event.getEvent().getNode().produceEntity(database);
             id = eventNode.getId();
 
             CustomRootTimeTree timeTree = new CustomRootTimeTree(database.getNodeById(rootNodeId));

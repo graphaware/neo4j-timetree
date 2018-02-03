@@ -31,7 +31,7 @@ import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertNotSame;
 
 /**
- * {@link NeoServerIntegrationTest} for {@link TimeTree} module and {@link com.graphaware.module.timetree.api.TimeTreeApi}.
+ * {@link GraphAwareIntegrationTest} for {@link TimeTree} module and {@link com.graphaware.module.timetree.api.TimeTreeApi}.
  */
 public class TimeTreeIntegrationTest extends GraphAwareIntegrationTest {
 

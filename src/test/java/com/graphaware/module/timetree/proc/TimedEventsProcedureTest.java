@@ -29,6 +29,7 @@ import org.neo4j.graphdb.*;
 import java.util.Calendar;
 import java.util.HashMap;
 import java.util.Map;
+import java.util.TimeZone;
 
 import static org.junit.Assert.*;
 
@@ -280,7 +281,7 @@ public class TimedEventsProcedureTest extends GraphAwareIntegrationTest {
         try (Transaction tx = getDatabase().beginTx()) {
             Node event = getDatabase().findNode(Label.label("Event"), "id", 123);
             Node instant = event.getSingleRelationship(RelationshipType.withName("OCCURED_ON"), Direction.OUTGOING).getEndNode();
-            Calendar cal = Calendar.getInstance();
+            Calendar cal = Calendar.getInstance(TimeZone.getTimeZone("UTC"));
             int dayOfMonth = cal.get(Calendar.DAY_OF_MONTH);
             assertEquals(instant.getProperty("value"), dayOfMonth);
             tx.success();

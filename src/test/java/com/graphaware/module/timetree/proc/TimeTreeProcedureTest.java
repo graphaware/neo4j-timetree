@@ -28,6 +28,7 @@ import org.neo4j.graphdb.Transaction;
 import java.util.Calendar;
 import java.util.HashMap;
 import java.util.Map;
+import java.util.TimeZone;
 
 import static com.graphaware.test.unit.GraphUnit.assertSameGraph;
 import static org.junit.Assert.*;
@@ -85,7 +86,7 @@ public class TimeTreeProcedureTest extends GraphAwareIntegrationTest {
         try (Transaction tx = getDatabase().beginTx()) {
             Result result = getDatabase().execute("CALL ga.timetree.now({resolution: {resolution}, timezone: {timezone}, create: true}) YIELD instant return instant", params);
             ResourceIterator<Node> resIterator = result.columnAs("instant");
-            Calendar cal = Calendar.getInstance();
+            Calendar cal = Calendar.getInstance(TimeZone.getTimeZone("UTC"));
             int dayOfMonth = cal.get(Calendar.DAY_OF_MONTH);
             resIterator.stream().forEach((node) -> assertEquals(node.getProperty("value"), dayOfMonth));
             tx.success();
@@ -119,7 +120,7 @@ public class TimeTreeProcedureTest extends GraphAwareIntegrationTest {
         try (Transaction tx = getDatabase().beginTx()) {
             Result result = getDatabase().execute("MATCH (n) WHERE id(n) = 0 CALL ga.timetree.now({root: n, resolution: {resolution}, timezone: {timezone}, create: true}) YIELD instant return instant", params);
             ResourceIterator<Node> resIterator = result.columnAs("instant");
-            Calendar cal = Calendar.getInstance();
+            Calendar cal = Calendar.getInstance(TimeZone.getTimeZone("UTC"));
             int dayOfMonth = cal.get(Calendar.DAY_OF_MONTH);
             resIterator.stream().forEach((node) -> assertEquals(node.getProperty("value"), dayOfMonth));
             tx.success();
@@ -332,11 +333,6 @@ public class TimeTreeProcedureTest extends GraphAwareIntegrationTest {
                 "(day4)-[:NEXT]->(day5)," +
                 "(day5)-[:NEXT]->(day6)," +
                 "(day6)-[:NEXT]->(day7)");
-    }
-
-
-    private String getUrl() {
-        return baseUrl() + "/timetree/";
     }
 
     private long dateToMillis(int year, int month, int day) {

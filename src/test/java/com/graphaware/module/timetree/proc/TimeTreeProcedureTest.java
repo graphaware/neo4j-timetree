@@ -200,7 +200,7 @@ public class TimeTreeProcedureTest extends GraphAwareIntegrationTest {
             fail("This should be unreached");
             tx.success();
         } catch (RuntimeException ex) {
-            assertTrue(ex.getMessage().contains("Error getting start parameter"));
+            assertTrue(ex.getMessage().contains("No parameter start specified"));
         }
 
         try (Transaction tx = getDatabase().beginTx()) {
@@ -210,7 +210,7 @@ public class TimeTreeProcedureTest extends GraphAwareIntegrationTest {
             fail("This should be unreached");
             tx.success();
         } catch (RuntimeException ex) {
-            assertTrue(ex.getMessage().contains("Error getting end parameter"));
+            assertTrue(ex.getMessage().contains("No parameter end specified"));
         }
 
         try (Transaction tx = getDatabase().beginTx()) {

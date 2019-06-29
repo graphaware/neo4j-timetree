@@ -18,7 +18,7 @@
     <modelVersion>4.0.0</modelVersion>
 
     <artifactId>timetree</artifactId>
-    <version>3.5.5.53.1-SNAPSHOT</version>
+    <version>3.5.5.53.29-SNAPSHOT</version>
 
     <parent>
         <groupId>com.graphaware.neo4j</groupId>
@@ -101,14 +101,14 @@
             <groupId>com.graphaware.neo4j</groupId>
             <artifactId>resttest</artifactId>
             <scope>test</scope>
-            <version>${parent.version}.3</version>
+            <version>${parent.version}.20</version>
         </dependency>
 
         <dependency>
             <groupId>com.graphaware.neo4j</groupId>
             <artifactId>uuid</artifactId>
             <scope>test</scope>
-            <version>${parent.version}.0</version>
+            <version>${parent.version}.18</version>
         </dependency>
 
         <dependency>

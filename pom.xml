@@ -1,5 +1,5 @@
 <!--
-  ~ Copyright (c) 2013-2016 GraphAware
+  ~ Copyright (c) 2013-2019 GraphAware
   ~
   ~ This file is part of the GraphAware Framework.
   ~
@@ -18,12 +18,12 @@
     <modelVersion>4.0.0</modelVersion>
 
     <artifactId>timetree</artifactId>
-    <version>3.5.2.53.28-SNAPSHOT</version>
+    <version>3.5.5.53.0-SNAPSHOT</version>
 
     <parent>
         <groupId>com.graphaware.neo4j</groupId>
         <artifactId>module-parent</artifactId>
-        <version>3.5.2.53</version>
+        <version>3.5.5.53</version>
     </parent>
 
     <name>GraphAware TimeTree Module</name>
@@ -101,14 +101,14 @@
             <groupId>com.graphaware.neo4j</groupId>
             <artifactId>resttest</artifactId>
             <scope>test</scope>
-            <version>${parent.version}.19</version>
+            <version>${parent.version}.3</version>
         </dependency>
 
         <dependency>
             <groupId>com.graphaware.neo4j</groupId>
             <artifactId>uuid</artifactId>
             <scope>test</scope>
-            <version>${parent.version}.17</version>
+            <version>${parent.version}.0</version>
         </dependency>
 
         <dependency>

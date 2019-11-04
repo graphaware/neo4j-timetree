@@ -16,8 +16,7 @@ uploadArtifact:
   dependencies:
     - bumpVersion
   variables:
-    FROM: target/timetree-$PARENT_VERSION.jar
-    TO: $AWS_PATH/timetree-$PARENT_VERSION.jar
+    JAR_NAME: timetree
   only:
     refs:
       - master

@@ -8,6 +8,8 @@ stages:
 
 bumpVersion:
   extends: .frameworkVersionBump
+  variables:
+    MAVEN_CLI_OPTS: "-s .m2/settings.xml --batch-mode" #to debug deploy
   stage: deploy
 
 uploadArtifact:

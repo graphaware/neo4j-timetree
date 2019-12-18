@@ -29,7 +29,7 @@ frameworkVersionBump:
     - mvn versions:update-parent $MAVEN_CLI_OPTS -DparentVersion=["$PARENT_VERSION"] -q #parent version variable is that picky - needs to be in an array and the version needs to be in the quotation marks. Possibly parent version could be omitted if we always updated to the latest version available.
     - mvn versions:commit $MAVEN_CLI_OPTS -q
     - git commit -a -m "[maven-release-plugin] Gitlab-ci parent version bump" #[maven-release-plugin] added not to be hooked by tests and install.
-    - OLD_MODULE_VERSION=`mvn $MAVEN_CLI_OPTS help:evaluate -Dexpression=project.version -DforceStdout`
+    - OLD_MODULE_VERSION=`mvn $MAVEN_CLI_OPTS --batch-mode -q help:evaluate -Dexpression=project.version -DforceStdout`
     - echo $OLD_MODULE_VERSION
     - OLD_MODULE_VERSION=${OLD_MODULE_VERSION##*.} #get fragment after last .
     - echo $OLD_MODULE_VERSION

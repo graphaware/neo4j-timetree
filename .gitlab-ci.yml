@@ -1,26 +1,7 @@
 include:
   - project: graphaware/devops/gitlab-ci-templates
-    file: gitlab-ci-templates.yml
+    file: neo4j-framework-template.yml
 
-stages:
-  - deploy
-  - postDeploy
-
-bumpVersion:
-  extends: .frameworkVersionBump
-  variables:
-    MAVEN_CLI_OPTS: "-s .m2/settings.xml --batch-mode" #to debug deploy
-  stage: deploy
-
-uploadArtifact:
-  extends: .uploadToS3
-  stage: postDeploy
-  dependencies:
-    - bumpVersion
-  variables:
-    JAR_NAME: timetree
-  only:
-    refs:
-      - master
-    variables:
-      - $PARENT_VERSION
+variables:
+  JAR_NAME: timetree
+  MAVEN_CLI_OPTS: "-s .m2/settings.xml --batch-mode -e"

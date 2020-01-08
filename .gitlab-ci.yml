@@ -4,3 +4,9 @@ include:
 
 variables:
   JAR_NAME: timetree
+
+publishJavaDoc:
+  extends: .publishJavaDoc
+  variables:
+    FROM: target/apidocs
+    TO: timetree

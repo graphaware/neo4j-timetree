@@ -6,6 +6,15 @@ GraphAware Neo4j TimeTree
 GraphAware TimeTree is a simple library for representing time in Neo4j as a tree of time instants. The tree is built on-demand,
 supports resolutions of one year down to one millisecond and has time zone support. It also supports attaching event nodes to time instants (created on demand).
 
+## Community vs Enterprise
+
+This open-source (GPL) version of the module is compatible with GraphAware Framework Community (GPL), which in turn 
+is compatible with Neo4j Community Edition (GPL) only. It *will not work* with Neo4j Enterprise Edition, which is a 
+proprietary and commercial software product of Neo4j, Inc..
+
+GraphAware offers an Enterprise version of the GraphAware Framework to licensed users of Neo4j Enterprise Edition.
+Please [get in touch](mailto:info@graphaware.com) to receive access.
+
 Getting the Software
 --------------------
 
@@ -423,7 +432,7 @@ Java API has the same functionality as the rest API. Please refer to <a href="ht
 License
 -------
 
-Copyright (c) 2013-2019 GraphAware
+Copyright (c) 2013-2020 GraphAware
 
 GraphAware is free software: you can redistribute it and/or modify it under the terms of the GNU General Public License
 as published by the Free Software Foundation, either version 3 of the License, or (at your option) any later version.

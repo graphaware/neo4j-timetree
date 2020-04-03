@@ -21,7 +21,6 @@ import com.graphaware.common.util.IterableUtils;
 import com.graphaware.module.timetree.domain.Resolution;
 import com.graphaware.module.timetree.domain.TimeInstant;
 import com.graphaware.module.timetree.domain.TimeTreeLabels;
-import com.graphaware.runtime.config.util.InstanceRoleUtils;
 import org.joda.time.DateTime;
 import org.neo4j.graphdb.*;
 import org.neo4j.graphdb.event.TransactionData;
@@ -52,7 +51,6 @@ public class SingleTimeTree implements TimeTree {
 
     private final GraphDatabaseService database;
     private final ReentrantLock rootLock = new ReentrantLock();
-    private final InstanceRoleUtils instanceRoleUtils;
 
     /**
      * Constructor for time tree.
@@ -61,7 +59,6 @@ public class SingleTimeTree implements TimeTree {
      */
     public SingleTimeTree(GraphDatabaseService database) {
         this.database = database;
-        this.instanceRoleUtils = new InstanceRoleUtils(database);
 
         database.registerTransactionEventHandler(new TransactionEventHandler<Boolean>() {
             @Override

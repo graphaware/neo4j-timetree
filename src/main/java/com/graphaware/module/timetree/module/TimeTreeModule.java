@@ -91,36 +91,6 @@ public class TimeTreeModule extends BaseTxDrivenModule<Void> {
                 || transactionData.hasPropertyBeenDeleted(change.getPrevious(), configuration.getCustomTimeTreeRootProperty());
     }
 
-    /**
-     * {@inheritDoc}
-     */
-    @Override
-    public void initialize(GraphDatabaseService database) {
-        if (!configuration.isAutoAttach()) {
-            return;
-        }
-
-        new IterableInputBatchTransactionExecutor<>(database, 1000,
-                new TransactionalInput<>(database, 1000, new TransactionCallback<Iterable<Node>>() {
-                    @Override
-                    public Iterable<Node> doInTransaction(GraphDatabaseService database) throws Exception {
-                        return configuration.getInclusionPolicies().getNodeInclusionPolicy().getAll(database);
-                    }
-                }),
-                new UnitOfWork<Node>() {
-                    @Override
-                    public void execute(GraphDatabaseService database, Node input, int batchNumber, int stepNumber) {
-                        if (stepNumber == 1) {
-                            LOG.info("Attaching existing events to TimeTree in batch " + batchNumber);
-                        }
-                        if (configuration.getInclusionPolicies().getNodeInclusionPolicy().include(input)) {
-                            deleteTimeTreeRelationship(input);
-                            createTimeTreeRelationship(input);
-                        }
-                    }
-                }).execute();
-    }
-
     private void createTimeTreeRelationship(Node created) {
         if (!created.hasProperty(configuration.getTimestampProperty())) {
             LOG.warn("Created node with ID " + created.getId() + " does not have a " + configuration.getTimestampProperty() + " property!");

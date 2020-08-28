@@ -18,7 +18,6 @@ package com.graphaware.module.timetree.logic;
 import com.graphaware.module.timetree.CustomRootTimeTree;
 import com.graphaware.module.timetree.SingleTimeTree;
 import com.graphaware.module.timetree.TimeTree;
-import com.graphaware.module.timetree.api.TimeInstantVO;
 import com.graphaware.module.timetree.domain.TimeInstant;
 import org.neo4j.graphdb.GraphDatabaseService;
 import org.neo4j.graphdb.Node;
@@ -39,7 +38,7 @@ public class TimeTreeBusinessLogic {
 
     public Node getInstant(long time, String resolution, String timezone) throws NotFoundException {
         Node instant;
-        TimeInstant timeInstant = TimeInstant.fromValueObject(new TimeInstantVO(time, resolution, timezone));
+        TimeInstant timeInstant = TimeInstant.createInstant(time, resolution, timezone);
         try (Transaction tx = database.beginTx()) {
             instant = timeTree.getInstant(timeInstant);
             tx.success();
@@ -51,7 +50,7 @@ public class TimeTreeBusinessLogic {
     }
 
     public Node getOrCreateInstant(long time, String resolution, String timezone) {
-        TimeInstant timeInstant = TimeInstant.fromValueObject(new TimeInstantVO(time, resolution, timezone));
+        TimeInstant timeInstant = TimeInstant.createInstant(time, resolution, timezone);
         Node instant;
         try (Transaction tx = database.beginTx()) {
             instant = timeTree.getOrCreateInstant(timeInstant);
@@ -61,8 +60,8 @@ public class TimeTreeBusinessLogic {
     }
 
     public List<Node> getInstants(long startTime, long endTime, String resolution, String timezone) {
-        TimeInstant startTimeInstant = TimeInstant.fromValueObject(new TimeInstantVO(startTime, resolution, timezone));
-        TimeInstant endTimeInstant = TimeInstant.fromValueObject(new TimeInstantVO(endTime, resolution, timezone));
+        TimeInstant startTimeInstant = TimeInstant.createInstant(startTime, resolution, timezone);
+        TimeInstant endTimeInstant = TimeInstant.createInstant(endTime, resolution, timezone);
         List<Node> nodes;
         try (Transaction tx = database.beginTx()) {
             nodes = timeTree.getInstants(startTimeInstant, endTimeInstant);
@@ -72,8 +71,8 @@ public class TimeTreeBusinessLogic {
     }
 
     public List<Node> getOrCreateInstants(long startTime, long endTime, String resolution, String timezone) {
-        TimeInstant startTimeInstant = TimeInstant.fromValueObject(new TimeInstantVO(startTime, resolution, timezone));
-        TimeInstant endTimeInstant = TimeInstant.fromValueObject(new TimeInstantVO(endTime, resolution, timezone));
+        TimeInstant startTimeInstant = TimeInstant.createInstant(startTime, resolution, timezone);
+        TimeInstant endTimeInstant = TimeInstant.createInstant(endTime, resolution, timezone);
         List<Node> nodes;
         try (Transaction tx = database.beginTx()) {
             nodes = timeTree.getOrCreateInstants(startTimeInstant, endTimeInstant);
@@ -83,7 +82,7 @@ public class TimeTreeBusinessLogic {
     }
 
     public Node getInstantWithCustomRoot(long rootNodeId, long time, String resolution, String timezone) throws NotFoundException {
-      TimeInstant timeInstant = TimeInstant.fromValueObject(new TimeInstantVO(time, resolution, timezone));
+      TimeInstant timeInstant = TimeInstant.createInstant(time, resolution, timezone);
       Node instant;
       try (Transaction tx = database.beginTx()) {
           instant = new CustomRootTimeTree(database.getNodeById(rootNodeId)).getInstant(timeInstant);
@@ -96,7 +95,7 @@ public class TimeTreeBusinessLogic {
     }
 
     public Node getOrCreateInstantWithCustomRoot(long rootNodeId, long time, String resolution, String timezone) {
-      TimeInstant timeInstant = TimeInstant.fromValueObject(new TimeInstantVO(time, resolution, timezone));
+      TimeInstant timeInstant = TimeInstant.createInstant(time, resolution, timezone);
       Node instant;
       try (Transaction tx = database.beginTx()) {
           instant = new CustomRootTimeTree(database.getNodeById(rootNodeId)).getOrCreateInstant(timeInstant);
@@ -106,8 +105,8 @@ public class TimeTreeBusinessLogic {
     }
 
     public List<Node> getInstantsWithCustomRoot(long rootNodeId, long startTime, long endTime, String resolution, String timezone) {
-      TimeInstant startTimeInstant = TimeInstant.fromValueObject(new TimeInstantVO(startTime, resolution, timezone));
-      TimeInstant endTimeInstant = TimeInstant.fromValueObject(new TimeInstantVO(endTime, resolution, timezone));
+      TimeInstant startTimeInstant = TimeInstant.createInstant(startTime, resolution, timezone);
+      TimeInstant endTimeInstant = TimeInstant.createInstant(endTime, resolution, timezone);
       List<Node> nodes;
       try (Transaction tx = database.beginTx()) {
           nodes = new CustomRootTimeTree(database.getNodeById(rootNodeId)).getInstants(startTimeInstant, endTimeInstant);
@@ -117,8 +116,8 @@ public class TimeTreeBusinessLogic {
     }
 
     public List<Node> getOrCreateInstantsWithCustomRoot(long rootNodeId, long startTime, long endTime, String resolution, String timezone) {
-      TimeInstant startTimeInstant = TimeInstant.fromValueObject(new TimeInstantVO(startTime, resolution, timezone));
-      TimeInstant endTimeInstant = TimeInstant.fromValueObject(new TimeInstantVO(endTime, resolution, timezone));
+      TimeInstant startTimeInstant = TimeInstant.createInstant(startTime, resolution, timezone);
+      TimeInstant endTimeInstant = TimeInstant.createInstant(endTime, resolution, timezone);
       List<Node> nodes;
       try (Transaction tx = database.beginTx()) {
           nodes = new CustomRootTimeTree(database.getNodeById(rootNodeId)).getOrCreateInstants(startTimeInstant, endTimeInstant);
@@ -126,5 +125,4 @@ public class TimeTreeBusinessLogic {
       }
         return nodes;
     }
-
 }

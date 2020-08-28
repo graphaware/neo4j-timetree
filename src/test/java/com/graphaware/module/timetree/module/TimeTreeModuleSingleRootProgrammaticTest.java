@@ -16,13 +16,9 @@
 
 package com.graphaware.module.timetree.module;
 
-import com.graphaware.common.kv.GraphKeyValueStore;
-import com.graphaware.common.kv.KeyValueStore;
 import com.graphaware.common.policy.inclusion.BaseNodeInclusionPolicy;
-import com.graphaware.common.serialize.Serializer;
 import com.graphaware.runtime.GraphAwareRuntime;
 import com.graphaware.runtime.GraphAwareRuntimeFactory;
-import com.graphaware.runtime.metadata.DefaultTxDrivenModuleMetadata;
 import com.graphaware.test.integration.EmbeddedDatabaseIntegrationTest;
 import org.joda.time.DateTimeZone;
 import org.junit.Test;
@@ -476,25 +472,6 @@ public class TimeTreeModuleSingleRootProgrammaticTest extends EmbeddedDatabaseIn
         createEvent();
 
         assertSameGraph(getDatabase(), "CREATE (:Event {subject:'Neo4j', timestamp:" + TIMESTAMP + "})");
-
-        GraphAwareRuntime runtime = GraphAwareRuntimeFactory.createRuntime(getDatabase());
-        runtime.registerModule(new TimeTreeModule("timetree", TimeTreeConfiguration.defaultConfiguration(), getDatabase()));
-        runtime.start();
-
-        assertSameGraph(getDatabase(), "CREATE (:Event {subject:'Neo4j', timestamp:" + TIMESTAMP + "})");
-    }
-
-    @Test
-    public void shouldNotAttachAnythingWhenModuleHasNotBeenRunningForAWhile() {
-        createEvent();
-
-        assertSameGraph(getDatabase(), "CREATE (:Event {subject:'Neo4j', timestamp:" + TIMESTAMP + "})");
-
-        KeyValueStore keyValueStore = new GraphKeyValueStore(getDatabase());
-        try (Transaction tx = getDatabase().beginTx()) {
-            keyValueStore.set("_GA_TX_MODULE_timetree", Serializer.toByteArray(new DefaultTxDrivenModuleMetadata(TimeTreeConfiguration.defaultConfiguration())));
-            tx.success();
-        }
 
         GraphAwareRuntime runtime = GraphAwareRuntimeFactory.createRuntime(getDatabase());
         runtime.registerModule(new TimeTreeModule("timetree", TimeTreeConfiguration.defaultConfiguration(), getDatabase()));

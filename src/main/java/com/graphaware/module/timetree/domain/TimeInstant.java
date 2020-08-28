@@ -15,7 +15,6 @@
  */
 package com.graphaware.module.timetree.domain;
 
-import com.graphaware.module.timetree.api.TimeInstantVO;
 import org.joda.time.DateTime;
 import org.joda.time.DateTimeZone;
 import org.joda.time.MutableDateTime;
@@ -166,28 +165,8 @@ public class TimeInstant {
 
         return result;
     }
-
-    /**
-     * Create an instant from its corresponding value object.
-     *
-     * @param vo to create the instant from.
-     * @return instant.
-     */
-    public static TimeInstant fromValueObject(TimeInstantVO vo) {
-        TimeInstant instant = TimeInstant.instant(vo.getTime());
-
-        if (vo.getResolution() != null) {
-            instant = instant.with(Resolution.valueOf(vo.getResolution().toUpperCase()));
-        }
-
-        if (vo.getTimezone() != null) {
-            instant = instant.with(DateTimeZone.forTimeZone(TimeZone.getTimeZone(vo.getTimezone())));
-        }
-
-        return instant;
-    }
     
-    public static TimeInstant createInstant(long time, String timezone, String resolution) {
+    public static TimeInstant createInstant(long time, String resolution, String timezone) {
         TimeInstant instant = TimeInstant.instant(time);
 
         if (resolution != null) {

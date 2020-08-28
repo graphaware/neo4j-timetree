@@ -16,34 +16,25 @@
 
 package com.graphaware.module.timetree.module;
 
-import static com.graphaware.module.timetree.domain.Resolution.MONTH;
-import static com.graphaware.test.unit.GraphUnit.assertSameGraph;
-import static org.neo4j.graphdb.Label.label;
+import com.graphaware.common.policy.inclusion.BaseNodeInclusionPolicy;
+import com.graphaware.module.timetree.domain.Resolution;
+import com.graphaware.runtime.GraphAwareRuntime;
+import com.graphaware.runtime.GraphAwareRuntimeFactory;
+import com.graphaware.test.integration.EmbeddedDatabaseIntegrationTest;
+import org.joda.time.DateTimeZone;
+import org.junit.Test;
+import org.junit.rules.TemporaryFolder;
+import org.neo4j.graphdb.*;
+import org.neo4j.graphdb.factory.GraphDatabaseFactory;
 
 import java.io.File;
 import java.io.IOException;
 import java.util.Calendar;
 import java.util.TimeZone;
 
-import org.joda.time.DateTimeZone;
-import org.junit.Test;
-import org.junit.rules.TemporaryFolder;
-import org.neo4j.graphdb.GraphDatabaseService;
-import org.neo4j.graphdb.Label;
-import org.neo4j.graphdb.Node;
-import org.neo4j.graphdb.RelationshipType;
-import org.neo4j.graphdb.Transaction;
-import org.neo4j.graphdb.factory.GraphDatabaseFactory;
-
-import com.graphaware.common.kv.GraphKeyValueStore;
-import com.graphaware.common.kv.KeyValueStore;
-import com.graphaware.common.policy.inclusion.BaseNodeInclusionPolicy;
-import com.graphaware.common.serialize.Serializer;
-import com.graphaware.module.timetree.domain.Resolution;
-import com.graphaware.runtime.GraphAwareRuntime;
-import com.graphaware.runtime.GraphAwareRuntimeFactory;
-import com.graphaware.runtime.metadata.DefaultTxDrivenModuleMetadata;
-import com.graphaware.test.integration.EmbeddedDatabaseIntegrationTest;
+import static com.graphaware.module.timetree.domain.Resolution.MONTH;
+import static com.graphaware.test.unit.GraphUnit.assertSameGraph;
+import static org.neo4j.graphdb.Label.label;
 
 /**
  * Test for {@link TimeTreeModule} set up programatically.
@@ -478,25 +469,6 @@ public class TimeTreeModuleMultiRootProgrammaticTest extends EmbeddedDatabaseInt
         createEvent(createCustomRoot());
 
         assertSameGraph(getDatabase(), "CREATE (root:CustomRoot {name:'CustomRoot'}), (:Event {subject:'Neo4j', timeTreeRootId:0, timestamp:" + TIMESTAMP + "})");
-
-        GraphAwareRuntime runtime = GraphAwareRuntimeFactory.createRuntime(getDatabase());
-        runtime.registerModule(new TimeTreeModule("timetree", TimeTreeConfiguration.defaultConfiguration(), getDatabase()));
-        runtime.start();
-
-        assertSameGraph(getDatabase(), "CREATE (root:CustomRoot {name:'CustomRoot'}), (:Event {subject:'Neo4j', timeTreeRootId:0, timestamp:" + TIMESTAMP + "})");
-    }
-
-    @Test
-    public void shouldNotAttachAnythingWhenModuleHasNotBeenRunningForAWhile() {
-        createEvent(createCustomRoot());
-
-        assertSameGraph(getDatabase(), "CREATE (root:CustomRoot {name:'CustomRoot'}), (:Event {subject:'Neo4j', timeTreeRootId:0, timestamp:" + TIMESTAMP + "})");
-
-        KeyValueStore keyValueStore = new GraphKeyValueStore(getDatabase());
-        try (Transaction tx = getDatabase().beginTx()) {
-            keyValueStore.set("_GA_TX_MODULE_timetree", Serializer.toByteArray(new DefaultTxDrivenModuleMetadata(TimeTreeConfiguration.defaultConfiguration())));
-            tx.success();
-        }
 
         GraphAwareRuntime runtime = GraphAwareRuntimeFactory.createRuntime(getDatabase());
         runtime.registerModule(new TimeTreeModule("timetree", TimeTreeConfiguration.defaultConfiguration(), getDatabase()));

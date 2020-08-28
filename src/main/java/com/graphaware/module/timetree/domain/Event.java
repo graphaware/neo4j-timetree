@@ -15,8 +15,6 @@
  */
 package com.graphaware.module.timetree.domain;
 
-import com.graphaware.api.json.LongIdJsonNode;
-import com.graphaware.module.timetree.api.EventVO;
 import org.neo4j.graphdb.Direction;
 import org.neo4j.graphdb.Node;
 import org.neo4j.graphdb.RelationshipType;
@@ -68,14 +66,5 @@ public class Event {
      */
     public Direction getDirection() {
         return direction;
-    }
-
-    /**
-     * Convert this event to its corresponding value object.
-     *
-     * @return value object.
-     */
-    public EventVO toValueObject() {
-        return new EventVO(new LongIdJsonNode(node), getRelationshipType().name(), getDirection().name());
     }
 }

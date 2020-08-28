@@ -16,18 +16,28 @@
 
 package com.graphaware.module.timetree.api;
 
+import com.fasterxml.jackson.core.JsonProcessingException;
+import com.fasterxml.jackson.databind.ObjectMapper;
+import com.graphaware.common.json.LongIdJsonNode;
 import com.graphaware.common.util.EntityUtils;
 import com.graphaware.test.integration.GraphAwareIntegrationTest;
-import org.apache.http.HttpStatus;
 import org.joda.time.DateTime;
 import org.joda.time.DateTimeZone;
 import org.json.JSONException;
 import org.junit.Test;
 import org.neo4j.graphdb.Node;
+import org.neo4j.graphdb.Result;
 import org.neo4j.graphdb.Transaction;
 import org.skyscreamer.jsonassert.JSONCompareMode;
 
+import java.util.Collections;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
+import java.util.stream.Collectors;
+
 import static com.graphaware.test.unit.GraphUnit.assertSameGraph;
+import static org.junit.Assert.assertFalse;
 import static org.neo4j.graphdb.Label.label;
 import static org.skyscreamer.jsonassert.JSONAssert.assertEquals;
 
@@ -36,13 +46,16 @@ import static org.skyscreamer.jsonassert.JSONAssert.assertEquals;
  */
 public class TimeTreeApiTest extends GraphAwareIntegrationTest {
 
+    private ObjectMapper mapper = new ObjectMapper();
+
     @Test
     public void trivialTreeShouldBeCreatedWhenFirstDayIsRequested() throws JSONException {
         long dateInMillis = dateToMillis(2013, 5, 4);
 
-        httpClient.get(getUrl() + "single/" + dateInMillis, HttpStatus.SC_NOT_FOUND);
+        Map<String, Object> params = Collections.singletonMap("time", dateInMillis);
+        assertNoResults("CALL ga.timetree.single({time: {time}})", params);
 
-        String result = httpClient.post(getUrl() + "single/" + dateInMillis, HttpStatus.SC_OK);
+        assertEquals("{\"id\":3,\"properties\":{\"value\":4},\"labels\":[\"Day\"]}", querySingleInstant("CALL ga.timetree.single({time: {time}, create: true})", params), false);
 
         assertSameGraph(getDatabase(), "CREATE" +
                 "(root:TimeTreeRoot)," +
@@ -56,9 +69,8 @@ public class TimeTreeApiTest extends GraphAwareIntegrationTest {
                 "(month)-[:CHILD]->(day)," +
                 "(month)-[:LAST]->(day)");
 
-        assertEquals("{\"id\":3,\"properties\":{\"value\":4},\"labels\":[\"Day\"]}", result, false);
-        assertEquals("{\"id\":3,\"properties\":{\"value\":4},\"labels\":[\"Day\"]}", httpClient.post(getUrl() + "single/" + dateInMillis, HttpStatus.SC_OK), false);
-        assertEquals("{\"id\":3,\"properties\":{\"value\":4},\"labels\":[\"Day\"]}", httpClient.get(getUrl() + "single/" + dateInMillis, HttpStatus.SC_OK), false);
+        assertEquals("{\"id\":3,\"properties\":{\"value\":4},\"labels\":[\"Day\"]}", querySingleInstant("CALL ga.timetree.single({time: {time}, create: true})", params), false);
+        assertEquals("{\"id\":3,\"properties\":{\"value\":4},\"labels\":[\"Day\"]}", querySingleInstant("CALL ga.timetree.single({time: {time}, create: false})", params), false);
 
         assertSameGraph(getDatabase(), "CREATE" +
                 "(root:TimeTreeRoot)," +
@@ -78,9 +90,10 @@ public class TimeTreeApiTest extends GraphAwareIntegrationTest {
         long startDateInMillis = dateToMillis(2013, 5, 4);
         long endDateInMillis = dateToMillis(2013, 5, 7);
 
-        assertEquals("[]", httpClient.get(getUrl() + "range/" + startDateInMillis + "/" + endDateInMillis, HttpStatus.SC_OK), false);
+        assertEquals("[]", queryInstants("CALL ga.timetree.range({start: {startTime}, end: {endTime}})", toMap("startTime", startDateInMillis, "endTime", endDateInMillis)), false);
 
-        String result = httpClient.post(getUrl() + "range/" + startDateInMillis + "/" + endDateInMillis, HttpStatus.SC_OK);
+        assertEquals("[{\"id\":3,\"properties\":{\"value\":4},\"labels\":[\"Day\"]},{\"id\":4,\"properties\":{\"value\":5},\"labels\":[\"Day\"]},{\"id\":5,\"properties\":{\"value\":6},\"labels\":[\"Day\"]},{\"id\":6,\"properties\":{\"value\":7},\"labels\":[\"Day\"]}]",
+                queryInstants("CALL ga.timetree.range({start: {startTime}, end: {endTime}, create:true})", toMap("startTime", startDateInMillis, "endTime", endDateInMillis)), false);
 
         assertSameGraph(getDatabase(), "CREATE" +
                 "(root:TimeTreeRoot)," +
@@ -100,9 +113,11 @@ public class TimeTreeApiTest extends GraphAwareIntegrationTest {
                 "(day5)-[:NEXT]->(day6)," +
                 "(day6)-[:NEXT]->(day7)");
 
-        assertEquals("[{\"id\":3,\"properties\":{\"value\":4},\"labels\":[\"Day\"]},{\"id\":4,\"properties\":{\"value\":5},\"labels\":[\"Day\"]},{\"id\":5,\"properties\":{\"value\":6},\"labels\":[\"Day\"]},{\"id\":6,\"properties\":{\"value\":7},\"labels\":[\"Day\"]}]", result, false);
-        assertEquals("[{\"id\":3,\"properties\":{\"value\":4},\"labels\":[\"Day\"]},{\"id\":4,\"properties\":{\"value\":5},\"labels\":[\"Day\"]},{\"id\":5,\"properties\":{\"value\":6},\"labels\":[\"Day\"]},{\"id\":6,\"properties\":{\"value\":7},\"labels\":[\"Day\"]}]", httpClient.post(getUrl() + "range/" + startDateInMillis + "/" + endDateInMillis, HttpStatus.SC_OK), false);
-        assertEquals("[{\"id\":3,\"properties\":{\"value\":4},\"labels\":[\"Day\"]},{\"id\":4,\"properties\":{\"value\":5},\"labels\":[\"Day\"]},{\"id\":5,\"properties\":{\"value\":6},\"labels\":[\"Day\"]},{\"id\":6,\"properties\":{\"value\":7},\"labels\":[\"Day\"]}]", httpClient.get(getUrl() + "range/" + startDateInMillis + "/" + endDateInMillis, HttpStatus.SC_OK), false);
+
+        assertEquals("[{\"id\":3,\"properties\":{\"value\":4},\"labels\":[\"Day\"]},{\"id\":4,\"properties\":{\"value\":5},\"labels\":[\"Day\"]},{\"id\":5,\"properties\":{\"value\":6},\"labels\":[\"Day\"]},{\"id\":6,\"properties\":{\"value\":7},\"labels\":[\"Day\"]}]",
+                queryInstants("CALL ga.timetree.range({start: {startTime}, end: {endTime}, create:true})", toMap("startTime", startDateInMillis, "endTime", endDateInMillis)), false);
+        assertEquals("[{\"id\":3,\"properties\":{\"value\":4},\"labels\":[\"Day\"]},{\"id\":4,\"properties\":{\"value\":5},\"labels\":[\"Day\"]},{\"id\":5,\"properties\":{\"value\":6},\"labels\":[\"Day\"]},{\"id\":6,\"properties\":{\"value\":7},\"labels\":[\"Day\"]}]",
+                queryInstants("CALL ga.timetree.range({start: {startTime}, end: {endTime}})", toMap("startTime", startDateInMillis, "endTime", endDateInMillis)), false);
 
         assertSameGraph(getDatabase(), "CREATE" +
                 "(root:TimeTreeRoot)," +
@@ -127,17 +142,16 @@ public class TimeTreeApiTest extends GraphAwareIntegrationTest {
     public void trivialTreeShouldBeCreatedWhenFirstDayIsRequestedWithCustomRoot() throws JSONException {
         long dateInMillis = dateToMillis(2013, 5, 4);
 
-        httpClient.get(getUrl() + "0/single/" + dateInMillis, HttpStatus.SC_NOT_FOUND);
-        httpClient.post(getUrl() + "0/single/" + dateInMillis, HttpStatus.SC_NOT_FOUND);
+        assertNoResults("MATCH (n) WHERE id(n) = 0 CALL ga.timetree.single({root: n, time: {time}}) YIELD instant RETURN instant", toMap("time", dateInMillis));
+        assertNoResults("MATCH (n) WHERE id(n) = 0 CALL ga.timetree.single({root: n, time: {time}, create:true}) YIELD instant RETURN instant", toMap("time", dateInMillis));
 
         try (Transaction tx = getDatabase().beginTx()) {
             getDatabase().createNode(label("CustomRoot"));
             tx.success();
         }
 
-        httpClient.get(getUrl() + "0/single/" + dateInMillis, HttpStatus.SC_NOT_FOUND);
-
-        String result = httpClient.post(getUrl() + "0/single/" + dateInMillis, HttpStatus.SC_OK);
+        assertNoResults("MATCH (n) WHERE id(n) = 0 CALL ga.timetree.single({root: n, time: {time}}) YIELD instant RETURN instant", toMap("time", dateInMillis));
+        assertEquals("{\"properties\":{\"value\":4},\"labels\":[\"Day\"]}", querySingleInstant("MATCH (n) WHERE id(n) = 0 CALL ga.timetree.single({root: n, time: {time}, create:true}) YIELD instant RETURN instant", toMap("time", dateInMillis)), JSONCompareMode.LENIENT);
 
         assertSameGraph(getDatabase(), "CREATE" +
                 "(root:CustomRoot)," +
@@ -151,9 +165,9 @@ public class TimeTreeApiTest extends GraphAwareIntegrationTest {
                 "(month)-[:CHILD]->(day)," +
                 "(month)-[:LAST]->(day)");
 
-        assertEquals("{\"properties\":{\"value\":4},\"labels\":[\"Day\"]}", result, JSONCompareMode.LENIENT);
-        assertEquals("{\"properties\":{\"value\":4},\"labels\":[\"Day\"]}", httpClient.post(getUrl() + "0/single/" + dateInMillis, HttpStatus.SC_OK), JSONCompareMode.LENIENT);
-        assertEquals("{\"properties\":{\"value\":4},\"labels\":[\"Day\"]}", httpClient.get(getUrl() + "0/single/" + dateInMillis, HttpStatus.SC_OK), JSONCompareMode.LENIENT);
+
+        assertEquals("{\"properties\":{\"value\":4},\"labels\":[\"Day\"]}", querySingleInstant("MATCH (n) WHERE id(n) = 0 CALL ga.timetree.single({root: n, time: {time}, create:true}) YIELD instant RETURN instant", toMap("time", dateInMillis)), JSONCompareMode.LENIENT);
+        assertEquals("{\"properties\":{\"value\":4},\"labels\":[\"Day\"]}", querySingleInstant("MATCH (n) WHERE id(n) = 0 CALL ga.timetree.single({root: n, time: {time}}) YIELD instant RETURN instant", toMap("time", dateInMillis)), JSONCompareMode.LENIENT);
 
         assertSameGraph(getDatabase(), "CREATE" +
                 "(root:CustomRoot)," +
@@ -173,17 +187,19 @@ public class TimeTreeApiTest extends GraphAwareIntegrationTest {
         long startDateInMillis = dateToMillis(2013, 5, 4);
         long endDateInMillis = dateToMillis(2013, 5, 7);
 
-        httpClient.post(getUrl() + "0/range/" + startDateInMillis + "/" + endDateInMillis, HttpStatus.SC_NOT_FOUND);
-        httpClient.get(getUrl() + "0/range/" + startDateInMillis + "/" + endDateInMillis, HttpStatus.SC_NOT_FOUND);
+        Map<String, Object> params = toMap("startTime", startDateInMillis, "endTime", endDateInMillis);
+
+        assertNoResults("MATCH (n) WHERE id(n) = 0 CALL ga.timetree.range({root: n, start: {startTime}, end: {endTime}, create:true}) YIELD instant RETURN instant", params);
+        assertNoResults("MATCH (n) WHERE id(n) = 0 CALL ga.timetree.range({root: n, start: {startTime}, end: {endTime}}) YIELD instant RETURN instant", params);
 
         try (Transaction tx = getDatabase().beginTx()) {
             getDatabase().createNode(label("CustomRoot"));
             tx.success();
         }
 
-        assertEquals("[]", httpClient.get(getUrl() + "0/range/" + startDateInMillis + "/" + endDateInMillis, HttpStatus.SC_OK), false);
-
-        String result = httpClient.post(getUrl() + "0/range/" + startDateInMillis + "/" + endDateInMillis, HttpStatus.SC_OK);
+        assertNoResults("MATCH (n) WHERE id(n) = 0 CALL ga.timetree.range({root: n, start: {startTime}, end: {endTime}}) YIELD instant RETURN instant", params);
+        String actualStr = queryInstants("MATCH (n) WHERE id(n) = 0 CALL ga.timetree.range({root: n, start: {startTime}, end: {endTime}, create: true}) YIELD instant RETURN instant", params);
+        assertEquals("[{\"properties\":{\"value\":4},\"labels\":[\"Day\"]},{\"properties\":{\"value\":5},\"labels\":[\"Day\"]},{\"properties\":{\"value\":6},\"labels\":[\"Day\"]},{\"properties\":{\"value\":7},\"labels\":[\"Day\"]}]", actualStr, JSONCompareMode.LENIENT);
 
         assertSameGraph(getDatabase(), "CREATE" +
                 "(root:CustomRoot)," +
@@ -203,9 +219,8 @@ public class TimeTreeApiTest extends GraphAwareIntegrationTest {
                 "(day5)-[:NEXT]->(day6)," +
                 "(day6)-[:NEXT]->(day7)");
 
-        assertEquals("[{\"properties\":{\"value\":4},\"labels\":[\"Day\"]},{\"properties\":{\"value\":5},\"labels\":[\"Day\"]},{\"properties\":{\"value\":6},\"labels\":[\"Day\"]},{\"properties\":{\"value\":7},\"labels\":[\"Day\"]}]", result, JSONCompareMode.LENIENT);
-        assertEquals("[{\"properties\":{\"value\":4},\"labels\":[\"Day\"]},{\"properties\":{\"value\":5},\"labels\":[\"Day\"]},{\"properties\":{\"value\":6},\"labels\":[\"Day\"]},{\"properties\":{\"value\":7},\"labels\":[\"Day\"]}]", httpClient.post(getUrl() + "0/range/" + startDateInMillis + "/" + endDateInMillis, HttpStatus.SC_OK), JSONCompareMode.LENIENT);
-        assertEquals("[{\"properties\":{\"value\":4},\"labels\":[\"Day\"]},{\"properties\":{\"value\":5},\"labels\":[\"Day\"]},{\"properties\":{\"value\":6},\"labels\":[\"Day\"]},{\"properties\":{\"value\":7},\"labels\":[\"Day\"]}]", httpClient.get(getUrl() + "0/range/" + startDateInMillis + "/" + endDateInMillis, HttpStatus.SC_OK), JSONCompareMode.LENIENT);
+        assertEquals("[{\"properties\":{\"value\":4},\"labels\":[\"Day\"]},{\"properties\":{\"value\":5},\"labels\":[\"Day\"]},{\"properties\":{\"value\":6},\"labels\":[\"Day\"]},{\"properties\":{\"value\":7},\"labels\":[\"Day\"]}]", queryInstants("MATCH (n) WHERE id(n) = 0 CALL ga.timetree.range({root: n, start: {startTime}, end: {endTime}, create: true}) YIELD instant RETURN instant", params), JSONCompareMode.LENIENT);
+        assertEquals("[{\"properties\":{\"value\":4},\"labels\":[\"Day\"]},{\"properties\":{\"value\":5},\"labels\":[\"Day\"]},{\"properties\":{\"value\":6},\"labels\":[\"Day\"]},{\"properties\":{\"value\":7},\"labels\":[\"Day\"]}]", queryInstants("MATCH (n) WHERE id(n) = 0 CALL ga.timetree.range({root: n, start: {startTime}, end: {endTime}}) YIELD instant RETURN instant", params), JSONCompareMode.LENIENT);
 
         assertSameGraph(getDatabase(), "CREATE" +
                 "(root:CustomRoot)," +
@@ -230,9 +245,10 @@ public class TimeTreeApiTest extends GraphAwareIntegrationTest {
     public void trivialTreeShouldBeCreatedWhenFirstMilliInstantIsRequested() throws JSONException {
         long dateInMillis = new DateTime(2014, 4, 5, 13, 56, 22, 123, DateTimeZone.UTC).getMillis();
 
-        httpClient.get(getUrl() + "single/" + dateInMillis + "?resolution=millisecond&timezone=GMT%2B1", HttpStatus.SC_NOT_FOUND);
+        Map<String, Object> params = toMap("time", dateInMillis, "resolution", "millisecond", "timezone", "GMT+1");
+        assertNoResults("CALL ga.timetree.single({time: {time}, timezone: {timezone}, resolution: {resolution}})", params);
 
-        String result = httpClient.post(getUrl() + "single/" + dateInMillis + "?resolution=millisecond&timezone=GMT%2B1", HttpStatus.SC_OK);
+        assertEquals("{\"properties\":{\"value\":123},\"labels\":[\"Millisecond\"]}", querySingleInstant("CALL ga.timetree.single({time: {time}, timezone: {timezone}, resolution: {resolution}, create: true})", params), JSONCompareMode.LENIENT);
 
         assertSameGraph(getDatabase(), "CREATE" +
                 "(root:TimeTreeRoot)," +
@@ -258,9 +274,8 @@ public class TimeTreeApiTest extends GraphAwareIntegrationTest {
                 "(second)-[:CHILD]->(milli)," +
                 "(second)-[:LAST]->(milli)");
 
-        assertEquals("{\"properties\":{\"value\":123},\"labels\":[\"Millisecond\"]}", result, JSONCompareMode.LENIENT);
-        assertEquals("{\"properties\":{\"value\":123},\"labels\":[\"Millisecond\"]}", httpClient.post(getUrl() + "single/" + dateInMillis + "?resolution=millisecond&timezone=GMT%2B1", HttpStatus.SC_OK), JSONCompareMode.LENIENT);
-        assertEquals("{\"properties\":{\"value\":123},\"labels\":[\"Millisecond\"]}", httpClient.get(getUrl() + "single/" + dateInMillis + "?resolution=millisecond&timezone=GMT%2B1", HttpStatus.SC_OK), JSONCompareMode.LENIENT);
+        assertEquals("{\"properties\":{\"value\":123},\"labels\":[\"Millisecond\"]}", querySingleInstant("CALL ga.timetree.single({time: {time}, timezone: {timezone}, resolution: {resolution}, create: true})", params), JSONCompareMode.LENIENT);
+        assertEquals("{\"properties\":{\"value\":123},\"labels\":[\"Millisecond\"]}", querySingleInstant("CALL ga.timetree.single({time: {time}, timezone: {timezone}, resolution: {resolution}})", params), JSONCompareMode.LENIENT);
 
         assertSameGraph(getDatabase(), "CREATE" +
                 "(root:TimeTreeRoot)," +
@@ -291,9 +306,10 @@ public class TimeTreeApiTest extends GraphAwareIntegrationTest {
     public void trivialTreeShouldBeCreatedWhenTodayIsRequested() throws JSONException {
         DateTime now = DateTime.now(DateTimeZone.UTC);
 
-        httpClient.get(getUrl() + "now", HttpStatus.SC_NOT_FOUND);
+        assertNoResults("CALL ga.timetree.now({}) YIELD instant RETURN instant", Collections.emptyMap());
 
-        String result = httpClient.post(getUrl() + "now", HttpStatus.SC_OK);
+        String result = querySingleInstant("CALL ga.timetree.now({create:true}) YIELD instant RETURN instant", Collections.emptyMap());
+        assertEquals("{\"properties\":{\"value\":" + now.getDayOfMonth() + "},\"labels\":[\"Day\"]}", result, JSONCompareMode.LENIENT);
 
         assertSameGraph(getDatabase(), "CREATE" +
                 "(root:TimeTreeRoot)," +
@@ -307,9 +323,8 @@ public class TimeTreeApiTest extends GraphAwareIntegrationTest {
                 "(month)-[:CHILD]->(day)," +
                 "(month)-[:LAST]->(day)");
 
-        assertEquals("{\"properties\":{\"value\":" + now.getDayOfMonth() + "},\"labels\":[\"Day\"]}", result, JSONCompareMode.LENIENT);
-        assertEquals("{\"properties\":{\"value\":" + now.getDayOfMonth() + "},\"labels\":[\"Day\"]}", httpClient.post(getUrl() + "now", HttpStatus.SC_OK), JSONCompareMode.LENIENT);
-        assertEquals("{\"properties\":{\"value\":" + now.getDayOfMonth() + "},\"labels\":[\"Day\"]}", httpClient.get(getUrl() + "now", HttpStatus.SC_OK), JSONCompareMode.LENIENT);
+        assertEquals("{\"properties\":{\"value\":" + now.getDayOfMonth() + "},\"labels\":[\"Day\"]}", querySingleInstant("CALL ga.timetree.now({create:true}) YIELD instant RETURN instant", Collections.emptyMap()), JSONCompareMode.LENIENT);
+        assertEquals("{\"properties\":{\"value\":" + now.getDayOfMonth() + "},\"labels\":[\"Day\"]}", querySingleInstant("CALL ga.timetree.now({}) YIELD instant RETURN instant", Collections.emptyMap()), JSONCompareMode.LENIENT);
 
         assertSameGraph(getDatabase(), "CREATE" +
                 "(root:TimeTreeRoot)," +
@@ -329,17 +344,18 @@ public class TimeTreeApiTest extends GraphAwareIntegrationTest {
     public void trivialTreeShouldBeCreatedWhenTodayIsRequestedWithCustomRoot() throws JSONException {
         DateTime now = DateTime.now(DateTimeZone.UTC);
 
-        httpClient.post(getUrl() + "/0/now", HttpStatus.SC_NOT_FOUND);
-        httpClient.get(getUrl() + "/0/now", HttpStatus.SC_NOT_FOUND);
+        assertNoResults("MATCH (n) WHERE id(n) = 0 CALL ga.timetree.now({root:n}) YIELD instant RETURN instant", Collections.emptyMap());
+        assertNoResults("MATCH (n) WHERE id(n) = 0 CALL ga.timetree.now({root:n, create:true}) YIELD instant RETURN instant", Collections.emptyMap());
 
         try (Transaction tx = getDatabase().beginTx()) {
             getDatabase().createNode(label("CustomRoot"));
             tx.success();
         }
 
-        httpClient.get(getUrl() + "/0/now", HttpStatus.SC_NOT_FOUND);
+        assertNoResults("MATCH (n) WHERE id(n) = 0 CALL ga.timetree.now({root:n}) YIELD instant RETURN instant", Collections.emptyMap());
 
-        String result = httpClient.post(getUrl() + "/0/now", HttpStatus.SC_OK);
+        String result = querySingleInstant("MATCH (n) WHERE id(n) = 0 CALL ga.timetree.now({root:n, create:true}) YIELD instant RETURN instant", Collections.emptyMap());
+        assertEquals("{\"properties\":{\"value\":" + now.getDayOfMonth() + "},\"labels\":[\"Day\"]}", result, JSONCompareMode.LENIENT);
 
         assertSameGraph(getDatabase(), "CREATE" +
                 "(root:CustomRoot)," +
@@ -353,9 +369,8 @@ public class TimeTreeApiTest extends GraphAwareIntegrationTest {
                 "(month)-[:CHILD]->(day)," +
                 "(month)-[:LAST]->(day)");
 
-        assertEquals("{\"properties\":{\"value\":" + now.getDayOfMonth() + "},\"labels\":[\"Day\"]}", result, JSONCompareMode.LENIENT);
-        assertEquals("{\"properties\":{\"value\":" + now.getDayOfMonth() + "},\"labels\":[\"Day\"]}", httpClient.post(getUrl() + "/0/now", HttpStatus.SC_OK), JSONCompareMode.LENIENT);
-        assertEquals("{\"properties\":{\"value\":" + now.getDayOfMonth() + "},\"labels\":[\"Day\"]}", httpClient.get(getUrl() + "/0/now", HttpStatus.SC_OK), JSONCompareMode.LENIENT);
+        assertEquals("{\"properties\":{\"value\":" + now.getDayOfMonth() + "},\"labels\":[\"Day\"]}", querySingleInstant("MATCH (n) WHERE id(n) = 0 CALL ga.timetree.now({root:n, create:true}) YIELD instant RETURN instant", Collections.emptyMap()), JSONCompareMode.LENIENT);
+        assertEquals("{\"properties\":{\"value\":" + now.getDayOfMonth() + "},\"labels\":[\"Day\"]}", querySingleInstant("MATCH (n) WHERE id(n) = 0 CALL ga.timetree.now({root:n}) YIELD instant RETURN instant", Collections.emptyMap()), JSONCompareMode.LENIENT);
 
         assertSameGraph(getDatabase(), "CREATE" +
                 "(root:CustomRoot)," +
@@ -373,7 +388,10 @@ public class TimeTreeApiTest extends GraphAwareIntegrationTest {
     @Test
     public void whenTheRootIsDeletedSubsequentRestApiCallsShouldBeOK() throws JSONException {
         long dateInMillis = dateToMillis(2013, 5, 4);
-        String result = httpClient.post(getUrl() + "single/" + dateInMillis, HttpStatus.SC_OK);
+
+        Map<String, Object> params = Collections.singletonMap("time", dateInMillis);
+        String result = querySingleInstant("CALL ga.timetree.single({time: {time}, create:true})", params);
+
         assertEquals("{\"properties\":{\"value\":4},\"labels\":[\"Day\"]}", result, JSONCompareMode.LENIENT);
 
         try (Transaction tx = getDatabase().beginTx()) {
@@ -383,7 +401,8 @@ public class TimeTreeApiTest extends GraphAwareIntegrationTest {
             tx.success();
         }
 
-        result = httpClient.post(getUrl() + "single/" + dateInMillis, HttpStatus.SC_OK);
+        result = querySingleInstant("CALL ga.timetree.single({time: {time}, create:true})", params);
+        assertEquals("{\"properties\":{\"value\":4},\"labels\":[\"Day\"]}", result, JSONCompareMode.LENIENT);
 
         assertSameGraph(getDatabase(), "CREATE" +
                 "(root:TimeTreeRoot)," +
@@ -397,9 +416,8 @@ public class TimeTreeApiTest extends GraphAwareIntegrationTest {
                 "(month)-[:CHILD]->(day)," +
                 "(month)-[:LAST]->(day)");
 
-        assertEquals("{\"properties\":{\"value\":4},\"labels\":[\"Day\"]}", result, JSONCompareMode.LENIENT);
-        assertEquals("{\"properties\":{\"value\":4},\"labels\":[\"Day\"]}", httpClient.post(getUrl() + "single/" + dateInMillis, HttpStatus.SC_OK), JSONCompareMode.LENIENT);
-        assertEquals("{\"properties\":{\"value\":4},\"labels\":[\"Day\"]}", httpClient.get(getUrl() + "single/" + dateInMillis, HttpStatus.SC_OK), JSONCompareMode.LENIENT);
+        assertEquals("{\"properties\":{\"value\":4},\"labels\":[\"Day\"]}", querySingleInstant("CALL ga.timetree.single({time: {time}, create:true})", params), JSONCompareMode.LENIENT);
+        assertEquals("{\"properties\":{\"value\":4},\"labels\":[\"Day\"]}", querySingleInstant("CALL ga.timetree.single({time: {time}})", params), JSONCompareMode.LENIENT);
 
         assertSameGraph(getDatabase(), "CREATE" +
                 "(root:TimeTreeRoot)," +
@@ -422,7 +440,7 @@ public class TimeTreeApiTest extends GraphAwareIntegrationTest {
         }
 
         long dateInMillis = dateToMillis(2013, 5, 4);
-        String result = httpClient.post(getUrl() + "0/single/" + dateInMillis, HttpStatus.SC_OK);
+        String result = querySingleInstant("MATCH (n) WHERE id(n) = 0 CALL ga.timetree.single({root: n, time: {time}, create:true}) YIELD instant RETURN instant", toMap("time", dateInMillis));
         assertEquals("{\"properties\":{\"value\":4},\"labels\":[\"Day\"]}", result, JSONCompareMode.LENIENT);
 
         try (Transaction tx = getDatabase().beginTx()) {
@@ -432,8 +450,8 @@ public class TimeTreeApiTest extends GraphAwareIntegrationTest {
             tx.success();
         }
 
-        httpClient.post(getUrl() + "0/single/" + dateInMillis, HttpStatus.SC_NOT_FOUND);
-        httpClient.get(getUrl() + "0/single/" + dateInMillis, HttpStatus.SC_NOT_FOUND);
+        assertNoResults("MATCH (n) WHERE id(n) = 0 CALL ga.timetree.single({root: n, time: {time}, create:true}) YIELD instant RETURN instant", toMap("time", dateInMillis));
+        assertNoResults("MATCH (n) WHERE id(n) = 0 CALL ga.timetree.single({root: n, time: {time}}) YIELD instant RETURN instant", toMap("time", dateInMillis));
     }
 
     @Test
@@ -443,26 +461,26 @@ public class TimeTreeApiTest extends GraphAwareIntegrationTest {
 
         //When
         String timezone = "America/Los_Angeles";
-        String result = httpClient.post(getUrl() + "single/" + dateInMillis + "?resolution=minute&timezone=" + timezone, HttpStatus.SC_OK);
+        String result = querySingleInstant("CALL ga.timetree.single({time: {time}, create:true, resolution:{resolution}, timezone:{timezone}}) YIELD instant RETURN instant", toMap("time", dateInMillis, "resolution", "minute", "timezone", timezone));
 
         //Then
         assertSameGraph(getDatabase(), "CREATE" +
-                        "(root:TimeTreeRoot)," +
-                        "(root)-[:FIRST]->(year:Year {value:2014})," +
-                        "(root)-[:CHILD]->(year)," +
-                        "(root)-[:LAST]->(year)," +
-                        "(year)-[:FIRST]->(month:Month {value:10})," +
-                        "(year)-[:CHILD]->(month)," +
-                        "(year)-[:LAST]->(month)," +
-                        "(month)-[:FIRST]->(day:Day {value:24})," +
-                        "(month)-[:CHILD]->(day)," +
-                        "(month)-[:LAST]->(day)," +
-                        "(day)-[:CHILD]->(hour:Hour{value:23})," +
-                        "(day)-[:FIRST]->(hour)," +
-                        "(day)-[:LAST]->(hour)," +
-                        "(hour)-[:CHILD]->(minute:Minute{value:36})," +
-                        "(hour)-[:FIRST]->(minute)," +
-                        "(hour)-[:LAST]->(minute)"
+                "(root:TimeTreeRoot)," +
+                "(root)-[:FIRST]->(year:Year {value:2014})," +
+                "(root)-[:CHILD]->(year)," +
+                "(root)-[:LAST]->(year)," +
+                "(year)-[:FIRST]->(month:Month {value:10})," +
+                "(year)-[:CHILD]->(month)," +
+                "(year)-[:LAST]->(month)," +
+                "(month)-[:FIRST]->(day:Day {value:24})," +
+                "(month)-[:CHILD]->(day)," +
+                "(month)-[:LAST]->(day)," +
+                "(day)-[:CHILD]->(hour:Hour{value:23})," +
+                "(day)-[:FIRST]->(hour)," +
+                "(day)-[:LAST]->(hour)," +
+                "(hour)-[:CHILD]->(minute:Minute{value:36})," +
+                "(hour)-[:FIRST]->(minute)," +
+                "(hour)-[:LAST]->(minute)"
         );
 
         assertEquals("{\"properties\":{\"value\":36},\"labels\":[\"Minute\"]}", result, JSONCompareMode.LENIENT);
@@ -475,26 +493,26 @@ public class TimeTreeApiTest extends GraphAwareIntegrationTest {
 
         //When
         String timezone = "PST";
-        String result = httpClient.post(getUrl() + "single/" + dateInMillis + "?resolution=minute&timezone=" + timezone, HttpStatus.SC_OK);
+        String result = querySingleInstant("CALL ga.timetree.single({time: {time}, create:true, resolution:{resolution}, timezone:{timezone}}) YIELD instant RETURN instant", toMap("time", dateInMillis, "resolution", "minute", "timezone", timezone));
 
         //Then
         assertSameGraph(getDatabase(), "CREATE" +
-                        "(root:TimeTreeRoot)," +
-                        "(root)-[:FIRST]->(year:Year {value:2014})," +
-                        "(root)-[:CHILD]->(year)," +
-                        "(root)-[:LAST]->(year)," +
-                        "(year)-[:FIRST]->(month:Month {value:10})," +
-                        "(year)-[:CHILD]->(month)," +
-                        "(year)-[:LAST]->(month)," +
-                        "(month)-[:FIRST]->(day:Day {value:25})," +
-                        "(month)-[:CHILD]->(day)," +
-                        "(month)-[:LAST]->(day)," +
-                        "(day)-[:CHILD]->(hour:Hour{value:12})," +
-                        "(day)-[:FIRST]->(hour)," +
-                        "(day)-[:LAST]->(hour)," +
-                        "(hour)-[:CHILD]->(minute:Minute{value:9})," +
-                        "(hour)-[:FIRST]->(minute)," +
-                        "(hour)-[:LAST]->(minute)"
+                "(root:TimeTreeRoot)," +
+                "(root)-[:FIRST]->(year:Year {value:2014})," +
+                "(root)-[:CHILD]->(year)," +
+                "(root)-[:LAST]->(year)," +
+                "(year)-[:FIRST]->(month:Month {value:10})," +
+                "(year)-[:CHILD]->(month)," +
+                "(year)-[:LAST]->(month)," +
+                "(month)-[:FIRST]->(day:Day {value:25})," +
+                "(month)-[:CHILD]->(day)," +
+                "(month)-[:LAST]->(day)," +
+                "(day)-[:CHILD]->(hour:Hour{value:12})," +
+                "(day)-[:FIRST]->(hour)," +
+                "(day)-[:LAST]->(hour)," +
+                "(hour)-[:CHILD]->(minute:Minute{value:9})," +
+                "(hour)-[:FIRST]->(minute)," +
+                "(hour)-[:LAST]->(minute)"
         );
 
         assertEquals("{\"properties\":{\"value\":9},\"labels\":[\"Minute\"]}", result, JSONCompareMode.LENIENT);
@@ -506,7 +524,7 @@ public class TimeTreeApiTest extends GraphAwareIntegrationTest {
         long dateInMillis = dateToMillis(1940, 2, 5);
 
         //When
-        String result = httpClient.post(getUrl() + "single/" + dateInMillis, HttpStatus.SC_OK);
+        String result = querySingleInstant("CALL ga.timetree.single({time: {time}, create:true}) YIELD instant RETURN instant", toMap("time", dateInMillis));
 
         //Then
         assertSameGraph(getDatabase(), "CREATE" +
@@ -532,7 +550,46 @@ public class TimeTreeApiTest extends GraphAwareIntegrationTest {
         return new DateTime(year, month, day, 0, 0, DateTimeZone.UTC);
     }
 
-    private String getUrl() {
-        return baseUrl() + "/timetree/";
+    public static Map<String, Object> toMap(Object... objects) {
+        Map<String, Object> result = new HashMap<>();
+        for (int i = 0; i < objects.length - 1; i += 2) {
+            result.put((String) objects[i], objects[i + 1]);
+        }
+        return result;
+    }
+
+    private void assertNoResults(String query, Map<String, Object> params) {
+        Result r = getDatabase().execute(query, params);
+        assertFalse(r.hasNext());
+    }
+
+    private String querySingleInstant(String query, Map<String, Object> params) {
+        Result r = getDatabase().execute(query, params);
+        return nodeToJson((Node) r.columnAs("instant").next());
+    }
+
+    private String queryInstants(String query, Map<String, Object> params) {
+        Result r = getDatabase().execute(query, params);
+        System.out.println(r.resultAsString());
+        try (Transaction tx = getDatabase().beginTx()) {
+            List<LongIdJsonNode> nodes = r.columnAs("instant").stream().map(o -> new LongIdJsonNode((Node) o)).collect(Collectors.toList());
+            try {
+                return mapper.writeValueAsString(nodes);
+            } catch (JsonProcessingException e) {
+                throw new RuntimeException(e);
+            }
+        }
+    }
+
+    private String nodeToJson(Node node) {
+        String result;
+        try (Transaction tx = getDatabase().beginTx()) {
+            try {
+                result = mapper.writeValueAsString(new LongIdJsonNode(node));
+            } catch (JsonProcessingException e) {
+                throw new RuntimeException(e);
+            }
+        }
+        return result;
     }
 }

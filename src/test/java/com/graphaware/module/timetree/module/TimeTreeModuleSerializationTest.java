@@ -15,44 +15,27 @@
  */
 package com.graphaware.module.timetree.module;
 
-import static com.graphaware.module.timetree.domain.Resolution.MONTH;
 import com.graphaware.runtime.GraphAwareRuntime;
 import com.graphaware.runtime.GraphAwareRuntimeFactory;
-import com.graphaware.runtime.config.FluentRuntimeConfiguration;
-import com.graphaware.runtime.metadata.DefaultTxDrivenModuleMetadata;
-import com.graphaware.runtime.metadata.GraphPropertiesMetadataRepository;
-import com.graphaware.runtime.metadata.ModuleMetadata;
-import com.graphaware.runtime.metadata.ModuleMetadataRepository;
+import org.junit.Test;
+import org.junit.rules.TemporaryFolder;
+import org.neo4j.graphdb.GraphDatabaseService;
+import org.neo4j.graphdb.Label;
+import org.neo4j.graphdb.factory.GraphDatabaseFactory;
+
 import java.io.File;
 import java.io.IOException;
 import java.util.Calendar;
 import java.util.TimeZone;
-import static org.junit.Assert.assertEquals;
-import org.junit.Test;
 
-import org.junit.rules.TemporaryFolder;
-import org.neo4j.graphdb.GraphDatabaseService;
-import org.neo4j.graphdb.Label;
+import static com.graphaware.module.timetree.domain.Resolution.MONTH;
 import static org.neo4j.graphdb.Label.label;
-import org.neo4j.graphdb.factory.GraphDatabaseFactory;
 
 /**
  * Unit test for
  * {@link com.graphaware.module.timetree.module.TimeTreeConfiguration}
  */
 public class TimeTreeModuleSerializationTest {
-
-    private static final Label Email = label("Email");
-    private static final Label Event = label("Event");
-    private static final Label CustomRoot = label("CustomRoot");
-    private static final long TIMESTAMP;
-    private ModuleMetadataRepository repository;
-
-    static {
-        Calendar c = Calendar.getInstance(TimeZone.getTimeZone("GMT"));
-        c.set(2015, Calendar.APRIL, 5, 12, 55, 22);
-        TIMESTAMP = c.getTimeInMillis();
-    }
 
     @Test
     public void testRestartingDatabase() throws IOException {
@@ -75,29 +58,6 @@ public class TimeTreeModuleSerializationTest {
         runtime.registerModule(new TimeTreeModule("timetree", TimeTreeConfiguration.defaultConfiguration().withResolution(MONTH).withAutoAttach(true), database));
         runtime.start();
         runtime.waitUntilStarted();
-
-        database.shutdown();
-
-        temporaryFolder.delete();
-    }
-    
-    @Test
-    public void testStore() throws IOException {
-
-        
-        TemporaryFolder temporaryFolder = new TemporaryFolder();
-        temporaryFolder.create();
-        temporaryFolder.getRoot().deleteOnExit();
-
-        GraphDatabaseService database = new GraphDatabaseFactory().newEmbeddedDatabase(new File(temporaryFolder.getRoot().getAbsolutePath()));
-        
-        repository = new GraphPropertiesMetadataRepository(database, FluentRuntimeConfiguration.defaultConfiguration(database), "TEST");
-
-        ModuleMetadata metadata = new DefaultTxDrivenModuleMetadata(TimeTreeConfiguration.defaultConfiguration().withAutoAttach(true));
-
-        repository.persistModuleMetadata("TEST", metadata);
-
-        assertEquals(metadata, repository.getModuleMetadata("TEST"));
 
         database.shutdown();
 

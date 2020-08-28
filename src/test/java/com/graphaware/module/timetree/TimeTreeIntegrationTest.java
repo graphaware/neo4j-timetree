@@ -36,11 +36,6 @@ import static org.junit.Assert.assertNotSame;
 public class TimeTreeIntegrationTest extends GraphAwareIntegrationTest {
 
     @Test
-    public void graphAwareApisAreMountedWhenPresentOnClasspath() throws InterruptedException, IOException {
-        httpClient.post(baseUrl() + "/timetree/now/", HttpStatus.OK_200);
-    }
-
-    @Test
     public void verifyLotsOfConcurrentRequestsDoNotCauseExceptions() throws InterruptedException {
         ExecutorService executor = Executors.newFixedThreadPool(20);
         int noRequests = 1000;
